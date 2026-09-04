@@ -124,6 +124,34 @@ p { color: var(--muted); margin: 0 0 16px; }
   margin-top: 20px;
   flex-wrap: wrap;
 }
+.exit-actions {
+  margin-top: 44px;
+  padding-top: 20px;
+  border-top: 1px dashed var(--border);
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+}
+.modal-box {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 24px;
+  max-width: 420px;
+  width: 100%;
+}
+.modal-box h3 { margin: 0 0 10px; }
+.modal-box p { margin: 0; }
+.modal-box .actions { margin-top: 20px; }
 
 /* Landing */
 .hero-badges {

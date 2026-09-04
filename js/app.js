@@ -14,6 +14,7 @@ const state = {
   exerciseAnswers: {},    // { questionId: selectedOptionIndex }
   exerciseRevealed: {},   // { questionId: true } once answered
   landingDetailsOpen: false,
+  testExitConfirmOpen: false,
 };
 
 const app = document.getElementById("app");
@@ -77,10 +78,40 @@ function findTestQuestionById(id) {
   return TEST_QUESTIONS.find(q => q.id === id);
 }
 
+function renderConfirmModal({ title, message, confirmLabel, cancelLabel, onConfirm, onCancel }) {
+  return `
+    <div class="modal-overlay" onclick="if(event.target===this){${onCancel}}">
+      <div class="modal-box">
+        <h3>${escapeHtml(title)}</h3>
+        <p>${escapeHtml(message)}</p>
+        <div class="actions">
+          <button class="btn secondary" onclick="${onCancel}">${escapeHtml(cancelLabel)}</button>
+          <button class="btn" onclick="${onConfirm}">${escapeHtml(confirmLabel)}</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 /* ===================== Navegação ===================== */
 function goLanding() {
   state.view = "landing";
   render();
+}
+
+function requestExitTest() {
+  state.testExitConfirmOpen = true;
+  render();
+}
+
+function cancelExitTest() {
+  state.testExitConfirmOpen = false;
+  render();
+}
+
+function confirmExitTest() {
+  state.testExitConfirmOpen = false;
+  goLanding();
 }
 
 function toggleLandingDetails() {
@@ -310,10 +341,18 @@ function renderTest() {
           ${isLast ? "Ver resultado" : "Próxima"}
         </button>
       </div>
-      <div class="actions">
-        <button class="btn secondary block" onclick="goLanding()">Voltar ao início</button>
+      <div class="exit-actions">
+        <button class="btn secondary block" onclick="requestExitTest()">Voltar ao início</button>
       </div>
     </div>
+    ${state.testExitConfirmOpen ? renderConfirmModal({
+      title: "Sair do teste?",
+      message: "Você ainda não terminou este teste. Se sair agora, todas as respostas dadas até aqui serão perdidas.",
+      confirmLabel: "Sair e perder respostas",
+      cancelLabel: "Continuar teste",
+      onConfirm: "confirmExitTest()",
+      onCancel: "cancelExitTest()",
+    }) : ""}
   `;
 }
 
