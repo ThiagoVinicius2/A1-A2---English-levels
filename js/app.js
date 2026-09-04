@@ -1,6 +1,7 @@
 /* ===================== Estado da aplicação ===================== */
 const STORAGE_KEY = "enCheckLastResults";
-const WEAK_THRESHOLD = 75; // % mínimo para considerar a categoria "dominada"
+const WEAK_THRESHOLD = 75;   // usado só para colorir a barra de desempenho (verde/amarelo/vermelho)
+const MASTERY_PCT = 100;     // qualquer categoria abaixo disso sempre entra na revisão/prática
 
 const state = {
   view: "landing",       // landing | test | results | exercise | exerciseSummary
@@ -38,9 +39,11 @@ function barClass(p) {
 }
 
 function cefrLabel(overall) {
-  if (overall >= 85) return "Nível A2 consolidado — pronto(a) para avançar ao B1";
-  if (overall >= 65) return "Nível A2";
-  if (overall >= 40) return "Nível A1";
+  // Critério exigente: este teste é propositalmente mais rigoroso que a média,
+  // já que o objetivo é confirmar que o inglês está pronto para o mercado de trabalho.
+  if (overall >= 97) return "Nível A2 sólido — pronto(a) para avançar ao B1 em contexto profissional";
+  if (overall >= 85) return "Nível A2, mas ainda com pontos a firmar antes de uma entrevista real";
+  if (overall >= 55) return "Nível A1";
   return "Iniciante (pré-A1) — vamos reforçar o básico";
 }
 
@@ -67,6 +70,10 @@ function escapeHtml(str) {
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
+}
+
+function findTestQuestionById(id) {
+  return TEST_QUESTIONS.find(q => q.id === id);
 }
 
 /* ===================== Navegação ===================== */
@@ -110,22 +117,25 @@ function finishTest() {
   Object.keys(CATEGORIES).forEach(key => { byCategory[key] = { correct: 0, total: 0 }; });
 
   let totalCorrect = 0;
+  const mistakes = [];
   state.testQuestions.forEach(q => {
     const sel = state.testAnswers[q.id];
     byCategory[q.category].total++;
     if (sel === q.correct) {
       byCategory[q.category].correct++;
       totalCorrect++;
+    } else {
+      mistakes.push({ question: q, selected: sel });
     }
   });
 
   const categoryPct = {};
-  const weakCategories = [];
+  const improvableCategories = []; // qualquer categoria com nota < 100%, mesmo que seja só 1 erro
   Object.keys(byCategory).forEach(key => {
     const c = byCategory[key];
     const p = pct(c.correct, c.total);
     categoryPct[key] = p;
-    if (p < WEAK_THRESHOLD) weakCategories.push(key);
+    if (p < MASTERY_PCT) improvableCategories.push(key);
   });
 
   const overallPct = pct(totalCorrect, state.testQuestions.length);
@@ -134,7 +144,8 @@ function finishTest() {
     overallPct,
     cefr: cefrLabel(overallPct),
     categoryPct,
-    weakCategories,
+    improvableCategories,
+    mistakes: mistakes.map(m => ({ questionId: m.question.id, selected: m.selected })),
     totalCorrect,
     totalQuestions: state.testQuestions.length,
   };
@@ -188,15 +199,15 @@ function renderLanding() {
   const lastBlock = last ? `
     <div class="last-result">
       <strong>Último resultado:</strong> ${last.overallPct}% de acertos — ${escapeHtml(last.cefr)}
-      <br>${last.weakCategories.length
-        ? `Pontos a reforçar: ${last.weakCategories.map(k => CATEGORIES[k].label).join(", ")}`
-        : "Nenhum ponto fraco identificado da última vez. 🎉"}
+      <br>${last.improvableCategories.length
+        ? `Categorias que ainda não estão em 100%: ${last.improvableCategories.map(k => CATEGORIES[k].label).join(", ")}`
+        : "Você acertou 100% em todas as categorias da última vez. 🎉"}
     </div>
   ` : "";
 
-  const practiceShortcut = last && last.weakCategories.length ? `
-    <button class="btn secondary block" onclick="startExercises(${JSON.stringify(last.weakCategories).replace(/"/g, "&quot;")})">
-      Praticar meus pontos fracos (do último teste)
+  const practiceShortcut = last && last.improvableCategories.length ? `
+    <button class="btn secondary block" onclick="startExercises(${JSON.stringify(last.improvableCategories).replace(/"/g, "&quot;")})">
+      Praticar categorias que ainda não estão em 100% (do último teste)
     </button>
   ` : "";
 
@@ -206,13 +217,19 @@ function renderLanding() {
         <span class="badge">Nível A1</span>
         <span class="badge">Nível A2</span>
       </div>
-      <h1>Teste de nivelamento de Inglês</h1>
-      <p>Responda ${TEST_QUESTIONS.length} questões de gramática e vocabulário básico. Ao final, você recebe seu
-      desempenho por categoria e uma lista de exercícios de reforço feita sob medida para os pontos em que você
-      errou mais — cada exercício explica por que a resposta certa é certa e por que as outras opções estão erradas.</p>
+      <h1>Teste de nivelamento de Inglês para carreira em Dados</h1>
+      <p>Eu sou um professor exigente: este teste de A1-A2 é propositalmente mais difícil do que a maioria dos
+      testes de nivelamento por aí, com questões contextualizadas (não apenas frases soltas) e pegadinhas
+      pensadas para pessoas que já estudaram o básico. O objetivo não é te aprovar fácil — é confirmar,
+      com confiança, que seu inglês está pronto para uma entrevista real. Todas as perguntas e exercícios
+      giram em torno do dia a dia de quem trabalha com dados (relatórios, planilhas, dashboards, reuniões
+      e processos seletivos em inglês), já que essa é a sua meta: conseguir uma vaga que exija inglês.</p>
 
       <div class="info-box">
-        O teste cobre:
+        Responda ${TEST_QUESTIONS.length} questões de gramática e vocabulário. Ao final, você vê seu desempenho
+        por categoria, revê <strong>todas</strong> as questões que errou com explicação detalhada, e recebe
+        exercícios extras para <strong>toda categoria que não ficar 100%</strong> — mesmo que tenha errado só uma
+        questão nela. O teste cobre:
         <ul>
           ${Object.values(CATEGORIES).map(c => `<li>${escapeHtml(c.label)} (${c.level})</li>`).join("")}
         </ul>
@@ -270,7 +287,7 @@ function renderTest() {
 /* ---------- Results ---------- */
 function renderResults() {
   const r = state.results;
-  const weakNames = r.weakCategories.map(k => CATEGORIES[k].label);
+  const improvableNames = r.improvableCategories.map(k => CATEGORIES[k].label);
 
   app.innerHTML = `
     <div class="card">
@@ -292,21 +309,62 @@ function renderResults() {
         `;
       }).join("")}
 
-      <div class="section-title">Pontos a reforçar</div>
-      ${weakNames.length
-        ? `<div class="weak-list">${weakNames.map(n => `<span class="weak-chip">${escapeHtml(n)}</span>`).join("")}</div>`
-        : `<div class="all-good">Muito bem! Você não teve pontos fracos abaixo de ${WEAK_THRESHOLD}% neste teste.</div>`
+      <div class="section-title">Categorias que ainda não estão em 100%</div>
+      ${improvableNames.length
+        ? `<div class="weak-list">${improvableNames.map(n => `<span class="weak-chip">${escapeHtml(n)}</span>`).join("")}</div>
+           <p style="margin-top:10px; font-size:0.85rem;">Meu critério é rígido de propósito: qualquer categoria abaixo de 100%
+           entra na lista de prática, mesmo que tenha sido só uma questão errada.</p>`
+        : `<div class="all-good">Excelente! Você acertou 100% em todas as categorias neste teste.</div>`
       }
 
+      ${renderMistakesReview(r.mistakes)}
+
       <div class="actions" style="flex-direction:column; margin-top:24px;">
-        ${weakNames.length
-          ? `<button class="btn block" onclick='startExercises(${JSON.stringify(r.weakCategories)})'>Praticar meus pontos fracos</button>`
+        ${improvableNames.length
+          ? `<button class="btn block" onclick='startExercises(${JSON.stringify(r.improvableCategories)})'>Praticar categorias abaixo de 100%</button>`
           : `<button class="btn block" onclick='startExercises(${JSON.stringify(Object.keys(CATEGORIES))})'>Praticar todas as categorias (revisão geral)</button>`
         }
         <button class="btn secondary block" onclick="startTest()">Refazer o teste</button>
         <button class="btn secondary block" onclick="goLanding()">Voltar ao início</button>
       </div>
     </div>
+  `;
+}
+
+/* Sempre exibe a revisão detalhada de cada questão que o usuário errou no teste,
+   independentemente da % de acerto da categoria. */
+function renderMistakesReview(mistakes) {
+  if (!mistakes || !mistakes.length) {
+    return `
+      <div class="section-title">Revisão das respostas erradas</div>
+      <div class="all-good">Você não errou nenhuma questão neste teste. Nada para revisar aqui!</div>
+    `;
+  }
+
+  const blocks = mistakes.map(m => {
+    const q = findTestQuestionById(m.questionId);
+    if (!q) return "";
+    return `
+      <div class="card" style="box-shadow:none; border-color:var(--border); margin-bottom:14px; padding:18px;">
+        <span class="q-level">${CATEGORIES[q.category].level} &middot; ${escapeHtml(CATEGORIES[q.category].label)}</span>
+        <div class="q-prompt" style="font-size:1.05rem;">${escapeHtml(q.prompt)}</div>
+        <div class="explain-list">
+          ${q.options.map((opt, i) => {
+            let cls = "explain-item";
+            let tag = "";
+            if (i === q.correct) { cls += " is-correct"; tag = " (resposta certa)"; }
+            else if (i === m.selected) { tag = " (sua resposta)"; }
+            return `<div class="${cls}"><strong>${escapeHtml(opt)}${tag}:</strong> ${escapeHtml(q.explanations[i])}</div>`;
+          }).join("")}
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  return `
+    <div class="section-title">Revisão das respostas erradas (${mistakes.length})</div>
+    <p style="font-size:0.85rem; margin-top:-4px;">Toda questão errada é sempre revisada aqui, com a explicação completa de cada opção.</p>
+    ${blocks}
   `;
 }
 
