@@ -223,7 +223,7 @@ function renderLanding() {
     <div class="card">
       <div class="hero-badges">
         <span class="badge">Nível A1</span>
-        <span class="badge">Nível A2</span>
+        <span class="badge accent2">Nível A2</span>
       </div>
       <div class="title-row">
         <h1>Teste de nivelamento de Inglês para carreira em Dados</h1>
@@ -256,7 +256,7 @@ function renderLanding() {
               </ul>
             </div>
             <div class="cat-column">
-              <div class="cat-column-title">Nível A2</div>
+              <div class="cat-column-title accent2">Nível A2</div>
               <ul>
                 ${Object.values(CATEGORIES).filter(c => c.level === "A2").map(c => `<li>${escapeHtml(c.label)}</li>`).join("")}
               </ul>
@@ -293,7 +293,7 @@ function renderTest() {
         <div class="progress-bar"><div class="progress-fill" style="width:${(state.testIndex / total) * 100}%"></div></div>
       </div>
 
-      <span class="q-level">${CATEGORIES[q.category].level} &middot; ${escapeHtml(CATEGORIES[q.category].label)}</span>
+      <span class="q-level${CATEGORIES[q.category].level === "A2" ? " accent2" : ""}">${CATEGORIES[q.category].level} &middot; ${escapeHtml(CATEGORIES[q.category].label)}</span>
       <div class="q-prompt">${escapeHtml(q.prompt)}</div>
 
       <div class="options">
@@ -379,7 +379,7 @@ function renderMistakesReview(mistakes) {
     if (!q) return "";
     return `
       <div class="card" style="box-shadow:none; border-color:var(--border); margin-bottom:14px; padding:18px;">
-        <span class="q-level">${CATEGORIES[q.category].level} &middot; ${escapeHtml(CATEGORIES[q.category].label)}</span>
+        <span class="q-level${CATEGORIES[q.category].level === "A2" ? " accent2" : ""}">${CATEGORIES[q.category].level} &middot; ${escapeHtml(CATEGORIES[q.category].label)}</span>
         <div class="q-prompt" style="font-size:1.05rem;">${escapeHtml(q.prompt)}</div>
         <div class="explain-list">
           ${q.options.map((opt, i) => {
@@ -421,8 +421,8 @@ function renderExercise() {
       </div>
 
       <div class="ex-header">
-        <span class="ex-cat-label">${escapeHtml(CATEGORIES[q.category].label)}</span>
-        <span class="q-level" style="margin:0;">${CATEGORIES[q.category].level}</span>
+        <span class="ex-cat-label${CATEGORIES[q.category].level === "A2" ? " accent2" : ""}">${escapeHtml(CATEGORIES[q.category].label)}</span>
+        <span class="q-level${CATEGORIES[q.category].level === "A2" ? " accent2" : ""}" style="margin:0;">${CATEGORIES[q.category].level}</span>
       </div>
 
       <div class="q-prompt">${escapeHtml(q.prompt)}</div>
