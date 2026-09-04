@@ -13,6 +13,7 @@ const state = {
   exerciseIndex: 0,
   exerciseAnswers: {},    // { questionId: selectedOptionIndex }
   exerciseRevealed: {},   // { questionId: true } once answered
+  landingDetailsOpen: false,
 };
 
 const app = document.getElementById("app");
@@ -79,6 +80,11 @@ function findTestQuestionById(id) {
 /* ===================== Navegação ===================== */
 function goLanding() {
   state.view = "landing";
+  render();
+}
+
+function toggleLandingDetails() {
+  state.landingDetailsOpen = !state.landingDetailsOpen;
   render();
 }
 
@@ -211,29 +217,53 @@ function renderLanding() {
     </button>
   ` : "";
 
+  const detailsOpen = state.landingDetailsOpen;
+
   app.innerHTML = `
     <div class="card">
       <div class="hero-badges">
         <span class="badge">Nível A1</span>
         <span class="badge">Nível A2</span>
       </div>
-      <h1>Teste de nivelamento de Inglês para carreira em Dados</h1>
-      <p>Eu sou um professor exigente: este teste de A1-A2 é propositalmente mais difícil do que a maioria dos
-      testes de nivelamento por aí, com questões contextualizadas (não apenas frases soltas) e pegadinhas
-      pensadas para pessoas que já estudaram o básico. O objetivo não é te aprovar fácil — é confirmar,
-      com confiança, que seu inglês está pronto para uma entrevista real. Todas as perguntas e exercícios
-      giram em torno do dia a dia de quem trabalha com dados (relatórios, planilhas, dashboards, reuniões
-      e processos seletivos em inglês), já que essa é a sua meta: conseguir uma vaga que exija inglês.</p>
-
-      <div class="info-box">
-        Responda ${TEST_QUESTIONS.length} questões de gramática e vocabulário. Ao final, você vê seu desempenho
-        por categoria, revê <strong>todas</strong> as questões que errou com explicação detalhada, e recebe
-        exercícios extras para <strong>toda categoria que não ficar 100%</strong> — mesmo que tenha errado só uma
-        questão nela. O teste cobre:
-        <ul>
-          ${Object.values(CATEGORIES).map(c => `<li>${escapeHtml(c.label)} (${c.level})</li>`).join("")}
-        </ul>
+      <div class="title-row">
+        <h1>Teste de nivelamento de Inglês para carreira em Dados</h1>
+        <button class="icon-btn" title="${detailsOpen ? "Ocultar detalhes" : "Ver detalhes do teste"}"
+          aria-expanded="${detailsOpen}" onclick="toggleLandingDetails()">
+          ${detailsOpen ? "✕" : "ⓘ"}
+        </button>
       </div>
+      <p class="lead">Confirme, com confiança, que seu inglês está pronto para uma entrevista de analista de dados.
+      ${TEST_QUESTIONS.length} questões contextualizadas em relatórios, dashboards e reuniões.</p>
+
+      ${detailsOpen ? `
+        <p class="lead">Eu sou um professor exigente: este teste de A1-A2 é propositalmente mais difícil do que a maioria dos
+        testes de nivelamento por aí, com questões contextualizadas (não apenas frases soltas) e pegadinhas
+        pensadas para pessoas que já estudaram o básico. O objetivo não é te aprovar fácil — é confirmar,
+        com confiança, que seu inglês está pronto para uma entrevista real. Todas as perguntas e exercícios
+        giram em torno do dia a dia de quem trabalha com dados (relatórios, planilhas, dashboards, reuniões
+        e processos seletivos em inglês), já que essa é a sua meta: conseguir uma vaga que exija inglês.</p>
+
+        <div class="info-box">
+          Responda ${TEST_QUESTIONS.length} questões de gramática e vocabulário. Ao final, você vê seu desempenho
+          por categoria, revê <strong>todas</strong> as questões que errou com explicação detalhada, e recebe
+          exercícios extras para <strong>toda categoria que não ficar 100%</strong> — mesmo que tenha errado só uma
+          questão nela. O teste cobre:
+          <div class="cat-columns">
+            <div class="cat-column">
+              <div class="cat-column-title">Nível A1</div>
+              <ul>
+                ${Object.values(CATEGORIES).filter(c => c.level === "A1").map(c => `<li>${escapeHtml(c.label)}</li>`).join("")}
+              </ul>
+            </div>
+            <div class="cat-column">
+              <div class="cat-column-title">Nível A2</div>
+              <ul>
+                ${Object.values(CATEGORIES).filter(c => c.level === "A2").map(c => `<li>${escapeHtml(c.label)}</li>`).join("")}
+              </ul>
+            </div>
+          </div>
+        </div>
+      ` : ""}
 
       ${lastBlock}
 
@@ -279,6 +309,9 @@ function renderTest() {
         <button class="btn" ${selected === undefined ? "disabled" : ""} onclick="nextTestQuestion()">
           ${isLast ? "Ver resultado" : "Próxima"}
         </button>
+      </div>
+      <div class="actions">
+        <button class="btn secondary block" onclick="goLanding()">Voltar ao início</button>
       </div>
     </div>
   `;
@@ -445,6 +478,9 @@ function renderExerciseSummary() {
     }
   });
 
+  const improvableCategories = Object.keys(byCategory)
+    .filter(key => pct(byCategory[key].correct, byCategory[key].total) < MASTERY_PCT);
+
   app.innerHTML = `
     <div class="card">
       <div class="score-hero">
@@ -462,7 +498,10 @@ function renderExerciseSummary() {
       `).join("")}
 
       <div class="actions" style="flex-direction:column; margin-top:24px;">
-        <button class="btn block" onclick='startExercises(${JSON.stringify(Object.keys(byCategory))})'>Praticar essas categorias de novo</button>
+        ${improvableCategories.length
+          ? `<button class="btn block" onclick='startExercises(${JSON.stringify(improvableCategories)})'>Praticar categoria${improvableCategories.length > 1 ? "s" : ""} abaixo de 100%</button>`
+          : `<button class="btn block" onclick='startExercises(${JSON.stringify(Object.keys(byCategory))})'>Praticar todas as categorias (revisão geral)</button>`
+        }
         <button class="btn secondary block" onclick="startTest()">Refazer o teste completo</button>
         <button class="btn secondary block" onclick="goLanding()">Voltar ao início</button>
       </div>
