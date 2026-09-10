@@ -1,10 +1,11 @@
 /* ===================== Estado da aplicação ===================== */
 const STORAGE_KEY = "enCheckLastResults";
+const CONV_STORAGE_KEY = "enCheckConvResults";
 const WEAK_THRESHOLD = 75;   // usado só para colorir a barra de desempenho (verde/amarelo/vermelho)
 const MASTERY_PCT = 100;     // qualquer categoria abaixo disso sempre entra na revisão/prática
 
 const state = {
-  view: "landing",       // landing | test | results | exercise | exerciseSummary
+  view: "landing",       // landing | test | results | exercise | exerciseSummary | convTest | convResults | convExercise | convExerciseSummary
   testQuestions: [],
   testIndex: 0,
   testAnswers: {},        // { questionId: selectedOptionIndex }
@@ -15,6 +16,18 @@ const state = {
   exerciseRevealed: {},   // { questionId: true } once answered
   landingDetailsOpen: false,
   testExitConfirmOpen: false,
+
+  // --- Módulo "Erros da Conversa Real" (independente do teste A1-A2 acima) ---
+  convTestQuestions: [],
+  convTestIndex: 0,
+  convTestAnswers: {},
+  convResults: null,
+  convExerciseQuestions: [],
+  convExerciseIndex: 0,
+  convExerciseAnswers: {},
+  convExerciseRevealed: {},
+  convLandingDetailsOpen: false,
+  convTestExitConfirmOpen: false,
 };
 
 const app = document.getElementById("app");
@@ -49,18 +62,18 @@ function cefrLabel(overall) {
   return "Iniciante (pré-A1) — vamos reforçar o básico";
 }
 
-function saveResults(results) {
+function saveResults(results, key = STORAGE_KEY) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+    localStorage.setItem(key, JSON.stringify({
       date: new Date().toISOString(),
       ...results,
     }));
   } catch (e) { /* localStorage indisponível — segue sem persistir */ }
 }
 
-function loadResults() {
+function loadResults(key = STORAGE_KEY) {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(key);
     return raw ? JSON.parse(raw) : null;
   } catch (e) {
     return null;
@@ -76,6 +89,19 @@ function escapeHtml(str) {
 
 function findTestQuestionById(id) {
   return TEST_QUESTIONS.find(q => q.id === id);
+}
+
+function findConvTestQuestionById(id) {
+  return CONV_TEST_QUESTIONS.find(q => q.id === id);
+}
+
+function convResultLabel(overall) {
+  // Mesmos limiares do teste A1-A2, mas descrevendo domínio dos 7 padrões da conversa real,
+  // não um nível CEFR.
+  if (overall >= 97) return "Os 7 padrões da sua conversa real já estão sob controle";
+  if (overall >= 85) return "Bom domínio, mas alguns padrões ainda escapam de vez em quando";
+  if (overall >= 55) return "Você já reconhece parte dos padrões, mas ainda erra com frequência";
+  return "Os padrões da sua conversa real ainda aparecem bastante — vale reforçar aqui";
 }
 
 function renderConfirmModal({ title, message, confirmLabel, cancelLabel, onConfirm, onCancel }) {
@@ -220,6 +246,128 @@ function nextExercise() {
   }
 }
 
+/* ===================== Navegação: módulo "Erros da Conversa Real" ===================== */
+function toggleConvLandingDetails() {
+  state.convLandingDetailsOpen = !state.convLandingDetailsOpen;
+  render();
+}
+
+function requestExitConvTest() {
+  state.convTestExitConfirmOpen = true;
+  render();
+}
+
+function cancelExitConvTest() {
+  state.convTestExitConfirmOpen = false;
+  render();
+}
+
+function confirmExitConvTest() {
+  state.convTestExitConfirmOpen = false;
+  goLanding();
+}
+
+function startConvTest() {
+  state.convTestQuestions = shuffle(CONV_TEST_QUESTIONS);
+  state.convTestIndex = 0;
+  state.convTestAnswers = {};
+  state.convResults = null;
+  state.view = "convTest";
+  render();
+}
+
+function selectConvTestOption(qId, optIndex) {
+  state.convTestAnswers[qId] = optIndex;
+  render();
+}
+
+function nextConvTestQuestion() {
+  if (state.convTestIndex < state.convTestQuestions.length - 1) {
+    state.convTestIndex++;
+    render();
+  } else {
+    finishConvTest();
+  }
+}
+
+function prevConvTestQuestion() {
+  if (state.convTestIndex > 0) {
+    state.convTestIndex--;
+    render();
+  }
+}
+
+function finishConvTest() {
+  const byCategory = {};
+  Object.keys(CONV_CATEGORIES).forEach(key => { byCategory[key] = { correct: 0, total: 0 }; });
+
+  let totalCorrect = 0;
+  const mistakes = [];
+  state.convTestQuestions.forEach(q => {
+    const sel = state.convTestAnswers[q.id];
+    byCategory[q.category].total++;
+    if (sel === q.correct) {
+      byCategory[q.category].correct++;
+      totalCorrect++;
+    } else {
+      mistakes.push({ question: q, selected: sel });
+    }
+  });
+
+  const categoryPct = {};
+  const improvableCategories = [];
+  Object.keys(byCategory).forEach(key => {
+    const c = byCategory[key];
+    const p = pct(c.correct, c.total);
+    categoryPct[key] = p;
+    if (p < MASTERY_PCT) improvableCategories.push(key);
+  });
+
+  const overallPct = pct(totalCorrect, state.convTestQuestions.length);
+
+  state.convResults = {
+    overallPct,
+    label: convResultLabel(overallPct),
+    categoryPct,
+    improvableCategories,
+    mistakes: mistakes.map(m => ({ questionId: m.question.id, selected: m.selected })),
+    totalCorrect,
+    totalQuestions: state.convTestQuestions.length,
+  };
+  saveResults(state.convResults, CONV_STORAGE_KEY);
+  state.view = "convResults";
+  render();
+}
+
+function startConvExercises(categoryKeys) {
+  const cats = categoryKeys && categoryKeys.length ? categoryKeys : Object.keys(CONV_CATEGORIES);
+  let pool = [];
+  cats.forEach(key => { pool = pool.concat(getConvPracticeForCategory(key)); });
+  state.convExerciseQuestions = pool;
+  state.convExerciseIndex = 0;
+  state.convExerciseAnswers = {};
+  state.convExerciseRevealed = {};
+  state.view = "convExercise";
+  render();
+}
+
+function selectConvExerciseOption(qId, optIndex) {
+  if (state.convExerciseRevealed[qId]) return; // já respondida
+  state.convExerciseAnswers[qId] = optIndex;
+  state.convExerciseRevealed[qId] = true;
+  render();
+}
+
+function nextConvExercise() {
+  if (state.convExerciseIndex < state.convExerciseQuestions.length - 1) {
+    state.convExerciseIndex++;
+    render();
+  } else {
+    state.view = "convExerciseSummary";
+    render();
+  }
+}
+
 /* ===================== Render principal ===================== */
 function render() {
   window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
@@ -228,10 +376,23 @@ function render() {
   if (state.view === "results") return renderResults();
   if (state.view === "exercise") return renderExercise();
   if (state.view === "exerciseSummary") return renderExerciseSummary();
+  if (state.view === "convTest") return renderConvTest();
+  if (state.view === "convResults") return renderConvResults();
+  if (state.view === "convExercise") return renderConvExercise();
+  if (state.view === "convExerciseSummary") return renderConvExerciseSummary();
 }
 
 /* ---------- Landing ---------- */
 function renderLanding() {
+  app.innerHTML = `
+    <div class="landing-grid">
+      <div class="landing-col">${renderLandingCard()}</div>
+      <div class="landing-col">${renderConvLandingCard()}</div>
+    </div>
+  `;
+}
+
+function renderLandingCard() {
   const last = loadResults();
   const lastBlock = last ? `
     <div class="last-result">
@@ -250,7 +411,7 @@ function renderLanding() {
 
   const detailsOpen = state.landingDetailsOpen;
 
-  app.innerHTML = `
+  return `
     <div class="card">
       <div class="hero-badges">
         <span class="badge">Nível A1</span>
@@ -300,6 +461,62 @@ function renderLanding() {
 
       <div class="actions" style="flex-direction:column;">
         <button class="btn block" onclick="startTest()">Iniciar teste</button>
+        ${practiceShortcut}
+      </div>
+    </div>
+  `;
+}
+
+/* ---------- Landing: módulo "Erros da Conversa Real" ---------- */
+function renderConvLandingCard() {
+  const last = loadResults(CONV_STORAGE_KEY);
+  const lastBlock = last ? `
+    <div class="last-result">
+      <strong>Última prática:</strong> ${last.overallPct}% de acertos — ${escapeHtml(last.label)}
+      <br>${last.improvableCategories.length
+        ? `Padrões que ainda não estão em 100%: ${last.improvableCategories.map(k => CONV_CATEGORIES[k].label).join(", ")}`
+        : "Você acertou 100% em todos os padrões na última vez. 🎉"}
+    </div>
+  ` : "";
+
+  const practiceShortcut = last && last.improvableCategories.length ? `
+    <button class="btn secondary block" onclick="startConvExercises(${JSON.stringify(last.improvableCategories).replace(/"/g, "&quot;")})">
+      Praticar padrões que ainda não estão em 100% (da última vez)
+    </button>
+  ` : "";
+
+  const detailsOpen = state.convLandingDetailsOpen;
+
+  return `
+    <div class="card conv-card">
+      <div class="hero-badges">
+        <span class="badge">7 padrões</span>
+        <span class="badge accent2">Diagnóstico real</span>
+      </div>
+      <div class="title-row">
+        <h2>Erros da Conversa Real</h2>
+        <button class="icon-btn" title="${detailsOpen ? "Ocultar detalhes" : "Ver detalhes desta prática"}"
+          aria-expanded="${detailsOpen}" onclick="toggleConvLandingDetails()">
+          ${detailsOpen ? "✕" : "ⓘ"}
+        </button>
+      </div>
+      <p class="lead">Numa conversa simulando uma entrevista/reunião de trabalho em inglês, mapeei 7 padrões de erro
+      que se repetem no seu inglês. Esta prática ataca especificamente esses padrões.
+      ${CONV_TEST_QUESTIONS.length} questões contextualizadas no seu dia a dia como analista de dados.</p>
+
+      ${detailsOpen ? `
+        <div class="info-box">
+          Cada questão testa um dos 7 padrões identificados no seu diagnóstico:
+          <ul class="conv-pattern-list">
+            ${Object.values(CONV_CATEGORIES).map(c => `<li><strong>${escapeHtml(c.tag)}:</strong> ${escapeHtml(c.label)}</li>`).join("")}
+          </ul>
+        </div>
+      ` : ""}
+
+      ${lastBlock}
+
+      <div class="actions" style="flex-direction:column;">
+        <button class="btn block" onclick="startConvTest()">Praticar meus erros</button>
         ${practiceShortcut}
       </div>
     </div>
@@ -542,6 +759,248 @@ function renderExerciseSummary() {
           : `<button class="btn block" onclick='startExercises(${JSON.stringify(Object.keys(byCategory))})'>Praticar todas as categorias (revisão geral)</button>`
         }
         <button class="btn secondary block" onclick="startTest()">Refazer o teste completo</button>
+        <button class="btn secondary block" onclick="goLanding()">Voltar ao início</button>
+      </div>
+    </div>
+  `;
+}
+
+/* ---------- Conv Test: módulo "Erros da Conversa Real" ---------- */
+function renderConvTest() {
+  const q = state.convTestQuestions[state.convTestIndex];
+  const total = state.convTestQuestions.length;
+  const current = state.convTestIndex + 1;
+  const selected = state.convTestAnswers[q.id];
+  const isLast = state.convTestIndex === total - 1;
+
+  app.innerHTML = `
+    <div class="card">
+      <div class="progress-wrap">
+        <div class="progress-label">
+          <span>Questão ${current} de ${total}</span>
+          <span>${Math.round((state.convTestIndex / total) * 100)}%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${(state.convTestIndex / total) * 100}%"></div></div>
+      </div>
+
+      <span class="q-level accent2">${escapeHtml(CONV_CATEGORIES[q.category].tag)} &middot; ${escapeHtml(CONV_CATEGORIES[q.category].label)}</span>
+      <div class="q-prompt">${escapeHtml(q.prompt)}</div>
+
+      <div class="options">
+        ${q.options.map((opt, i) => `
+          <button class="option ${selected === i ? "selected" : ""}" onclick="selectConvTestOption('${q.id}', ${i})">
+            ${escapeHtml(opt)}
+          </button>
+        `).join("")}
+      </div>
+
+      <div class="actions">
+        ${state.convTestIndex > 0 ? `<button class="btn secondary" onclick="prevConvTestQuestion()">Voltar</button>` : ""}
+        <button class="btn" ${selected === undefined ? "disabled" : ""} onclick="nextConvTestQuestion()">
+          ${isLast ? "Ver resultado" : "Próxima"}
+        </button>
+      </div>
+      <div class="exit-actions">
+        <button class="btn secondary block" onclick="requestExitConvTest()">Voltar ao início</button>
+      </div>
+    </div>
+    ${state.convTestExitConfirmOpen ? renderConfirmModal({
+      title: "Sair da prática?",
+      message: "Você ainda não terminou esta prática. Se sair agora, todas as respostas dadas até aqui serão perdidas.",
+      confirmLabel: "Sair e perder respostas",
+      cancelLabel: "Continuar prática",
+      onConfirm: "confirmExitConvTest()",
+      onCancel: "cancelExitConvTest()",
+    }) : ""}
+  `;
+}
+
+/* ---------- Conv Results ---------- */
+function renderConvResults() {
+  const r = state.convResults;
+  const improvableNames = r.improvableCategories.map(k => CONV_CATEGORIES[k].label);
+
+  app.innerHTML = `
+    <div class="card">
+      <div class="score-hero">
+        <div class="score-number">${r.overallPct}%</div>
+        <div class="score-level">${escapeHtml(r.label)}</div>
+        <p style="margin-top:8px;">${r.totalCorrect} de ${r.totalQuestions} questões corretas</p>
+      </div>
+
+      <h2>Desempenho por padrão</h2>
+      ${Object.keys(CONV_CATEGORIES).map(key => {
+        const p = r.categoryPct[key];
+        return `
+          <div class="cat-row">
+            <div class="cat-name">${escapeHtml(CONV_CATEGORIES[key].label)}</div>
+            <div class="cat-bar-wrap"><div class="cat-bar-fill ${barClass(p)}" style="width:${p}%"></div></div>
+            <div class="cat-pct">${p}%</div>
+          </div>
+        `;
+      }).join("")}
+
+      <div class="section-title">Padrões que ainda não estão em 100%</div>
+      ${improvableNames.length
+        ? `<div class="weak-list">${improvableNames.map(n => `<span class="weak-chip">${escapeHtml(n)}</span>`).join("")}</div>
+           <p style="margin-top:10px; font-size:0.85rem;">Qualquer padrão abaixo de 100% entra na lista de prática, mesmo que
+           tenha sido só uma questão errada.</p>`
+        : `<div class="all-good">Excelente! Você acertou 100% em todos os padrões nesta prática.</div>`
+      }
+
+      ${renderConvMistakesReview(r.mistakes)}
+
+      <div class="actions" style="flex-direction:column; margin-top:24px;">
+        ${improvableNames.length
+          ? `<button class="btn block" onclick='startConvExercises(${JSON.stringify(r.improvableCategories)})'>Praticar padrões abaixo de 100%</button>`
+          : `<button class="btn block" onclick='startConvExercises(${JSON.stringify(Object.keys(CONV_CATEGORIES))})'>Praticar todos os padrões (revisão geral)</button>`
+        }
+        <button class="btn secondary block" onclick="startConvTest()">Refazer a prática</button>
+        <button class="btn secondary block" onclick="goLanding()">Voltar ao início</button>
+      </div>
+    </div>
+  `;
+}
+
+/* Sempre exibe a revisão detalhada de cada questão que o usuário errou na prática,
+   independentemente da % de acerto do padrão. */
+function renderConvMistakesReview(mistakes) {
+  if (!mistakes || !mistakes.length) {
+    return `
+      <div class="section-title">Revisão das respostas erradas</div>
+      <div class="all-good">Você não errou nenhuma questão nesta prática. Nada para revisar aqui!</div>
+    `;
+  }
+
+  const blocks = mistakes.map(m => {
+    const q = findConvTestQuestionById(m.questionId);
+    if (!q) return "";
+    return `
+      <div class="card" style="box-shadow:none; border-color:var(--border); margin-bottom:14px; padding:18px;">
+        <span class="q-level accent2">${escapeHtml(CONV_CATEGORIES[q.category].tag)} &middot; ${escapeHtml(CONV_CATEGORIES[q.category].label)}</span>
+        <div class="q-prompt" style="font-size:1.05rem;">${escapeHtml(q.prompt)}</div>
+        <div class="explain-list">
+          ${q.options.map((opt, i) => {
+            let cls = "explain-item";
+            let tag = "";
+            if (i === q.correct) { cls += " is-correct"; tag = " (resposta certa)"; }
+            else if (i === m.selected) { tag = " (sua resposta)"; }
+            return `<div class="${cls}"><strong>${escapeHtml(opt)}${tag}:</strong> ${escapeHtml(q.explanations[i])}</div>`;
+          }).join("")}
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  return `
+    <div class="section-title">Revisão das respostas erradas (${mistakes.length})</div>
+    <p style="font-size:0.85rem; margin-top:-4px;">Toda questão errada é sempre revisada aqui, com a explicação completa de cada opção.</p>
+    ${blocks}
+  `;
+}
+
+/* ---------- Conv Exercise session ---------- */
+function renderConvExercise() {
+  const q = state.convExerciseQuestions[state.convExerciseIndex];
+  const total = state.convExerciseQuestions.length;
+  const current = state.convExerciseIndex + 1;
+  const selected = state.convExerciseAnswers[q.id];
+  const revealed = !!state.convExerciseRevealed[q.id];
+  const isLast = state.convExerciseIndex === total - 1;
+
+  app.innerHTML = `
+    <div class="card">
+      <div class="progress-wrap">
+        <div class="progress-label">
+          <span>Exercício ${current} de ${total}</span>
+          <span>${Math.round((state.convExerciseIndex / total) * 100)}%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${(state.convExerciseIndex / total) * 100}%"></div></div>
+      </div>
+
+      <div class="ex-header">
+        <span class="ex-cat-label accent2">${escapeHtml(CONV_CATEGORIES[q.category].label)}</span>
+        <span class="q-level accent2" style="margin:0;">${escapeHtml(CONV_CATEGORIES[q.category].tag)}</span>
+      </div>
+
+      <div class="q-prompt">${escapeHtml(q.prompt)}</div>
+
+      <div class="options">
+        ${q.options.map((opt, i) => {
+          let cls = "option";
+          if (revealed) {
+            if (i === q.correct) cls += " correct";
+            else if (i === selected) cls += " incorrect";
+          } else if (selected === i) {
+            cls += " selected";
+          }
+          return `
+            <button class="${cls}" ${revealed ? "disabled" : ""} onclick="selectConvExerciseOption('${q.id}', ${i})">
+              ${escapeHtml(opt)}
+            </button>
+          `;
+        }).join("")}
+      </div>
+
+      ${revealed ? `
+        <div class="explain-box ${selected === q.correct ? "good" : "bad"}">
+          ${selected === q.correct ? "✅ Você acertou!" : "❌ Não foi dessa vez — veja as explicações abaixo."}
+        </div>
+        <div class="explain-list">
+          ${q.options.map((opt, i) => `
+            <div class="explain-item ${i === q.correct ? "is-correct" : ""}">
+              <strong>${escapeHtml(opt)}:</strong> ${escapeHtml(q.explanations[i])}
+            </div>
+          `).join("")}
+        </div>
+        <div class="actions">
+          <button class="btn block" onclick="nextConvExercise()">${isLast ? "Ver resumo" : "Próximo exercício"}</button>
+        </div>
+      ` : `
+        <p style="margin-top:16px; font-size:0.85rem;">Escolha uma opção para ver a explicação.</p>
+      `}
+    </div>
+  `;
+}
+
+function renderConvExerciseSummary() {
+  const total = state.convExerciseQuestions.length;
+  let correct = 0;
+  const byCategory = {};
+  state.convExerciseQuestions.forEach(q => {
+    byCategory[q.category] = byCategory[q.category] || { correct: 0, total: 0 };
+    byCategory[q.category].total++;
+    if (state.convExerciseAnswers[q.id] === q.correct) {
+      byCategory[q.category].correct++;
+      correct++;
+    }
+  });
+
+  const improvableCategories = Object.keys(byCategory)
+    .filter(key => pct(byCategory[key].correct, byCategory[key].total) < MASTERY_PCT);
+
+  app.innerHTML = `
+    <div class="card">
+      <div class="score-hero">
+        <div class="score-number">${pct(correct, total)}%</div>
+        <div class="score-level">Resultado da prática</div>
+        <p style="margin-top:8px;">${correct} de ${total} exercícios corretos</p>
+      </div>
+
+      <h2>Por padrão</h2>
+      ${Object.keys(byCategory).map(key => `
+        <div class="summary-row">
+          <span>${escapeHtml(CONV_CATEGORIES[key].label)}</span>
+          <strong>${byCategory[key].correct}/${byCategory[key].total}</strong>
+        </div>
+      `).join("")}
+
+      <div class="actions" style="flex-direction:column; margin-top:24px;">
+        ${improvableCategories.length
+          ? `<button class="btn block" onclick='startConvExercises(${JSON.stringify(improvableCategories)})'>Praticar ${improvableCategories.length > 1 ? "padrões" : "padrão"} abaixo de 100%</button>`
+          : `<button class="btn block" onclick='startConvExercises(${JSON.stringify(Object.keys(byCategory))})'>Praticar todos os padrões (revisão geral)</button>`
+        }
+        <button class="btn secondary block" onclick="startConvTest()">Refazer a prática completa</button>
         <button class="btn secondary block" onclick="goLanding()">Voltar ao início</button>
       </div>
     </div>
