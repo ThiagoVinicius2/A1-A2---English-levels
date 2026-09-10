@@ -70,7 +70,7 @@ const CONV_TEST_QUESTIONS = [
       "Errado. 'ask for' é usado para pedir uma coisa (ask for help), não antes de uma pessoa + verbo.",
       "Errado. Depois de 'can you', o verbo principal fica na forma base, não em '-ing'."
     ]},
-  { id:"c-need-t4", category:"needto", prompt:"Ana ___ for a raise during the performance review.", options:["asked","asked for","asked to","ask for"], correct:1,
+  { id:"c-need-t4", category:"needto", prompt:"Ana ___ a raise during the performance review.", options:["asked","asked for","asked to","ask for"], correct:1,
     explanations:[
       "Errado. Quando pedimos por uma coisa (um aumento), precisamos da preposição 'for': asked for a raise.",
       "Correto! 'ask for something' é a estrutura usada para pedir uma coisa: asked for a raise.",
@@ -253,7 +253,7 @@ const CONV_PRACTICE_QUESTIONS = [
       "Correto! 'without' é preposição, então usamos o gerúndio: without checking.",
       "Errado. 'checked' é passado; a preposição pede o gerúndio."
     ]},
-  { id:"c-gp-p4", category:"gerundprep", prompt:"Ana is good ___ with large spreadsheets.", options:["work","to work","working","works"], correct:2,
+  { id:"c-gp-p4", category:"gerundprep", prompt:"Ana is good at ___ with large spreadsheets.", options:["work","to work","working","works"], correct:2,
     explanations:[
       "Errado. Depois da preposição 'at' (good at), o verbo vai para '-ing'.",
       "Errado. 'good at' não é seguido de 'to + verbo'.",
@@ -262,7 +262,7 @@ const CONV_PRACTICE_QUESTIONS = [
     ]},
 
   // ---- Padrão 2 ----
-  { id:"c-need-p1", category:"needto", prompt:"She ___ to review the query before we run it in production.", options:["need","needs","need to","needs to"], correct:3,
+  { id:"c-need-p1", category:"needto", prompt:"She ___ review the query before we run it in production.", options:["need","needs","need to","needs to"], correct:3,
     explanations:[
       "Errado. Com 'she' (3ª pessoa), o certo é 'needs', e ainda falta o 'to'.",
       "Errado. Falta o 'to' antes do próximo verbo.",
@@ -283,7 +283,7 @@ const CONV_PRACTICE_QUESTIONS = [
       "Errado. 'ask for' é para pedir uma coisa, não antes de pessoa + verbo.",
       "Errado. Depois de 'I'll' (will), o verbo principal fica na forma base."
     ]},
-  { id:"c-need-p4", category:"needto", prompt:"He ___ for more time to finish the analysis.", options:["ask","asked","asked for","ask for"], correct:2,
+  { id:"c-need-p4", category:"needto", prompt:"He ___ more time to finish the analysis.", options:["ask","asked","asked for","ask for"], correct:2,
     explanations:[
       "Errado. Falta o 'ed' do passado e a preposição correta.",
       "Errado. Falta a preposição 'for'; pedir por uma coisa (mais tempo) precisa de 'ask for'.",
