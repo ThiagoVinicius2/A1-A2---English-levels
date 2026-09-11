@@ -437,9 +437,10 @@ p { color: var(--muted); margin: 0 0 16px; }
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
-  align-items: start;
+  align-items: stretch;
 }
-.landing-col { min-width: 0; }
+.landing-col { min-width: 0; display: flex; }
+.landing-col > .card { width: 100%; }
 .conv-card { border-color: var(--warn); }
 .conv-pattern-list {
   margin: 6px 0 0;
