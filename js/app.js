@@ -96,9 +96,9 @@ function findConvTestQuestionById(id) {
 }
 
 function convResultLabel(overall) {
-  // Mesmos limiares do teste A1-A2, mas descrevendo domínio dos 7 padrões da conversa real,
+  // Mesmos limiares do teste A1-A2, mas descrevendo domínio dos 10 padrões da conversa real,
   // não um nível CEFR.
-  if (overall >= 97) return "Os 7 padrões da sua conversa real já estão sob controle";
+  if (overall >= 97) return "Os 10 padrões da sua conversa real já estão sob controle";
   if (overall >= 85) return "Bom domínio, mas alguns padrões ainda escapam de vez em quando";
   if (overall >= 55) return "Você já reconhece parte dos padrões, mas ainda erra com frequência";
   return "Os padrões da sua conversa real ainda aparecem bastante — vale reforçar aqui";
@@ -490,7 +490,7 @@ function renderConvLandingCard() {
   return `
     <div class="card conv-card">
       <div class="hero-badges">
-        <span class="badge">7 padrões</span>
+        <span class="badge">10 padrões</span>
         <span class="badge accent2">Diagnóstico real</span>
       </div>
       <div class="title-row">
@@ -500,13 +500,14 @@ function renderConvLandingCard() {
           ${detailsOpen ? "✕" : "ⓘ"}
         </button>
       </div>
-      <p class="lead">Numa conversa simulando uma entrevista/reunião de trabalho em inglês, mapeei 7 padrões de erro
-      que se repetem no seu inglês. Esta prática ataca especificamente esses padrões.
-      ${CONV_TEST_QUESTIONS.length} questões contextualizadas no seu dia a dia como analista de dados.</p>
+      <p class="lead">Numa conversa em inglês sobre a rotina em família, mapeei 10 padrões de erro
+      que se repetem no seu inglês. Esta prática ataca especificamente esses padrões, com vocabulário
+      de família para reforçar sua aula sobre esse tema.
+      ${CONV_TEST_QUESTIONS.length} questões no total.</p>
 
       ${detailsOpen ? `
         <div class="info-box">
-          Cada questão testa um dos 7 padrões identificados no seu diagnóstico:
+          Cada questão testa um dos 10 padrões identificados no seu diagnóstico:
           <ul class="conv-pattern-list">
             ${Object.values(CONV_CATEGORIES).map(c => `<li><strong>${escapeHtml(c.tag)}:</strong> ${escapeHtml(c.label)}</li>`).join("")}
           </ul>
