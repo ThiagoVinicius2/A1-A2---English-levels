@@ -1,237 +1,208 @@
 /* ============================================================
    Módulo separado: "Erros da Conversa Real"
-   Baseado no feedback de uma conversa sobre a rotina em família
-   (tema: aula de nível básico sobre família).
-   10 padrões de erro identificados, cada um vira uma categoria de
-   prática própria — independente do teste A1-A2 original.
+   Baseado no feedback da 2ª rodada de prática (mesmo tema: rotina
+   em família). Os erros da 1ª rodada (ortografia básica, "every"
+   + singular, possessivo de família, "for/to" + verbo) já foram
+   corrigidos, então este módulo foi atualizado com os 10 novos
+   padrões de erro identificados nesta rodada.
    ============================================================ */
 
 const CONV_CATEGORIES = {
-  spelling:      { label: "Ortografia e maiúsculas",                 tag: "Padrão 1" },
-  alongwith:     { label: "'Along' vs. 'With'",                      tag: "Padrão 2" },
-  allsubject:    { label: "'All' vs. 'Everybody/Everyone'",          tag: "Padrão 3" },
-  everyroutine:  { label: "'Every' + singular para rotina",          tag: "Padrão 4" },
-  missingverb:   { label: "Verbo obrigatório na frase",              tag: "Padrão 5" },
-  subjectverb:   { label: "Concordância verbal (3ª pessoa)",         tag: "Padrão 6" },
-  forto:         { label: "'For' vs. 'To' + verbo",                  tag: "Padrão 7" },
-  muchmany:      { label: "'Much' vs. 'Many'",                       tag: "Padrão 8" },
-  sentencecore:  { label: "Frase completa (sujeito + verbo)",        tag: "Padrão 9" },
-  placeposs:     { label: "Lugar e possessivo ('s)",                 tag: "Padrão 10" },
+  howcausal:     { label: "'How' não é 'como' causal",              tag: "Padrão 1" },
+  wesus:         { label: "'We' vs. 'Us' (pronome sujeito)",         tag: "Padrão 2" },
+  canverb:       { label: "Verbo obrigatório depois de 'can'",       tag: "Padrão 3" },
+  onlyunique:    { label: "'Only' vs. 'Unique'",                     tag: "Padrão 4" },
+  spelling:      { label: "Ortografia e maiúsculas",                 tag: "Padrão 5" },
+  negfreq:       { label: "Negação de frequência (don't + always)",  tag: "Padrão 6" },
+  muchmany:      { label: "'Much' vs. 'Many' (reforço)",             tag: "Padrão 7" },
+  prepplace:     { label: "Preposições de lugar e tempo",            tag: "Padrão 8" },
+  differentfrom: { label: "'Different from' (não 'to')",             tag: "Padrão 9" },
+  gathering:     { label: "'Meeting' não é reunião de família",      tag: "Padrão 10" },
 };
 
 /* ================= TESTE: ERROS DA CONVERSA REAL ================= */
 const CONV_TEST_QUESTIONS = [
-  // ---- Padrão 1: Ortografia e maiúsculas ----
-  { id:"c-sp-t1", category:"spelling", prompt:"My ___ is seven years old.", options:["daugther","daughter","doughter","daughther"], correct:1,
+  // ---- Padrão 1: 'How' não é 'como' causal ----
+  { id:"c-hw-t1", category:"howcausal", prompt:"___ we have a busy routine, we don't see each other every day.", options:["How","Since","What","Where"], correct:1,
+    explanations:[
+      "Errado. 'how' significa 'de que maneira'; não expressa causa/motivo.",
+      "Correto! 'since' expressa causa: já que temos uma rotina cheia.",
+      "Errado. 'what' não expressa causa aqui.",
+      "Errado. 'where' indica lugar, não causa."
+    ]},
+  { id:"c-hw-t2", category:"howcausal", prompt:"___ my husband works far away, we only see him on weekends.", options:["How","Because","What","When"], correct:1,
+    explanations:[
+      "Errado. 'how' não expressa causa.",
+      "Correto! 'because' expressa o motivo da frase.",
+      "Errado. 'what' não expressa causa aqui.",
+      "Errado. 'when' indica tempo, não o motivo."
+    ]},
+  { id:"c-hw-t3", category:"howcausal", prompt:"___ it was raining, we stayed home for the family lunch.", options:["How","As","What","Which"], correct:1,
+    explanations:[
+      "Errado. 'how' não expressa causa.",
+      "Correto! 'as' também pode expressar causa/motivo, como 'já que'.",
+      "Errado. 'what' não expressa causa aqui.",
+      "Errado. 'which' introduz uma escolha, não uma causa."
+    ]},
+  { id:"c-hw-t4", category:"howcausal", prompt:"___ we don't have much free time, we try to have dinner together every night.", options:["How","Because","What","How much"], correct:1,
+    explanations:[
+      "Errado. 'how' não expressa causa.",
+      "Correto! 'because' expressa o motivo da frase.",
+      "Errado. 'what' não expressa causa.",
+      "Errado. 'how much' pergunta sobre quantidade, não expressa causa."
+    ]},
+
+  // ---- Padrão 2: 'We' vs. 'Us' ----
+  { id:"c-wu-t1", category:"wesus", prompt:"___ have a busy routine during the week.", options:["Us","We","Our","Ours"], correct:1,
+    explanations:[
+      "Errado. 'us' é pronome objeto (recebe a ação); aqui a frase precisa do sujeito.",
+      "Correto! 'we' é o pronome sujeito: we have a busy routine.",
+      "Errado. 'our' é possessivo (nosso), não substitui o sujeito.",
+      "Errado. 'ours' é possessivo absoluto (ex: this house is ours), não é sujeito da frase."
+    ]},
+  { id:"c-wu-t2", category:"wesus", prompt:"___ celebrate Christmas at my parents' house every year.", options:["Us","We","Our","Ours"], correct:1,
+    explanations:[
+      "Errado. 'us' é pronome objeto; aqui a frase precisa do sujeito.",
+      "Correto! 'we' é o pronome sujeito: we celebrate.",
+      "Errado. 'our' é possessivo, não substitui o sujeito.",
+      "Errado. 'ours' é possessivo absoluto, não é sujeito da frase."
+    ]},
+  { id:"c-wu-t3", category:"wesus", prompt:"She always calls ___ before dinner.", options:["We","Us","Our","Ours"], correct:1,
+    explanations:[
+      "Errado. 'we' é pronome sujeito; aqui a frase precisa do objeto (quem recebe a ação).",
+      "Correto! 'us' é o pronome objeto: calls us.",
+      "Errado. 'our' é possessivo, não substitui o objeto da frase.",
+      "Errado. 'ours' é possessivo absoluto, não é objeto direto."
+    ]},
+  { id:"c-wu-t4", category:"wesus", prompt:"___ don't have much free time on weekdays.", options:["Us","We","Our","Ours"], correct:1,
+    explanations:[
+      "Errado. 'us' é pronome objeto; aqui a frase precisa do sujeito.",
+      "Correto! 'we' é o pronome sujeito: we don't have.",
+      "Errado. 'our' é possessivo, não substitui o sujeito.",
+      "Errado. 'ours' é possessivo absoluto, não é sujeito da frase."
+    ]},
+
+  // ---- Padrão 3: Verbo obrigatório depois de 'can' ----
+  { id:"c-cv-t1", category:"canverb", prompt:"Which sentence is correct?", options:["The only free moment that we can together.","The only free moment that we can be together.","The only free moment we can together is Sunday.","The only free moment we together can."], correct:1,
+    explanations:[
+      "Errado. Depois de 'can' precisa vir um verbo; 'together' é advérbio, não verbo.",
+      "Correto! 'can be' — depois de 'can' sempre vem um verbo, aqui 'be'.",
+      "Errado. Ainda falta o verbo depois de 'can'.",
+      "Errado. A ordem das palavras não é natural em inglês e ainda falta o verbo."
+    ]},
+  { id:"c-cv-t2", category:"canverb", prompt:"Which sentence is correct?", options:["We can together after work.","We can be together after work.","We together can after work.","We can together, after work."], correct:1,
+    explanations:[
+      "Errado. Falta o verbo depois de 'can'; 'together' é advérbio.",
+      "Correto! 'can be together' tem o verbo obrigatório depois de 'can'.",
+      "Errado. A ordem das palavras não é natural em inglês.",
+      "Errado. A vírgula não resolve a falta de verbo depois de 'can'."
+    ]},
+  { id:"c-cv-t3", category:"canverb", prompt:"Which sentence is correct?", options:["My family can happy on holidays.","My family can be happy on holidays.","My family happy can on holidays.","My family can happy, on holidays."], correct:1,
+    explanations:[
+      "Errado. Depois de 'can' precisa vir um verbo; 'happy' é adjetivo, não verbo.",
+      "Correto! 'can be happy' — o verbo 'be' vem depois de 'can'.",
+      "Errado. A ordem das palavras não é natural em inglês.",
+      "Errado. A vírgula não resolve a falta de verbo depois de 'can'."
+    ]},
+  { id:"c-cv-t4", category:"canverb", prompt:"Which sentence is correct?", options:["They can quiet during dinner.","They can be quiet during dinner.","They quiet can during dinner.","They can quiet, during dinner."], correct:1,
+    explanations:[
+      "Errado. Depois de 'can' precisa vir um verbo; 'quiet' é adjetivo.",
+      "Correto! 'can be quiet' — o verbo 'be' vem depois de 'can'.",
+      "Errado. A ordem das palavras não é natural em inglês.",
+      "Errado. A vírgula não resolve a falta de verbo depois de 'can'."
+    ]},
+
+  // ---- Padrão 4: 'Only' vs. 'Unique' ----
+  { id:"c-ou-t1", category:"onlyunique", prompt:"Sunday is the ___ day we have free.", options:["unique","only","the unique","single unique"], correct:1,
+    explanations:[
+      "Errado. 'unique' significa 'especial, sem igual', não 'apenas um'.",
+      "Correto! 'only' expressa 'apenas um': the only day.",
+      "Errado. Muda o sentido para 'o dia especial/sem igual', que não é o que a frase quer dizer.",
+      "Errado. 'single unique' é redundante e não existe dessa forma em inglês."
+    ]},
+  { id:"c-ou-t2", category:"onlyunique", prompt:"This is the ___ time I have to rest during the week.", options:["unique","only","an unique","a unique one"], correct:1,
+    explanations:[
+      "Errado. 'unique' significa 'especial', não 'o único momento que existe'.",
+      "Correto! 'only' expressa que é o único momento disponível.",
+      "Errado. Muda o sentido para 'um momento especial'.",
+      "Errado. Muda o sentido para 'um momento especial', que não é o que a frase quer dizer."
+    ]},
+  { id:"c-ou-t3", category:"onlyunique", prompt:"My grandmother has a ___ way of telling stories.", options:["only","unique","an only","the only one"], correct:1,
+    explanations:[
+      "Errado. Aqui o sentido é 'especial, sem igual', não 'apenas uma'; o certo é 'unique'.",
+      "Correto! 'unique' descreve algo especial e sem igual: a unique way.",
+      "Errado. 'an only' não existe com esse sentido.",
+      "Errado. Muda o sentido para 'a única forma que existe', diferente de 'uma forma especial'."
+    ]},
+  { id:"c-ou-t4", category:"onlyunique", prompt:"This is the ___ day we can all be together.", options:["unique","only","an unique","the unique one"], correct:1,
+    explanations:[
+      "Errado. 'unique' significa 'especial', não 'apenas um'.",
+      "Correto! 'only' expressa que é o único dia disponível.",
+      "Errado. Muda o sentido e a gramática está errada.",
+      "Errado. Muda o sentido para 'o dia especial', que não é o que a frase quer dizer."
+    ]},
+
+  // ---- Padrão 5: Ortografia e maiúsculas ----
+  { id:"c-sp-t1", category:"spelling", prompt:"It's hard to ___ a routine with three kids.", options:["mantain","maintain","maintein","maintaine"], correct:1,
     explanations:[
       "Errado. Essa grafia não existe em inglês.",
-      "Correto! A grafia certa é 'daughter'.",
+      "Correto! A grafia certa é 'maintain'.",
       "Errado. Essa grafia não existe em inglês.",
       "Errado. Essa grafia não existe em inglês."
     ]},
-  { id:"c-sp-t2", category:"spelling", prompt:"We usually visit my parents on ___.", options:["fridays","Fridays","freidays","frydays"], correct:1,
+  { id:"c-sp-t2", category:"spelling", prompt:"My ___ cooks dinner every night.", options:["wyfe","wife","wief","wifi"], correct:1,
     explanations:[
-      "Errado. Dias da semana são sempre escritos com letra maiúscula em inglês.",
-      "Correto! 'Fridays', com maiúscula — dias da semana sempre levam maiúscula.",
-      "Errado. Grafia errada e sem maiúscula.",
-      "Errado. Grafia errada e sem maiúscula."
-    ]},
-  { id:"c-sp-t3", category:"spelling", prompt:"Her hair is very ___.", options:["straigth","streight","straight","straght"], correct:2,
-    explanations:[
-      "Errado. As letras 'gh' vêm antes do 't': straight.",
       "Errado. Essa grafia não existe em inglês.",
-      "Correto! A grafia certa é 'straight'.",
-      "Errado. Falta o 'i' antes do 'gh'."
+      "Correto! A grafia certa é 'wife'.",
+      "Errado. Essa grafia não existe em inglês.",
+      "Errado. 'wifi' é a rede sem fio, uma palavra completamente diferente."
     ]},
-  { id:"c-sp-t4", category:"spelling", prompt:"Christmas is our favorite ___.", options:["holyday","holidays","holiday","holliday"], correct:2,
+  { id:"c-sp-t3", category:"spelling", prompt:"We always have a big ___ in December.", options:["barbacue","barbecue","barbeqeu","barbicue"], correct:1,
     explanations:[
-      "Errado. Não é 'holy' + 'day'; a grafia correta é 'holiday'.",
-      "Errado. A frase pede o singular: 'holiday'.",
-      "Correto! A grafia certa é 'holiday'.",
+      "Errado. Essa grafia não existe em inglês.",
+      "Correto! A grafia certa é 'barbecue'.",
+      "Errado. Essa grafia não existe em inglês.",
       "Errado. Essa grafia não existe em inglês."
     ]},
-
-  // ---- Padrão 2: 'Along' vs. 'With' ----
-  { id:"c-aw-t1", category:"alongwith", prompt:"I have breakfast ___ my family every morning.", options:["along","with","over","under"], correct:1,
+  { id:"c-sp-t4", category:"spelling", prompt:"Which sentence is correct?", options:["We celebrate together. even though it's a small party.","We celebrate together. Even though it's a small party.","we celebrate together. Even though it's a small party.","We Celebrate together. Even though it's a small party."], correct:1,
     explanations:[
-      "Errado. 'along' sozinho não significa 'junto com' uma pessoa.",
-      "Correto! Para acompanhar alguém, use 'with': with my family.",
-      "Errado. 'over' não expressa companhia.",
-      "Errado. 'under' não expressa companhia."
-    ]},
-  { id:"c-aw-t2", category:"alongwith", prompt:"My daughter sleeps ___ her cousins on Fridays.", options:["along","with","without","at"], correct:1,
-    explanations:[
-      "Errado. 'along' não significa 'junto com' uma pessoa.",
-      "Correto! 'with' é a preposição certa para acompanhar alguém: with her cousins.",
-      "Errado. 'without' significa 'sem', o oposto do sentido da frase.",
-      "Errado. 'at' não expressa companhia."
-    ]},
-  { id:"c-aw-t3", category:"alongwith", prompt:"I go to work ___ my wife every day.", options:["along","with","by","from"], correct:1,
-    explanations:[
-      "Errado. 'along' não substitui 'with' para dizer 'junto com alguém'.",
-      "Correto! 'with my wife' é a forma certa de dizer 'junto com minha esposa'.",
-      "Errado. 'by' aqui indicaria meio de transporte (by car), não companhia.",
-      "Errado. 'from' indica origem, não companhia."
-    ]},
-  { id:"c-aw-t4", category:"alongwith", prompt:"We watch TV ___ our kids after dinner.", options:["along","with","at","in"], correct:1,
-    explanations:[
-      "Errado. 'along' não significa 'junto com' uma pessoa.",
-      "Correto! 'with our kids' expressa companhia.",
-      "Errado. 'at' não expressa companhia.",
-      "Errado. 'in' não expressa companhia."
+      "Errado. Depois de ponto final, a nova frase deve começar com letra maiúscula: Even though.",
+      "Correto! 'Even though' começa com maiúscula por vir depois de um ponto final.",
+      "Errado. Toda frase em inglês começa com letra maiúscula, incluindo 'we'.",
+      "Errado. Não há motivo para 'Celebrate' estar com maiúscula no meio da frase."
     ]},
 
-  // ---- Padrão 3: 'All' vs. 'Everybody/Everyone' ----
-  { id:"c-as-t1", category:"allsubject", prompt:"After the wedding, ___ dances all night.", options:["all","everybody","all people","the all"], correct:1,
+  // ---- Padrão 6: Negação de frequência ----
+  { id:"c-nf-t1", category:"negfreq", prompt:"Which sentence is correct?", options:["Not even always I celebrate every holiday.","I don't always celebrate every holiday.","Always I don't celebrate every holiday.","I not always celebrate every holiday."], correct:1,
     explanations:[
-      "Errado. 'all' sozinho não funciona como sujeito da frase.",
-      "Correto! 'everybody' é o sujeito certo, com verbo no singular: everybody dances.",
-      "Errado. 'all people' pede o verbo no plural (all people dance), não é o mais natural aqui.",
-      "Errado. 'the all' não existe em inglês."
+      "Errado. 'Not even always I...' não existe em inglês; essa ordem não é usada para negar frequência.",
+      "Correto! Para negar frequência, use sujeito + don't/doesn't + always + verbo: I don't always celebrate.",
+      "Errado. 'Always' não vem antes do sujeito nessa estrutura negativa.",
+      "Errado. A negação precisa do auxiliar 'don't'; não se usa 'not' direto antes do verbo no presente simples."
     ]},
-  { id:"c-as-t2", category:"allsubject", prompt:"___ gets dressed before breakfast.", options:["All","Everybody","All people","Everybody's"], correct:1,
+  { id:"c-nf-t2", category:"negfreq", prompt:"Which sentence is correct?", options:["Not always I visit my grandparents.","I don't always visit my grandparents.","Always I don't visit my grandparents.","I not always visit my grandparents."], correct:1,
     explanations:[
-      "Errado. 'all' sozinho não pode ser o sujeito da frase.",
-      "Correto! 'everybody' + verbo no singular: everybody gets.",
-      "Errado. Soa estranho aqui; o mais natural é 'everybody'.",
-      "Errado. 'everybody's' é forma possessiva, não é o sujeito da frase."
+      "Errado. Essa ordem de palavras não é usada para negar frequência em inglês.",
+      "Correto! Sujeito + don't + always + verbo: I don't always visit.",
+      "Errado. 'Always' não vem antes do sujeito nessa estrutura negativa.",
+      "Errado. A negação precisa do auxiliar 'don't'."
     ]},
-  { id:"c-as-t3", category:"allsubject", prompt:"At Christmas, ___ opens presents together.", options:["all","everyone","all family","everyone's"], correct:1,
+  { id:"c-nf-t3", category:"negfreq", prompt:"Which sentence is correct?", options:["Not even always we watch movies together.","We don't always watch movies together.","Always we don't watch movies together.","We not always watch movies together."], correct:1,
     explanations:[
-      "Errado. 'all' sozinho não funciona como sujeito.",
-      "Correto! 'everyone' + verbo no singular: everyone opens.",
-      "Errado. 'all family' não é uma expressão natural em inglês; o certo seria 'the whole family'.",
-      "Errado. 'everyone's' é possessivo, não é o sujeito que a frase pede."
+      "Errado. Essa ordem de palavras não existe em inglês para negar frequência.",
+      "Correto! Sujeito + don't + always + verbo: we don't always watch.",
+      "Errado. 'Always' não vem antes do sujeito nessa estrutura negativa.",
+      "Errado. A negação precisa do auxiliar 'don't'."
     ]},
-  { id:"c-as-t4", category:"allsubject", prompt:"___ wants to see the new baby.", options:["all","everyone","all of","everyone's"], correct:1,
+  { id:"c-nf-t4", category:"negfreq", prompt:"Which sentence is correct?", options:["Not even always they call us.","They don't always call us.","Always they don't call us.","They not always call us."], correct:1,
     explanations:[
-      "Errado. 'all' sozinho não pode ser o sujeito da frase.",
-      "Correto! 'everyone' + verbo no singular: everyone wants.",
-      "Errado. 'all of' precisa de um substantivo depois (all of us), não fica sozinho.",
-      "Errado. 'everyone's' é possessivo, não é o sujeito da frase."
-    ]},
-
-  // ---- Padrão 4: 'Every' + singular para rotina ----
-  { id:"c-er-t1", category:"everyroutine", prompt:"___ my daughter sleeps at my parents' house.", options:["All Fridays","Every Friday","All Friday","Every Fridays"], correct:1,
-    explanations:[
-      "Errado. Não se diz 'all Fridays' para rotina; o certo é 'every Friday'.",
-      "Correto! Para rotina que se repete, usamos 'every' + singular: every Friday.",
-      "Errado. Falta o 's' em 'Fridays' e ainda assim 'all' não combina com rotina.",
-      "Errado. 'every' sempre vem com substantivo no singular, sem 's'."
-    ]},
-  { id:"c-er-t2", category:"everyroutine", prompt:"We visit my grandparents ___.", options:["all Sundays","every Sunday","all Sunday","every Sundays"], correct:1,
-    explanations:[
-      "Errado. 'all Sundays' não é a forma natural para expressar rotina.",
-      "Correto! 'every Sunday' é a forma certa para uma rotina semanal.",
-      "Errado. Falta o 's' em 'Sundays' e 'all' ainda não combina aqui.",
-      "Errado. 'every' pede o substantivo no singular, sem 's'."
-    ]},
-  { id:"c-er-t3", category:"everyroutine", prompt:"My son calls me ___.", options:["all mornings","every morning","all morning","every mornings"], correct:1,
-    explanations:[
-      "Errado. 'all mornings' não é usado para rotina diária.",
-      "Correto! 'every morning' expressa uma rotina que se repete todo dia.",
-      "Errado. 'all morning' significa 'a manhã inteira' (duração), não rotina diária.",
-      "Errado. 'every' pede o substantivo no singular, sem 's'."
-    ]},
-  { id:"c-er-t4", category:"everyroutine", prompt:"They travel to Brazil ___.", options:["all years","every year","all year","every years"], correct:1,
-    explanations:[
-      "Errado. 'all years' não é usado para rotina.",
-      "Correto! 'every year' expressa uma rotina anual.",
-      "Errado. 'all year' significa 'o ano inteiro' (duração), não rotina.",
-      "Errado. 'every' pede o substantivo no singular, sem 's'."
+      "Errado. Essa ordem de palavras não existe em inglês para negar frequência.",
+      "Correto! Sujeito + don't + always + verbo: they don't always call.",
+      "Errado. 'Always' não vem antes do sujeito nessa estrutura negativa.",
+      "Errado. A negação precisa do auxiliar 'don't'."
     ]},
 
-  // ---- Padrão 5: Verbo obrigatório na frase ----
-  { id:"c-mv-t1", category:"missingverb", prompt:"Which sentence is correct?", options:["I by bus and my wife by car.","I go by bus and my wife goes by car.","I by bus and my wife go by car.","I go by bus and my wife by car."], correct:1,
-    explanations:[
-      "Errado. Faltam os verbos; em inglês toda oração precisa de um verbo, mesmo quando o português permite omitir.",
-      "Correto! Cada parte da frase tem seu verbo: I go... my wife goes.",
-      "Errado. Falta o verbo na primeira parte da frase.",
-      "Errado. Falta o verbo na segunda parte da frase."
-    ]},
-  { id:"c-mv-t2", category:"missingverb", prompt:"Which sentence is correct?", options:["My daughter to school by bike.","My daughter goes to school by bike.","My daughter by bike to school.","My daughter going to school by bike."], correct:1,
-    explanations:[
-      "Errado. Falta o verbo principal da frase.",
-      "Correto! 'goes' é o verbo obrigatório aqui: my daughter goes to school.",
-      "Errado. Falta o verbo principal da frase.",
-      "Errado. Falta o verbo auxiliar 'is' antes de 'going', ou o verbo deveria ser 'goes'."
-    ]},
-  { id:"c-mv-t3", category:"missingverb", prompt:"Which sentence is correct?", options:["On Sundays, we to my parents' house.","On Sundays, we go to my parents' house.","On Sundays, we at my parents' house.","On Sundays, we our parents' house."], correct:1,
-    explanations:[
-      "Errado. Falta o verbo principal da frase.",
-      "Correto! 'go' é o verbo obrigatório: we go to my parents' house.",
-      "Errado. Falta o verbo; 'at' sozinho não substitui o verbo.",
-      "Errado. Falta o verbo principal da frase."
-    ]},
-  { id:"c-mv-t4", category:"missingverb", prompt:"Which sentence is correct?", options:["She to the gym every morning.","She goes to the gym every morning.","She the gym every morning.","She go to the gym every morning."], correct:1,
-    explanations:[
-      "Errado. Falta o verbo principal da frase.",
-      "Correto! Com 'she' (3ª pessoa), o verbo é 'goes': she goes to the gym.",
-      "Errado. Falta o verbo principal da frase.",
-      "Errado. Com 'she' (3ª pessoa), o verbo precisa do 's': goes."
-    ]},
-
-  // ---- Padrão 6: Concordância verbal (3ª pessoa) ----
-  { id:"c-sv-t1", category:"subjectverb", prompt:"The main holiday that my family ___ is Christmas.", options:["celebrate","celebrates","celebrating","celebrated"], correct:1,
-    explanations:[
-      "Errado. 'family' é singular em inglês; falta o 's' no verbo.",
-      "Correto! 'family' é tratada como singular, então o verbo recebe 's': family celebrates.",
-      "Errado. 'celebrating' precisa do verbo 'be' antes (is celebrating).",
-      "Errado. 'celebrated' é passado; a frase descreve algo atual."
-    ]},
-  { id:"c-sv-t2", category:"subjectverb", prompt:"My family ___ together every Sunday.", options:["eat","eats","eating","ate"], correct:1,
-    explanations:[
-      "Errado. 'family' é singular; falta o 's' no verbo.",
-      "Correto! 'family eats' — sujeito singular pede verbo com 's'.",
-      "Errado. 'eating' precisa do verbo 'be' antes para formar o Continuous.",
-      "Errado. 'ate' é passado; a frase descreve uma rotina no presente."
-    ]},
-  { id:"c-sv-t3", category:"subjectverb", prompt:"My daughter ___ her homework every night.", options:["do","does","doing","did"], correct:1,
-    explanations:[
-      "Errado. Com 'my daughter' (3ª pessoa), o verbo é 'does', não 'do'.",
-      "Correto! 3ª pessoa do singular + 's': daughter does.",
-      "Errado. 'doing' precisa do verbo 'be' antes para formar o Continuous.",
-      "Errado. 'did' é passado; a frase descreve uma rotina no presente."
-    ]},
-  { id:"c-sv-t4", category:"subjectverb", prompt:"My grandmother ___ a delicious cake on holidays.", options:["bake","bakes","baking","baked"], correct:1,
-    explanations:[
-      "Errado. Com 'my grandmother' (3ª pessoa), falta o 's' no verbo.",
-      "Correto! 3ª pessoa do singular + 's': grandmother bakes.",
-      "Errado. 'baking' precisa do verbo 'be' antes para formar o Continuous.",
-      "Errado. 'baked' é passado; a frase descreve uma rotina."
-    ]},
-
-  // ---- Padrão 7: 'For' vs. 'To' + verbo ----
-  { id:"c-ft-t1", category:"forto", prompt:"We meet at my parents' house ___ have barbecues.", options:["for","to","for to","in order for"], correct:1,
-    explanations:[
-      "Errado. Depois de 'for' só vem substantivo ou gerúndio (for a barbecue), não verbo no infinitivo.",
-      "Correto! Para expressar finalidade com um verbo, usamos 'to + verbo': to have barbecues.",
-      "Errado. Essa combinação não existe em inglês.",
-      "Errado. 'in order for' precisa de uma estrutura diferente (in order for someone to do something)."
-    ]},
-  { id:"c-ft-t2", category:"forto", prompt:"My family gets together ___ celebrate birthdays.", options:["for","to","for to","at"], correct:1,
-    explanations:[
-      "Errado. 'for' não é seguido de verbo no infinitivo para expressar finalidade.",
-      "Correto! 'to + verbo' expressa finalidade: to celebrate birthdays.",
-      "Errado. Essa combinação não existe em inglês.",
-      "Errado. 'at' não expressa finalidade."
-    ]},
-  { id:"c-ft-t3", category:"forto", prompt:"I wake up early ___ prepare breakfast for my kids.", options:["for","to","for to","in order for"], correct:1,
-    explanations:[
-      "Errado. 'for' não é seguido de verbo no infinitivo.",
-      "Correto! 'to prepare' expressa a finalidade de acordar cedo.",
-      "Errado. Essa combinação não existe em inglês.",
-      "Errado. 'in order for' precisa de uma estrutura diferente."
-    ]},
-  { id:"c-ft-t4", category:"forto", prompt:"We travel every year ___ visit my grandparents.", options:["for","to","for to","at"], correct:1,
-    explanations:[
-      "Errado. 'for' não é seguido de verbo no infinitivo.",
-      "Correto! 'to visit' expressa a finalidade da viagem.",
-      "Errado. Essa combinação não existe em inglês.",
-      "Errado. 'at' não expressa finalidade."
-    ]},
-
-  // ---- Padrão 8: 'Much' vs. 'Many' ----
+  // ---- Padrão 7: 'Much' vs. 'Many' (reforço) ----
   { id:"c-mm-t1", category:"muchmany", prompt:"We don't have ___ traditions in my family.", options:["much","many","a much","many's"], correct:1,
     explanations:[
       "Errado. 'tradition' é contável (traditions no plural); com contáveis usamos 'many'.",
@@ -239,389 +210,419 @@ const CONV_TEST_QUESTIONS = [
       "Errado. 'a much' não existe em inglês.",
       "Errado. 'many's' não existe em inglês."
     ]},
-  { id:"c-mm-t2", category:"muchmany", prompt:"My grandmother doesn't have ___ free time.", options:["much","many","a many","much's"], correct:0,
-    explanations:[
-      "Correto! 'time' é incontável, então usamos 'much': much free time.",
-      "Errado. 'many' é usado com substantivos contáveis no plural, e 'time' é incontável.",
-      "Errado. 'a many' não existe em inglês.",
-      "Errado. 'much's' não existe em inglês."
-    ]},
-  { id:"c-mm-t3", category:"muchmany", prompt:"There aren't ___ people at our family dinners.", options:["much","many","a much","a many"], correct:1,
-    explanations:[
-      "Errado. 'people' é contável no plural; com contáveis usamos 'many'.",
-      "Correto! 'many people' — contável no plural pede 'many'.",
-      "Errado. 'a much' não existe em inglês.",
-      "Errado. 'a many' não existe em inglês."
-    ]},
-  { id:"c-mm-t4", category:"muchmany", prompt:"We don't spend ___ money on holidays.", options:["much","many","a much","many's"], correct:0,
-    explanations:[
-      "Correto! 'money' é incontável, então usamos 'much': much money.",
-      "Errado. 'many' é usado com substantivos contáveis no plural, e 'money' é incontável.",
-      "Errado. 'a much' não existe em inglês.",
-      "Errado. 'many's' não existe em inglês."
-    ]},
-
-  // ---- Padrão 9: Frase completa (sujeito + verbo) ----
-  { id:"c-sc-t1", category:"sentencecore", prompt:"Which sentence is correct?", options:["Eating delicious desserts like mousse and ice cream.","We eat delicious desserts like mousse and ice cream.","Eat delicious desserts like mousse and ice cream.","Eating delicious dessert like mousse and ice cream."], correct:1,
-    explanations:[
-      "Errado. Começar com gerúndio solto não forma uma frase completa; falta sujeito e verbo conjugado.",
-      "Correto! 'We eat' dá sujeito e verbo conjugado à frase, além de 'desserts' no plural.",
-      "Errado. Falta o sujeito da frase.",
-      "Errado. Falta sujeito, verbo conjugado, e 'dessert' deveria estar no plural."
-    ]},
-  { id:"c-sc-t2", category:"sentencecore", prompt:"Which sentence is correct?", options:["Cooking dinner for the whole family every Sunday.","My mother cooks dinner for the whole family every Sunday.","Cook dinner for the whole family every Sunday.","Cooking dinner for the whole family, every Sunday."], correct:1,
-    explanations:[
-      "Errado. Gerúndio solto no início não forma uma frase completa.",
-      "Correto! 'My mother cooks' dá sujeito e verbo conjugado à frase.",
-      "Errado. Falta o sujeito da frase.",
-      "Errado. Ainda falta sujeito e verbo conjugado; a vírgula não resolve isso."
-    ]},
-  { id:"c-sc-t3", category:"sentencecore", prompt:"Which sentence is correct?", options:["Visiting my grandparents every weekend.","We visit my grandparents every weekend.","Visit my grandparents every weekend.","Visiting my grandparents, every weekend."], correct:1,
-    explanations:[
-      "Errado. Gerúndio solto não forma uma frase completa.",
-      "Correto! 'We visit' dá sujeito e verbo conjugado à frase.",
-      "Errado. Falta o sujeito da frase.",
-      "Errado. A vírgula não resolve a falta de sujeito e verbo conjugado."
-    ]},
-  { id:"c-sc-t4", category:"sentencecore", prompt:"Which sentence is correct?", options:["Watching movies together on Friday nights.","My family watches movies together on Friday nights.","Watch movies together on Friday nights.","Watching movie together on Friday nights."], correct:1,
-    explanations:[
-      "Errado. Gerúndio solto não forma uma frase completa.",
-      "Correto! 'My family watches' dá sujeito e verbo conjugado à frase.",
-      "Errado. Falta o sujeito da frase.",
-      "Errado. Falta sujeito, verbo conjugado, e 'movie' deveria estar no plural."
-    ]},
-
-  // ---- Padrão 10: Lugar e possessivo ('s) ----
-  { id:"c-pp-t1", category:"placeposs", prompt:"My daughter sleeps at my ___ house.", options:["parents","parent's","parents'","parents's"], correct:2,
-    explanations:[
-      "Errado. Falta o apóstrofo indicando posse.",
-      "Errado. 'parent's' (singular) indica a casa de um só pai/mãe, não do casal.",
-      "Correto! Plural + apóstrofo depois do 's': parents' house.",
-      "Errado. Essa forma não existe em inglês."
-    ]},
-  { id:"c-pp-t2", category:"placeposs", prompt:"We spend Christmas at my ___ house.", options:["grandparents","grandparent's","grandparents'","grandparents's"], correct:2,
-    explanations:[
-      "Errado. Falta o apóstrofo indicando posse.",
-      "Errado. 'grandparent's' (singular) indica apenas um avô ou avó.",
-      "Correto! Plural + apóstrofo depois do 's': grandparents' house.",
-      "Errado. Essa forma não existe em inglês."
-    ]},
-  { id:"c-pp-t3", category:"placeposs", prompt:"This is my ___ car.", options:["sister","sister's","sisters'","sisters"], correct:1,
-    explanations:[
-      "Errado. Falta o apóstrofo indicando posse.",
-      "Correto! Singular + apóstrofo antes do 's': sister's car.",
-      "Errado. 'sisters'' (com apóstrofo depois do s) seria para várias irmãs.",
-      "Errado. Falta o apóstrofo indicando posse."
-    ]},
-  { id:"c-pp-t4", category:"placeposs", prompt:"My kids play at my ___ house every weekend.", options:["parents","parent's","parents'","parents's"], correct:2,
-    explanations:[
-      "Errado. Falta o apóstrofo indicando posse.",
-      "Errado. 'parent's' (singular) indica a casa de um só pai/mãe.",
-      "Correto! Plural + apóstrofo depois do 's': parents' house.",
-      "Errado. Essa forma não existe em inglês."
-    ]},
-];
-
-/* ================= EXERCÍCIOS DE REFORÇO: CONVERSA REAL ================= */
-const CONV_PRACTICE_QUESTIONS = [
-  // ---- Padrão 1 ----
-  { id:"c-sp-p1", category:"spelling", prompt:"My grandmother is ___.", options:["brazilian","Brazilian","brazilan","Brazilan"], correct:1,
-    explanations:[
-      "Errado. Nacionalidades são sempre escritas com letra maiúscula em inglês.",
-      "Correto! 'Brazilian', com maiúscula — nacionalidades sempre levam maiúscula.",
-      "Errado. Grafia errada e sem maiúscula.",
-      "Errado. Grafia errada e sem maiúscula."
-    ]},
-  { id:"c-sp-p2", category:"spelling", prompt:"My family is ___.", options:["christian","Christian","cristian","Christiam"], correct:1,
-    explanations:[
-      "Errado. Religiões e adjetivos derivados delas levam maiúscula em inglês.",
-      "Correto! 'Christian', com maiúscula.",
-      "Errado. Grafia errada e sem maiúscula.",
-      "Errado. Grafia errada."
-    ]},
-  { id:"c-sp-p3", category:"spelling", prompt:"My daughter has ___ hair.", options:["straigth","straght","straight","streight"], correct:2,
-    explanations:[
-      "Errado. As letras 'gh' vêm antes do 't': straight.",
-      "Errado. Falta o 'i' antes do 'gh'.",
-      "Correto! A grafia certa é 'straight'.",
-      "Errado. Essa grafia não existe em inglês."
-    ]},
-  { id:"c-sp-p4", category:"spelling", prompt:"We celebrate this ___ every year.", options:["holyday","holliday","holiday","holladay"], correct:2,
-    explanations:[
-      "Errado. Não é 'holy' + 'day'.",
-      "Errado. Essa grafia não existe em inglês.",
-      "Correto! A grafia certa é 'holiday'.",
-      "Errado. Essa grafia não existe em inglês."
-    ]},
-
-  // ---- Padrão 2 ----
-  { id:"c-aw-p1", category:"alongwith", prompt:"He travels ___ his family every summer.", options:["along","with","for","of"], correct:1,
-    explanations:[
-      "Errado. 'along' não significa 'junto com' uma pessoa.",
-      "Correto! 'with his family' expressa companhia.",
-      "Errado. 'for' não expressa companhia.",
-      "Errado. 'of' não expressa companhia."
-    ]},
-  { id:"c-aw-p2", category:"alongwith", prompt:"I live ___ my parents.", options:["along","with","in","on"], correct:1,
-    explanations:[
-      "Errado. 'along' não significa 'junto com' uma pessoa.",
-      "Correto! 'live with someone' é a estrutura certa: with my parents.",
-      "Errado. 'in' não expressa companhia aqui.",
-      "Errado. 'on' não expressa companhia."
-    ]},
-  { id:"c-aw-p3", category:"alongwith", prompt:"She cooks dinner ___ her mother on Sundays.", options:["along","with","to","at"], correct:1,
-    explanations:[
-      "Errado. 'along' não significa 'junto com' uma pessoa.",
-      "Correto! 'with her mother' expressa companhia.",
-      "Errado. 'to' não expressa companhia.",
-      "Errado. 'at' não expressa companhia."
-    ]},
-  { id:"c-aw-p4", category:"alongwith", prompt:"My son does his homework ___ me every evening.", options:["along","with","for","at"], correct:1,
-    explanations:[
-      "Errado. 'along' não significa 'junto com' uma pessoa.",
-      "Correto! 'with me' expressa companhia.",
-      "Errado. 'for' não expressa companhia.",
-      "Errado. 'at' não expressa companhia."
-    ]},
-
-  // ---- Padrão 3 ----
-  { id:"c-as-p1", category:"allsubject", prompt:"___ arrives early for Sunday lunch.", options:["all","everybody","all people","everybodies"], correct:1,
-    explanations:[
-      "Errado. 'all' sozinho não pode ser o sujeito da frase.",
-      "Correto! 'everybody' + verbo no singular: everybody arrives.",
-      "Errado. Soa menos natural aqui; o esperado é 'everybody'.",
-      "Errado. 'everybodies' não existe em inglês."
-    ]},
-  { id:"c-as-p2", category:"allsubject", prompt:"In my family, ___ helps in the kitchen.", options:["all","everyone","all everyone","everyones"], correct:1,
-    explanations:[
-      "Errado. 'all' sozinho não pode ser o sujeito da frase.",
-      "Correto! 'everyone' + verbo no singular: everyone helps.",
-      "Errado. Essa combinação não existe em inglês.",
-      "Errado. 'everyones' não existe em inglês."
-    ]},
-  { id:"c-as-p3", category:"allsubject", prompt:"___ loves my grandmother's cake.", options:["all","everybody","all of them","everybodys"], correct:1,
-    explanations:[
-      "Errado. 'all' sozinho não pode ser o sujeito da frase.",
-      "Correto! 'everybody' + verbo no singular: everybody loves.",
-      "Errado. 'all of them' precisa de um contexto anterior (quem são 'them'), não funciona sozinho aqui.",
-      "Errado. 'everybodys' não existe em inglês."
-    ]},
-  { id:"c-as-p4", category:"allsubject", prompt:"On my birthday, ___ sings for me.", options:["all","everyone","all people","everyones"], correct:1,
-    explanations:[
-      "Errado. 'all' sozinho não pode ser o sujeito da frase.",
-      "Correto! 'everyone' + verbo no singular: everyone sings.",
-      "Errado. 'all people' soa menos natural aqui.",
-      "Errado. 'everyones' não existe em inglês."
-    ]},
-
-  // ---- Padrão 4 ----
-  { id:"c-er-p1", category:"everyroutine", prompt:"My wife cooks a big lunch ___.", options:["all Sundays","every Sunday","all Sunday","every sundays"], correct:1,
-    explanations:[
-      "Errado. 'all Sundays' não é a forma natural para rotina.",
-      "Correto! 'every Sunday' expressa a rotina semanal.",
-      "Errado. 'all Sunday' significa 'o domingo inteiro' (duração), não rotina.",
-      "Errado. 'every' pede o substantivo no singular e com maiúscula: Sunday."
-    ]},
-  { id:"c-er-p2", category:"everyroutine", prompt:"He calls his mother ___.", options:["all weeks","every week","all week","every weeks"], correct:1,
-    explanations:[
-      "Errado. 'all weeks' não é usado para rotina.",
-      "Correto! 'every week' expressa a rotina semanal.",
-      "Errado. 'all week' significa 'a semana inteira' (duração), não rotina.",
-      "Errado. 'every' pede o substantivo no singular, sem 's'."
-    ]},
-  { id:"c-er-p3", category:"everyroutine", prompt:"We celebrate Christmas ___.", options:["all years","every year","all year","every-year"], correct:1,
-    explanations:[
-      "Errado. 'all years' não é usado para rotina.",
-      "Correto! 'every year' expressa a rotina anual.",
-      "Errado. 'all year' significa 'o ano inteiro' (duração), não rotina.",
-      "Errado. Não se usa hífen entre 'every' e 'year'."
-    ]},
-  { id:"c-er-p4", category:"everyroutine", prompt:"My daughter visits us ___.", options:["all Fridays","every Friday","all Friday","everyfriday"], correct:1,
-    explanations:[
-      "Errado. 'all Fridays' não é a forma natural para rotina.",
-      "Correto! 'every Friday' expressa a rotina semanal.",
-      "Errado. 'all Friday' significa 'a sexta-feira inteira' (duração), não rotina.",
-      "Errado. 'every' e 'Friday' são duas palavras separadas."
-    ]},
-
-  // ---- Padrão 5 ----
-  { id:"c-mv-p1", category:"missingverb", prompt:"Which sentence is correct?", options:["They to church on Sundays.","They go to church on Sundays.","They church on Sundays.","They going to church on Sundays."], correct:1,
-    explanations:[
-      "Errado. Falta o verbo principal da frase.",
-      "Correto! 'go' é o verbo obrigatório: they go to church.",
-      "Errado. Falta o verbo principal da frase.",
-      "Errado. Falta o verbo auxiliar 'are' antes de 'going', ou o verbo deveria ser 'go'."
-    ]},
-  { id:"c-mv-p2", category:"missingverb", prompt:"Which sentence is correct?", options:["My mother to the market on Saturdays.","My mother goes to the market on Saturdays.","My mother the market on Saturdays.","My mother go to the market on Saturdays."], correct:1,
-    explanations:[
-      "Errado. Falta o verbo principal da frase.",
-      "Correto! 'goes' é o verbo obrigatório, com o 's' da 3ª pessoa.",
-      "Errado. Falta o verbo principal da frase.",
-      "Errado. Com 'my mother' (3ª pessoa), o verbo precisa do 's': goes."
-    ]},
-  { id:"c-mv-p3", category:"missingverb", prompt:"Which sentence is correct?", options:["We by train to my grandparents' house.","We go by train to my grandparents' house.","We by train my grandparents' house.","We going by train to my grandparents' house."], correct:1,
-    explanations:[
-      "Errado. Falta o verbo principal da frase.",
-      "Correto! 'go' é o verbo obrigatório: we go by train.",
-      "Errado. Falta o verbo e a preposição 'to' antes do lugar.",
-      "Errado. Falta o verbo auxiliar 'are' antes de 'going', ou o verbo deveria ser 'go'."
-    ]},
-  { id:"c-mv-p4", category:"missingverb", prompt:"Which sentence is correct?", options:["I to bed at 10 pm.","I go to bed at 10 pm.","I bed at 10 pm.","I going to bed at 10 pm."], correct:1,
-    explanations:[
-      "Errado. Falta o verbo principal da frase.",
-      "Correto! 'go' é o verbo obrigatório: I go to bed.",
-      "Errado. Falta o verbo principal da frase.",
-      "Errado. Falta o verbo auxiliar 'am' antes de 'going', ou o verbo deveria ser 'go'."
-    ]},
-
-  // ---- Padrão 6 ----
-  { id:"c-sv-p1", category:"subjectverb", prompt:"My son ___ soccer every weekend.", options:["play","plays","playing","played"], correct:1,
-    explanations:[
-      "Errado. Com 'my son' (3ª pessoa), falta o 's' no verbo.",
-      "Correto! 3ª pessoa do singular + 's': son plays.",
-      "Errado. 'playing' precisa do verbo 'be' antes para formar o Continuous.",
-      "Errado. 'played' é passado; a frase descreve uma rotina."
-    ]},
-  { id:"c-sv-p2", category:"subjectverb", prompt:"The whole family ___ presents on Christmas Eve.", options:["open","opens","opening","opened"], correct:1,
-    explanations:[
-      "Errado. 'the whole family' é tratado como singular; falta o 's' no verbo.",
-      "Correto! Sujeito singular + verbo com 's': family opens.",
-      "Errado. 'opening' precisa do verbo 'be' antes para formar o Continuous.",
-      "Errado. 'opened' é passado; a frase descreve uma tradição atual."
-    ]},
-  { id:"c-sv-p3", category:"subjectverb", prompt:"My husband ___ the dishes after dinner.", options:["wash","washes","washing","washed"], correct:1,
-    explanations:[
-      "Errado. Com 'my husband' (3ª pessoa), falta o 's' no verbo.",
-      "Correto! 3ª pessoa do singular + 's': husband washes.",
-      "Errado. 'washing' precisa do verbo 'be' antes para formar o Continuous.",
-      "Errado. 'washed' é passado; a frase descreve uma rotina."
-    ]},
-  { id:"c-sv-p4", category:"subjectverb", prompt:"My mother-in-law ___ us every Friday.", options:["visit","visits","visiting","visited"], correct:1,
-    explanations:[
-      "Errado. Com 'my mother-in-law' (3ª pessoa), falta o 's' no verbo.",
-      "Correto! 3ª pessoa do singular + 's': mother-in-law visits.",
-      "Errado. 'visiting' precisa do verbo 'be' antes para formar o Continuous.",
-      "Errado. 'visited' é passado; a frase descreve uma rotina."
-    ]},
-
-  // ---- Padrão 7 ----
-  { id:"c-ft-p1", category:"forto", prompt:"My daughter calls me ___ say good night.", options:["for","to","for to","at"], correct:1,
-    explanations:[
-      "Errado. 'for' não é seguido de verbo no infinitivo para expressar finalidade.",
-      "Correto! 'to say' expressa a finalidade da ligação.",
-      "Errado. Essa combinação não existe em inglês.",
-      "Errado. 'at' não expressa finalidade."
-    ]},
-  { id:"c-ft-p2", category:"forto", prompt:"We go to my mother's house ___ have Sunday lunch.", options:["for","to","for to","in order for"], correct:1,
-    explanations:[
-      "Errado. 'for' não é seguido de verbo no infinitivo.",
-      "Correto! 'to have' expressa a finalidade.",
-      "Errado. Essa combinação não existe em inglês.",
-      "Errado. 'in order for' precisa de uma estrutura diferente."
-    ]},
-  { id:"c-ft-p3", category:"forto", prompt:"He works hard ___ support his family.", options:["for","to","for to","at"], correct:1,
-    explanations:[
-      "Errado. 'for' não é seguido de verbo no infinitivo.",
-      "Correto! 'to support' expressa a finalidade.",
-      "Errado. Essa combinação não existe em inglês.",
-      "Errado. 'at' não expressa finalidade."
-    ]},
-  { id:"c-ft-p4", category:"forto", prompt:"They save money ___ buy a bigger house.", options:["for","to","for to","in order for"], correct:1,
-    explanations:[
-      "Errado. 'for' não é seguido de verbo no infinitivo.",
-      "Correto! 'to buy' expressa a finalidade.",
-      "Errado. Essa combinação não existe em inglês.",
-      "Errado. 'in order for' precisa de uma estrutura diferente."
-    ]},
-
-  // ---- Padrão 8 ----
-  { id:"c-mm-p1", category:"muchmany", prompt:"My family doesn't have ___ special traditions.", options:["much","many","a much","many's"], correct:1,
-    explanations:[
-      "Errado. 'tradition' é contável; com contáveis no plural usamos 'many'.",
-      "Correto! 'many traditions' — contável no plural.",
-      "Errado. 'a much' não existe em inglês.",
-      "Errado. 'many's' não existe em inglês."
-    ]},
-  { id:"c-mm-p2", category:"muchmany", prompt:"There isn't ___ time before the party.", options:["much","many","a much","a many"], correct:0,
+  { id:"c-mm-t2", category:"muchmany", prompt:"There isn't ___ time before the family lunch.", options:["much","many","a much","a many"], correct:0,
     explanations:[
       "Correto! 'time' é incontável, então usamos 'much'.",
       "Errado. 'many' é usado com contáveis no plural; 'time' é incontável.",
       "Errado. 'a much' não existe em inglês.",
       "Errado. 'a many' não existe em inglês."
     ]},
-  { id:"c-mm-p3", category:"muchmany", prompt:"We don't have ___ relatives living nearby.", options:["much","many","a much","a many"], correct:1,
+  { id:"c-mm-t3", category:"muchmany", prompt:"We don't get ___ holidays during the year.", options:["much","many","a much","many's"], correct:1,
     explanations:[
-      "Errado. 'relative' é contável; com contáveis no plural usamos 'many'.",
-      "Correto! 'many relatives' — contável no plural.",
-      "Errado. 'a much' não existe em inglês.",
-      "Errado. 'a many' não existe em inglês."
-    ]},
-  { id:"c-mm-p4", category:"muchmany", prompt:"My daughter doesn't eat ___ candy.", options:["much","many","a much","many's"], correct:0,
-    explanations:[
-      "Correto! 'candy' é incontável, então usamos 'much'.",
-      "Errado. 'many' é usado com contáveis no plural; 'candy' é incontável.",
+      "Errado. 'holiday' é contável (holidays no plural); com contáveis usamos 'many'.",
+      "Correto! 'many holidays' — contável no plural pede 'many'.",
       "Errado. 'a much' não existe em inglês.",
       "Errado. 'many's' não existe em inglês."
     ]},
+  { id:"c-mm-t4", category:"muchmany", prompt:"My grandmother doesn't have ___ energy these days.", options:["much","many","a many","much's"], correct:0,
+    explanations:[
+      "Correto! 'energy' é incontável, então usamos 'much'.",
+      "Errado. 'many' é usado com contáveis no plural; 'energy' é incontável.",
+      "Errado. 'a many' não existe em inglês.",
+      "Errado. 'much's' não existe em inglês."
+    ]},
+
+  // ---- Padrão 8: Preposições de lugar e tempo ----
+  { id:"c-pp-t1", category:"prepplace", prompt:"I spend Christmas ___ my parents' house.", options:["in","at","on","by"], correct:1,
+    explanations:[
+      "Errado. 'in' é usado para espaços fechados (in the kitchen), não para um lugar específico como uma casa.",
+      "Correto! 'at' indica um ponto específico: at my parents' house.",
+      "Errado. 'on' não é usado para indicar lugar aqui.",
+      "Errado. 'by' indica proximidade física (by the window), não é a preposição certa aqui."
+    ]},
+  { id:"c-pp-t2", category:"prepplace", prompt:"We usually cook ___ the kitchen.", options:["at","in","on","by"], correct:1,
+    explanations:[
+      "Errado. 'at' indica um ponto específico (at home), mas aqui a frase descreve um espaço fechado.",
+      "Correto! 'in' é usado para espaços fechados: in the kitchen.",
+      "Errado. 'on' não é usado para indicar lugar aqui.",
+      "Errado. 'by' indica proximidade física, não é a preposição certa aqui."
+    ]},
+  { id:"c-pp-t3", category:"prepplace", prompt:"We work ___ home on weekdays.", options:["in","at","on","by"], correct:1,
+    explanations:[
+      "Errado. 'in' é usado para espaços fechados, não na expressão fixa 'at home'.",
+      "Correto! 'at home' é a expressão fixa para 'em casa'.",
+      "Errado. 'on' não é usado para indicar lugar aqui.",
+      "Errado. 'by' indica proximidade física, não é a preposição certa aqui."
+    ]},
+  { id:"c-pp-t4", category:"prepplace", prompt:"Which sentence is correct?", options:["We work on week days.","We work on weekdays.","We work on the week days.","We work in weekdays."], correct:1,
+    explanations:[
+      "Errado. 'week days' se escreve junto, como uma palavra só: weekdays.",
+      "Correto! 'weekdays' é uma palavra só.",
+      "Errado. Não se usa o artigo 'the' antes de 'weekdays' nesse sentido geral, e falta juntar a palavra.",
+      "Errado. A preposição certa é 'on', não 'in': on weekdays."
+    ]},
+
+  // ---- Padrão 9: 'Different from' (não 'to') ----
+  { id:"c-df-t1", category:"differentfrom", prompt:"A holiday is not so different ___ a normal weekend for us.", options:["to","from","of","than"], correct:1,
+    explanations:[
+      "Errado. Em inglês, não se diz 'different to'; a forma padrão é 'different from'.",
+      "Correto! 'different from' é a forma padrão em inglês.",
+      "Errado. 'different of' não existe em inglês.",
+      "Errado. 'different than' é usado informalmente nos EUA, mas 'different from' é a forma mais segura e universal."
+    ]},
+  { id:"c-df-t2", category:"differentfrom", prompt:"Their routine is different ___ ours.", options:["to","from","of","than"], correct:1,
+    explanations:[
+      "Errado. Não se diz 'different to' em inglês padrão.",
+      "Correto! 'different from' é a forma padrão.",
+      "Errado. 'different of' não existe em inglês.",
+      "Errado. 'different from' é a forma mais segura."
+    ]},
+  { id:"c-df-t3", category:"differentfrom", prompt:"This year is different ___ last year.", options:["to","from","of","than"], correct:1,
+    explanations:[
+      "Errado. Não se diz 'different to' em inglês padrão.",
+      "Correto! 'different from' é a forma padrão.",
+      "Errado. 'different of' não existe em inglês.",
+      "Errado. 'different from' é a forma mais segura."
+    ]},
+  { id:"c-df-t4", category:"differentfrom", prompt:"Cooking together is normal ___ us, not something special.", options:["to","for","from","at"], correct:1,
+    explanations:[
+      "Errado. 'to us' aqui sugeriria outro sentido; para dizer 'para nós' (opinião), use 'for us'.",
+      "Correto! 'for us' expressa 'para nós' nesse sentido: normal for us.",
+      "Errado. 'from us' não expressa esse sentido aqui.",
+      "Errado. 'at us' não existe com esse sentido."
+    ]},
+
+  // ---- Padrão 10: 'Meeting' não é reunião de família ----
+  { id:"c-gt-t1", category:"gathering", prompt:"We usually have family ___ during the year.", options:["meetings","gatherings","meeting","gathers"], correct:1,
+    explanations:[
+      "Errado. 'meetings' é usado para reuniões de trabalho, não de família.",
+      "Correto! 'gatherings' é a palavra certa para reuniões de família.",
+      "Errado. Além do sentido errado (trabalho), falta o 's' do plural.",
+      "Errado. 'gathers' é verbo (ele reúne), não o substantivo que a frase pede."
+    ]},
+  { id:"c-gt-t2", category:"gathering", prompt:"On Sundays, the whole family has a ___ at my parents' house.", options:["meeting","get-together","meets","meetings"], correct:1,
+    explanations:[
+      "Errado. 'meeting' é reunião de trabalho, não o encontro de família descrito aqui.",
+      "Correto! 'a get-together' é uma forma natural e comum para dizer 'um encontro familiar'.",
+      "Errado. 'meets' não é usado como substantivo dessa forma em inglês.",
+      "Errado. Além do sentido errado, a frase pede o singular (a meeting)."
+    ]},
+  { id:"c-gt-t3", category:"gathering", prompt:"We organize a family ___ for birthdays.", options:["meeting","reunion","meetings","reunions"], correct:1,
+    explanations:[
+      "Errado. 'meeting' é reunião de trabalho.",
+      "Correto! 'reunion' é o termo certo para um encontro de família.",
+      "Errado. Além do sentido errado, falta o artigo indicando singular.",
+      "Errado. A frase pede o singular: a family reunion."
+    ]},
+  { id:"c-gt-t4", category:"gathering", prompt:"Which word fits: 'We have a work ___ every Monday morning.'", options:["gathering","meeting","reunion","get-together"], correct:1,
+    explanations:[
+      "Errado. 'gathering' é usado para encontros sociais/familiares, não de trabalho.",
+      "Correto! No contexto de trabalho, 'meeting' é a palavra certa.",
+      "Errado. 'reunion' também é para família ou amigos, não trabalho.",
+      "Errado. 'get-together' é informal, usado para encontros sociais, não reuniões de trabalho."
+    ]},
+];
+
+/* ================= EXERCÍCIOS DE REFORÇO: CONVERSA REAL ================= */
+const CONV_PRACTICE_QUESTIONS = [
+  // ---- Padrão 1 ----
+  { id:"c-hw-p1", category:"howcausal", prompt:"___ she has two jobs, she doesn't visit her parents often.", options:["How","Since","What","Where"], correct:1,
+    explanations:[
+      "Errado. 'how' significa 'de que maneira'; não expressa causa.",
+      "Correto! 'since' expressa causa: já que ela tem dois empregos.",
+      "Errado. 'what' não expressa causa aqui.",
+      "Errado. 'where' indica lugar, não causa."
+    ]},
+  { id:"c-hw-p2", category:"howcausal", prompt:"___ the kids are on vacation, we're traveling to my parents' house.", options:["How","As","What","When"], correct:1,
+    explanations:[
+      "Errado. 'how' não expressa causa.",
+      "Correto! 'as' expressa causa/motivo, como 'já que'.",
+      "Errado. 'what' não expressa causa aqui.",
+      "Errado. 'when' indica tempo, não o motivo da frase."
+    ]},
+  { id:"c-hw-p3", category:"howcausal", prompt:"___ we have a busy routine, we cook on Sundays for the whole week.", options:["How","Since","What","Why"], correct:1,
+    explanations:[
+      "Errado. 'how' não expressa causa.",
+      "Correto! 'since' expressa o motivo da frase.",
+      "Errado. 'what' não expressa causa.",
+      "Errado. 'why' pergunta o motivo, mas não é usado para afirmar uma causa dessa forma."
+    ]},
+  { id:"c-hw-p4", category:"howcausal", prompt:"___ my parents live far away, we only visit them on holidays.", options:["How","Because","What","Where"], correct:1,
+    explanations:[
+      "Errado. 'how' não expressa causa.",
+      "Correto! 'because' expressa o motivo da frase.",
+      "Errado. 'what' não expressa causa.",
+      "Errado. 'where' indica lugar, não causa."
+    ]},
+
+  // ---- Padrão 2 ----
+  { id:"c-wu-p1", category:"wesus", prompt:"___ watch a series together every night.", options:["Us","We","Our","Ours"], correct:1,
+    explanations:[
+      "Errado. 'us' é pronome objeto; aqui a frase precisa do sujeito.",
+      "Correto! 'we' é o pronome sujeito: we watch.",
+      "Errado. 'our' é possessivo, não substitui o sujeito.",
+      "Errado. 'ours' é possessivo absoluto, não é sujeito da frase."
+    ]},
+  { id:"c-wu-p2", category:"wesus", prompt:"He invited ___ to the family dinner.", options:["We","Us","Our","Ours"], correct:1,
+    explanations:[
+      "Errado. 'we' é pronome sujeito; aqui a frase precisa do objeto.",
+      "Correto! 'us' é o pronome objeto: invited us.",
+      "Errado. 'our' é possessivo, não substitui o objeto da frase.",
+      "Errado. 'ours' é possessivo absoluto, não é objeto direto."
+    ]},
+  { id:"c-wu-p3", category:"wesus", prompt:"___ have dinner together every Sunday.", options:["Us","We","Our","Ours"], correct:1,
+    explanations:[
+      "Errado. 'us' é pronome objeto; aqui a frase precisa do sujeito.",
+      "Correto! 'we' é o pronome sujeito: we have dinner.",
+      "Errado. 'our' é possessivo, não substitui o sujeito.",
+      "Errado. 'ours' é possessivo absoluto, não é sujeito da frase."
+    ]},
+  { id:"c-wu-p4", category:"wesus", prompt:"My parents visit ___ every weekend.", options:["We","Us","Our","Ours"], correct:1,
+    explanations:[
+      "Errado. 'we' é pronome sujeito; aqui a frase precisa do objeto.",
+      "Correto! 'us' é o pronome objeto: visit us.",
+      "Errado. 'our' é possessivo, não substitui o objeto da frase.",
+      "Errado. 'ours' é possessivo absoluto, não é objeto direto."
+    ]},
+
+  // ---- Padrão 3 ----
+  { id:"c-cv-p1", category:"canverb", prompt:"Which sentence is correct?", options:["We can relaxed on weekends.","We can relax on weekends.","We relaxed can on weekends.","We can relaxed, on weekends."], correct:1,
+    explanations:[
+      "Errado. Depois de 'can' vem o verbo no infinitivo sem 'to': can relax, não 'relaxed'.",
+      "Correto! 'can relax' — verbo no infinitivo depois de 'can'.",
+      "Errado. A ordem das palavras não é natural em inglês.",
+      "Errado. A vírgula não resolve o verbo errado depois de 'can'."
+    ]},
+  { id:"c-cv-p2", category:"canverb", prompt:"Which sentence is correct?", options:["The kids can quiet in the car.","The kids can be quiet in the car.","The kids quiet can in the car.","The kids can quiet, in the car."], correct:1,
+    explanations:[
+      "Errado. Depois de 'can' precisa vir um verbo; 'quiet' é adjetivo.",
+      "Correto! 'can be quiet' — o verbo 'be' vem depois de 'can'.",
+      "Errado. A ordem das palavras não é natural em inglês.",
+      "Errado. A vírgula não resolve a falta de verbo depois de 'can'."
+    ]},
+  { id:"c-cv-p3", category:"canverb", prompt:"Which sentence is correct?", options:["My parents can together every Sunday.","My parents can be together every Sunday.","My parents together can every Sunday.","My parents can together, every Sunday."], correct:1,
+    explanations:[
+      "Errado. Depois de 'can' precisa vir um verbo; 'together' é advérbio.",
+      "Correto! 'can be together' — o verbo 'be' vem depois de 'can'.",
+      "Errado. A ordem das palavras não é natural em inglês.",
+      "Errado. A vírgula não resolve a falta de verbo depois de 'can'."
+    ]},
+  { id:"c-cv-p4", category:"canverb", prompt:"Which sentence is correct?", options:["We can calm before the trip.","We can be calm before the trip.","We calm can before the trip.","We can calm, before the trip."], correct:1,
+    explanations:[
+      "Errado. Depois de 'can' precisa vir um verbo; 'calm' é adjetivo.",
+      "Correto! 'can be calm' — o verbo 'be' vem depois de 'can'.",
+      "Errado. A ordem das palavras não é natural em inglês.",
+      "Errado. A vírgula não resolve a falta de verbo depois de 'can'."
+    ]},
+
+  // ---- Padrão 4 ----
+  { id:"c-ou-p1", category:"onlyunique", prompt:"That's the ___ chance we have to see them this year.", options:["unique","only","an unique","a unique"], correct:1,
+    explanations:[
+      "Errado. 'unique' significa 'especial, sem igual', não 'apenas uma'.",
+      "Correto! 'only' expressa que é a única chance disponível.",
+      "Errado. Muda o sentido da frase.",
+      "Errado. Muda o sentido da frase."
+    ]},
+  { id:"c-ou-p2", category:"onlyunique", prompt:"Her cake has a ___ flavor nobody else makes.", options:["only","unique","an only","the only one"], correct:1,
+    explanations:[
+      "Errado. Aqui o sentido é 'especial, sem igual'; o certo é 'unique'.",
+      "Correto! 'unique' descreve um sabor especial e sem igual.",
+      "Errado. 'an only' não existe com esse sentido.",
+      "Errado. Muda o sentido da frase."
+    ]},
+  { id:"c-ou-p3", category:"onlyunique", prompt:"Saturday is the ___ day I don't work.", options:["unique","only","an unique","a unique"], correct:1,
+    explanations:[
+      "Errado. 'unique' significa 'especial', não 'apenas um'.",
+      "Correto! 'only' expressa que é o único dia disponível.",
+      "Errado. Muda o sentido e a gramática está errada.",
+      "Errado. Muda o sentido da frase."
+    ]},
+  { id:"c-ou-p4", category:"onlyunique", prompt:"He has a ___ talent for cooking.", options:["only","unique","an only","the only one"], correct:1,
+    explanations:[
+      "Errado. Aqui o sentido é 'especial, sem igual'; o certo é 'unique'.",
+      "Correto! 'unique' descreve um talento especial e sem igual.",
+      "Errado. 'an only' não existe com esse sentido.",
+      "Errado. Muda o sentido da frase."
+    ]},
+
+  // ---- Padrão 5 ----
+  { id:"c-sp-p1", category:"spelling", prompt:"Christmas is on the ___ of December.", options:["31th","31st","31nd","31rd"], correct:1,
+    explanations:[
+      "Errado. O sufixo certo para 31 é 'st': 31st.",
+      "Correto! 31st é a forma certa (thirty-first).",
+      "Errado. 'nd' é usado com números terminados em 2 (2nd), não com 31.",
+      "Errado. 'rd' é usado com números terminados em 3 (3rd), não com 31."
+    ]},
+  { id:"c-sp-p2", category:"spelling", prompt:"We celebrate every 31st of ___.", options:["december","December","Decembre","decembre"], correct:1,
+    explanations:[
+      "Errado. Meses do ano sempre levam maiúscula em inglês.",
+      "Correto! 'December', com maiúscula.",
+      "Errado. Grafia errada e sem maiúscula.",
+      "Errado. Grafia errada e sem maiúscula."
+    ]},
+  { id:"c-sp-p3", category:"spelling", prompt:"We always have a family ___ on holidays.", options:["barbacue","barbecue","barbeqeu","barbicue"], correct:1,
+    explanations:[
+      "Errado. Essa grafia não existe em inglês.",
+      "Correto! A grafia certa é 'barbecue'.",
+      "Errado. Essa grafia não existe em inglês.",
+      "Errado. Essa grafia não existe em inglês."
+    ]},
+  { id:"c-sp-p4", category:"spelling", prompt:"Which sentence is correct?", options:["We stay home. even though it's a holiday.","we stay home. Even though it's a holiday.","We stay home. Even though it's a holiday.","We Stay home. Even though it's a holiday."], correct:2,
+    explanations:[
+      "Errado. Depois de ponto final, a nova frase deve começar com maiúscula: Even though.",
+      "Errado. Toda frase começa com maiúscula, incluindo 'We'.",
+      "Correto! Maiúscula certa no início de cada frase: 'We stay home. Even though...'.",
+      "Errado. Não há motivo para 'Stay' estar com maiúscula no meio da frase."
+    ]},
+
+  // ---- Padrão 6 ----
+  { id:"c-nf-p1", category:"negfreq", prompt:"Which sentence is correct?", options:["Not even always I cook dinner.","I don't always cook dinner.","Always I don't cook dinner.","I not always cook dinner."], correct:1,
+    explanations:[
+      "Errado. Essa ordem de palavras não existe em inglês para negar frequência.",
+      "Correto! Sujeito + don't + always + verbo: I don't always cook.",
+      "Errado. 'Always' não vem antes do sujeito nessa estrutura negativa.",
+      "Errado. A negação precisa do auxiliar 'don't'."
+    ]},
+  { id:"c-nf-p2", category:"negfreq", prompt:"Which sentence is correct?", options:["Not even always she works on Sundays.","She doesn't always work on Sundays.","Always she doesn't work on Sundays.","She not always works on Sundays."], correct:1,
+    explanations:[
+      "Errado. Essa ordem de palavras não existe em inglês para negar frequência.",
+      "Correto! Sujeito + doesn't + always + verbo: she doesn't always work.",
+      "Errado. 'Always' não vem antes do sujeito nessa estrutura negativa.",
+      "Errado. A negação precisa do auxiliar 'doesn't'."
+    ]},
+  { id:"c-nf-p3", category:"negfreq", prompt:"Which sentence is correct?", options:["Not even always we travel in December.","We don't always travel in December.","Always we don't travel in December.","We not always travel in December."], correct:1,
+    explanations:[
+      "Errado. Essa ordem de palavras não existe em inglês para negar frequência.",
+      "Correto! Sujeito + don't + always + verbo: we don't always travel.",
+      "Errado. 'Always' não vem antes do sujeito nessa estrutura negativa.",
+      "Errado. A negação precisa do auxiliar 'don't'."
+    ]},
+  { id:"c-nf-p4", category:"negfreq", prompt:"Which sentence is correct?", options:["Not even always he visits his parents.","He doesn't always visit his parents.","Always he doesn't visit his parents.","He not always visits his parents."], correct:1,
+    explanations:[
+      "Errado. Essa ordem de palavras não existe em inglês para negar frequência.",
+      "Correto! Sujeito + doesn't + always + verbo: he doesn't always visit.",
+      "Errado. 'Always' não vem antes do sujeito nessa estrutura negativa.",
+      "Errado. A negação precisa do auxiliar 'doesn't'."
+    ]},
+
+  // ---- Padrão 7 ----
+  { id:"c-mm-p1", category:"muchmany", prompt:"We don't have ___ family gatherings during the year.", options:["much","many","a much","many's"], correct:1,
+    explanations:[
+      "Errado. 'gathering' é contável (gatherings no plural); com contáveis usamos 'many'.",
+      "Correto! 'many gatherings' — contável no plural pede 'many'.",
+      "Errado. 'a much' não existe em inglês.",
+      "Errado. 'many's' não existe em inglês."
+    ]},
+  { id:"c-mm-p2", category:"muchmany", prompt:"There isn't ___ space at the table for everyone.", options:["much","many","a much","a many"], correct:0,
+    explanations:[
+      "Correto! 'space' aqui é incontável, então usamos 'much'.",
+      "Errado. 'many' é usado com contáveis no plural.",
+      "Errado. 'a much' não existe em inglês.",
+      "Errado. 'a many' não existe em inglês."
+    ]},
+  { id:"c-mm-p3", category:"muchmany", prompt:"We don't have ___ traditions like other families.", options:["much","many","a much","many's"], correct:1,
+    explanations:[
+      "Errado. 'tradition' é contável (traditions no plural); com contáveis usamos 'many'.",
+      "Correto! 'many traditions' — contável no plural pede 'many'.",
+      "Errado. 'a much' não existe em inglês.",
+      "Errado. 'many's' não existe em inglês."
+    ]},
+  { id:"c-mm-p4", category:"muchmany", prompt:"My parents don't have ___ free time on weekdays.", options:["much","many","a many","much's"], correct:0,
+    explanations:[
+      "Correto! 'time' é incontável, então usamos 'much'.",
+      "Errado. 'many' é usado com contáveis no plural; 'time' é incontável.",
+      "Errado. 'a many' não existe em inglês.",
+      "Errado. 'much's' não existe em inglês."
+    ]},
+
+  // ---- Padrão 8 ----
+  { id:"c-pp-p1", category:"prepplace", prompt:"We have dinner ___ my grandparents' house every Sunday.", options:["in","at","on","by"], correct:1,
+    explanations:[
+      "Errado. 'in' é usado para espaços fechados, não para um lugar específico como uma casa.",
+      "Correto! 'at' indica um ponto específico: at my grandparents' house.",
+      "Errado. 'on' não é usado para indicar lugar aqui.",
+      "Errado. 'by' indica proximidade física, não é a preposição certa aqui."
+    ]},
+  { id:"c-pp-p2", category:"prepplace", prompt:"The kids play ___ the car while we wait.", options:["at","in","on","by"], correct:1,
+    explanations:[
+      "Errado. 'at' indica um ponto específico, mas aqui a frase descreve um espaço fechado.",
+      "Correto! 'in' é usado para espaços fechados: in the car.",
+      "Errado. 'on' não é usado para indicar lugar aqui.",
+      "Errado. 'by' indica proximidade física, não é a preposição certa aqui."
+    ]},
+  { id:"c-pp-p3", category:"prepplace", prompt:"We meet ___ church every Sunday morning.", options:["in","at","on","by"], correct:1,
+    explanations:[
+      "Errado. 'in' é usado para espaços fechados, não para um lugar/instituição específica como 'church'.",
+      "Correto! 'at church' indica um ponto específico.",
+      "Errado. 'on' não é usado para indicar lugar aqui.",
+      "Errado. 'by' indica proximidade física, não é a preposição certa aqui."
+    ]},
+  { id:"c-pp-p4", category:"prepplace", prompt:"Which sentence is correct?", options:["I work from home on week days.","I work from home on weekdays.","I work from home on the weekdays.","I work from home in weekdays."], correct:1,
+    explanations:[
+      "Errado. 'week days' se escreve junto: weekdays.",
+      "Correto! 'weekdays' é uma palavra só, sem artigo antes.",
+      "Errado. Não se usa o artigo 'the' antes de 'weekdays' nesse sentido geral.",
+      "Errado. A preposição certa é 'on', não 'in': on weekdays."
+    ]},
 
   // ---- Padrão 9 ----
-  { id:"c-sc-p1", category:"sentencecore", prompt:"Which sentence is correct?", options:["Playing games with my kids after school.","I play games with my kids after school.","Play games with my kids after school.","Playing game with my kids after school."], correct:1,
+  { id:"c-df-p1", category:"differentfrom", prompt:"My family's routine is different ___ my friend's family.", options:["to","from","of","than"], correct:1,
     explanations:[
-      "Errado. Gerúndio solto não forma uma frase completa.",
-      "Correto! 'I play' dá sujeito e verbo conjugado à frase.",
-      "Errado. Falta o sujeito da frase.",
-      "Errado. Falta sujeito, verbo conjugado, e 'game' deveria estar no plural."
+      "Errado. Não se diz 'different to' em inglês padrão.",
+      "Correto! 'different from' é a forma padrão.",
+      "Errado. 'different of' não existe em inglês.",
+      "Errado. 'different from' é a forma mais segura."
     ]},
-  { id:"c-sc-p2", category:"sentencecore", prompt:"Which sentence is correct?", options:["Singing songs at every birthday party.","We sing songs at every birthday party.","Sing songs at every birthday party.","Singing song at every birthday party."], correct:1,
+  { id:"c-df-p2", category:"differentfrom", prompt:"This Christmas is different ___ the last one.", options:["to","from","of","than"], correct:1,
     explanations:[
-      "Errado. Gerúndio solto não forma uma frase completa.",
-      "Correto! 'We sing' dá sujeito e verbo conjugado à frase.",
-      "Errado. Falta o sujeito da frase.",
-      "Errado. Falta sujeito, verbo conjugado, e 'song' deveria estar no plural."
+      "Errado. Não se diz 'different to' em inglês padrão.",
+      "Correto! 'different from' é a forma padrão.",
+      "Errado. 'different of' não existe em inglês.",
+      "Errado. 'different from' é a forma mais segura."
     ]},
-  { id:"c-sc-p3", category:"sentencecore", prompt:"Which sentence is correct?", options:["Making pizza on Saturday nights.","My family makes pizza on Saturday nights.","Make pizza on Saturday nights.","Making pizza, on Saturday night."], correct:1,
+  { id:"c-df-p3", category:"differentfrom", prompt:"A weekday is different ___ a weekend.", options:["to","from","of","than"], correct:1,
     explanations:[
-      "Errado. Gerúndio solto não forma uma frase completa.",
-      "Correto! 'My family makes' dá sujeito e verbo conjugado à frase.",
-      "Errado. Falta o sujeito da frase.",
-      "Errado. A vírgula não resolve a falta de sujeito e verbo conjugado."
+      "Errado. Não se diz 'different to' em inglês padrão.",
+      "Correto! 'different from' é a forma padrão.",
+      "Errado. 'different of' não existe em inglês.",
+      "Errado. 'different from' é a forma mais segura."
     ]},
-  { id:"c-sc-p4", category:"sentencecore", prompt:"Which sentence is correct?", options:["Traveling to the beach every summer.","We travel to the beach every summer.","Travel to the beach every summer.","Traveling to beach every summer."], correct:1,
+  { id:"c-df-p4", category:"differentfrom", prompt:"Having dinner together is important ___ us.", options:["to","for","from","at"], correct:1,
     explanations:[
-      "Errado. Gerúndio solto não forma uma frase completa.",
-      "Correto! 'We travel' dá sujeito e verbo conjugado à frase.",
-      "Errado. Falta o sujeito da frase.",
-      "Errado. Falta sujeito, verbo conjugado, e o artigo 'the' antes de 'beach'."
+      "Errado. 'to us' sugeriria outro sentido; para dizer 'para nós' (importância), use 'for us'.",
+      "Correto! 'for us' expressa 'para nós': important for us.",
+      "Errado. 'from us' não expressa esse sentido aqui.",
+      "Errado. 'at us' não existe com esse sentido."
     ]},
 
   // ---- Padrão 10 ----
-  { id:"c-pp-p1", category:"placeposs", prompt:"We celebrate Thanksgiving at my ___ house.", options:["uncle","uncle's","uncles'","uncles"], correct:1,
+  { id:"c-gt-p1", category:"gathering", prompt:"Every December, we have a big family ___.", options:["meeting","gathering","meetings","meet"], correct:1,
     explanations:[
-      "Errado. Falta o apóstrofo indicando posse.",
-      "Correto! Singular + apóstrofo antes do 's': uncle's house.",
-      "Errado. 'uncles'' seria para vários tios.",
-      "Errado. Falta o apóstrofo indicando posse."
+      "Errado. 'meeting' é reunião de trabalho, não de família.",
+      "Correto! 'gathering' é a palavra certa para um grande encontro de família.",
+      "Errado. Além do sentido errado, a frase pede o singular.",
+      "Errado. 'meet' não é usado como substantivo dessa forma em inglês."
     ]},
-  { id:"c-pp-p2", category:"placeposs", prompt:"My son studies at his ___ house after school.", options:["friends","friend's","friends'","friend"], correct:1,
+  { id:"c-gt-p2", category:"gathering", prompt:"My cousins and I organize a ___ every summer.", options:["meeting","reunion","meetings","meet"], correct:1,
     explanations:[
-      "Errado. Falta o apóstrofo indicando posse.",
-      "Correto! Singular + apóstrofo antes do 's': friend's house.",
-      "Errado. 'friends'' seria para vários amigos.",
-      "Errado. Falta o apóstrofo e o 's' indicando posse."
+      "Errado. 'meeting' é reunião de trabalho.",
+      "Correto! 'reunion' é o termo certo para o encontro entre parentes.",
+      "Errado. A frase pede o singular: a reunion.",
+      "Errado. 'meet' não é o substantivo certo aqui."
     ]},
-  { id:"c-pp-p3", category:"placeposs", prompt:"We have lunch at my ___ house every Sunday.", options:["parents","parent's","parents'","parentss"], correct:2,
+  { id:"c-gt-p3", category:"gathering", prompt:"We have a family ___ once a month.", options:["meeting","get-together","meetings","meet"], correct:1,
     explanations:[
-      "Errado. Falta o apóstrofo indicando posse.",
-      "Errado. 'parent's' (singular) indica a casa de um só pai/mãe.",
-      "Correto! Plural + apóstrofo depois do 's': parents' house.",
-      "Errado. Essa grafia não existe em inglês."
+      "Errado. 'meeting' é reunião de trabalho.",
+      "Correto! 'get-together' descreve bem um encontro informal de família.",
+      "Errado. A frase pede o singular: a get-together.",
+      "Errado. 'meet' não é o substantivo certo aqui."
     ]},
-  { id:"c-pp-p4", category:"placeposs", prompt:"This is my ___ room.", options:["daughter","daughters","daughter's","daughters'"], correct:2,
+  { id:"c-gt-p4", category:"gathering", prompt:"Which word fits: 'I have a business ___ this afternoon.'", options:["gathering","meeting","reunion","get-together"], correct:1,
     explanations:[
-      "Errado. Falta o apóstrofo indicando posse.",
-      "Errado. Falta o apóstrofo; 'daughters' sozinho é só plural.",
-      "Correto! Singular + apóstrofo antes do 's': daughter's room.",
-      "Errado. 'daughters'' seria para várias filhas."
+      "Errado. 'gathering' é para encontros sociais, não de trabalho.",
+      "Correto! No contexto de negócios, 'meeting' é a palavra certa.",
+      "Errado. 'reunion' é para família ou amigos, não trabalho.",
+      "Errado. 'get-together' é informal, usado para encontros sociais."
     ]},
 ];
 
