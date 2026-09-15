@@ -9,6 +9,7 @@ const state = {
   testQuestions: [],
   testIndex: 0,
   testAnswers: {},        // { questionId: selectedOptionIndex }
+  testRevealed: {},       // { questionId: true } assim que a questão é respondida (feedback imediato)
   results: null,          // computed after test
   exerciseQuestions: [],
   exerciseIndex: 0,
@@ -21,6 +22,7 @@ const state = {
   convTestQuestions: [],
   convTestIndex: 0,
   convTestAnswers: {},
+  convTestRevealed: {},
   convResults: null,
   convExerciseQuestions: [],
   convExerciseIndex: 0,
@@ -149,13 +151,16 @@ function startTest() {
   state.testQuestions = shuffle(TEST_QUESTIONS);
   state.testIndex = 0;
   state.testAnswers = {};
+  state.testRevealed = {};
   state.results = null;
   state.view = "test";
   render();
 }
 
 function selectTestOption(qId, optIndex) {
+  if (state.testRevealed[qId]) return; // resposta já confirmada: não permite trocar depois do feedback
   state.testAnswers[qId] = optIndex;
+  state.testRevealed[qId] = true;
   render();
 }
 
@@ -271,13 +276,16 @@ function startConvTest() {
   state.convTestQuestions = shuffle(CONV_TEST_QUESTIONS);
   state.convTestIndex = 0;
   state.convTestAnswers = {};
+  state.convTestRevealed = {};
   state.convResults = null;
   state.view = "convTest";
   render();
 }
 
 function selectConvTestOption(qId, optIndex) {
+  if (state.convTestRevealed[qId]) return; // resposta já confirmada: não permite trocar depois do feedback
   state.convTestAnswers[qId] = optIndex;
+  state.convTestRevealed[qId] = true;
   render();
 }
 
@@ -436,7 +444,9 @@ function renderLandingCard() {
         e processos seletivos em inglês), já que essa é a sua meta: conseguir uma vaga que exija inglês.</p>
 
         <div class="info-box">
-          Responda ${TEST_QUESTIONS.length} questões de gramática e vocabulário. Ao final, você vê seu desempenho
+          Responda ${TEST_QUESTIONS.length} questões de gramática e vocabulário. <strong>A cada resposta você já vê na hora
+          se acertou</strong>, por que a alternativa certa é a certa e por que cada uma das outras está errada.
+          Ao final, você vê seu desempenho
           por categoria, revê <strong>todas</strong> as questões que errou com explicação detalhada, e recebe
           exercícios extras para <strong>toda categoria que não ficar 100%</strong> — mesmo que tenha errado só uma
           questão nela. O teste cobre:
@@ -525,11 +535,40 @@ function renderConvLandingCard() {
 }
 
 /* ---------- Test ---------- */
+/* Feedback imediato de uma questão já respondida: diz se acertou ou errou e explica
+   por que a resposta certa é certa e por que cada uma das outras está errada.
+   Usado no teste (primeira avaliação) e reaproveita o mesmo formato da revisão final. */
+function renderAnswerFeedback(q, selected) {
+  const isCorrect = selected === q.correct;
+  return `
+    <div class="explain-box ${isCorrect ? "good" : "bad"}">
+      ${isCorrect
+        ? "✅ Você acertou! Veja abaixo por que esta é a resposta certa e por que as outras não são."
+        : "❌ Não foi dessa vez — veja abaixo por que a resposta certa é a certa e onde a sua escolha escorregou."}
+    </div>
+    <div class="explain-list">
+      ${q.options.map((opt, i) => {
+        let cls = "explain-item";
+        let tag = "";
+        if (i === q.correct) {
+          cls += " is-correct";
+          tag = i === selected ? " (resposta certa — sua resposta)" : " (resposta certa)";
+        } else if (i === selected) {
+          cls += " is-wrong-pick";
+          tag = " (sua resposta)";
+        }
+        return `<div class="${cls}"><strong>${escapeHtml(opt)}${tag}:</strong> ${escapeHtml(q.explanations[i])}</div>`;
+      }).join("")}
+    </div>
+  `;
+}
+
 function renderTest() {
   const q = state.testQuestions[state.testIndex];
   const total = state.testQuestions.length;
   const current = state.testIndex + 1;
   const selected = state.testAnswers[q.id];
+  const revealed = !!state.testRevealed[q.id];
   const isLast = state.testIndex === total - 1;
 
   app.innerHTML = `
@@ -546,16 +585,29 @@ function renderTest() {
       <div class="q-prompt">${escapeHtml(q.prompt)}</div>
 
       <div class="options">
-        ${q.options.map((opt, i) => `
-          <button class="option ${selected === i ? "selected" : ""}" onclick="selectTestOption('${q.id}', ${i})">
-            ${escapeHtml(opt)}
-          </button>
-        `).join("")}
+        ${q.options.map((opt, i) => {
+          let cls = "option";
+          if (revealed) {
+            if (i === q.correct) cls += " correct";
+            else if (i === selected) cls += " incorrect";
+          } else if (selected === i) {
+            cls += " selected";
+          }
+          return `
+            <button class="${cls}" ${revealed ? "disabled" : ""} onclick="selectTestOption('${q.id}', ${i})">
+              ${escapeHtml(opt)}
+            </button>
+          `;
+        }).join("")}
       </div>
+
+      ${revealed
+        ? renderAnswerFeedback(q, selected)
+        : `<p style="margin-top:16px; font-size:0.85rem;">Escolha uma opção para ver na hora se acertou e o porquê de cada alternativa.</p>`}
 
       <div class="actions">
         ${state.testIndex > 0 ? `<button class="btn secondary" onclick="prevTestQuestion()">Voltar</button>` : ""}
-        <button class="btn" ${selected === undefined ? "disabled" : ""} onclick="nextTestQuestion()">
+        <button class="btn" ${revealed ? "" : "disabled"} onclick="nextTestQuestion()">
           ${isLast ? "Ver resultado" : "Próxima"}
         </button>
       </div>
@@ -643,7 +695,7 @@ function renderMistakesReview(mistakes) {
             let cls = "explain-item";
             let tag = "";
             if (i === q.correct) { cls += " is-correct"; tag = " (resposta certa)"; }
-            else if (i === m.selected) { tag = " (sua resposta)"; }
+            else if (i === m.selected) { cls += " is-wrong-pick"; tag = " (sua resposta)"; }
             return `<div class="${cls}"><strong>${escapeHtml(opt)}${tag}:</strong> ${escapeHtml(q.explanations[i])}</div>`;
           }).join("")}
         </div>
@@ -772,6 +824,7 @@ function renderConvTest() {
   const total = state.convTestQuestions.length;
   const current = state.convTestIndex + 1;
   const selected = state.convTestAnswers[q.id];
+  const revealed = !!state.convTestRevealed[q.id];
   const isLast = state.convTestIndex === total - 1;
 
   app.innerHTML = `
@@ -788,16 +841,29 @@ function renderConvTest() {
       <div class="q-prompt">${escapeHtml(q.prompt)}</div>
 
       <div class="options">
-        ${q.options.map((opt, i) => `
-          <button class="option ${selected === i ? "selected" : ""}" onclick="selectConvTestOption('${q.id}', ${i})">
-            ${escapeHtml(opt)}
-          </button>
-        `).join("")}
+        ${q.options.map((opt, i) => {
+          let cls = "option";
+          if (revealed) {
+            if (i === q.correct) cls += " correct";
+            else if (i === selected) cls += " incorrect";
+          } else if (selected === i) {
+            cls += " selected";
+          }
+          return `
+            <button class="${cls}" ${revealed ? "disabled" : ""} onclick="selectConvTestOption('${q.id}', ${i})">
+              ${escapeHtml(opt)}
+            </button>
+          `;
+        }).join("")}
       </div>
+
+      ${revealed
+        ? renderAnswerFeedback(q, selected)
+        : `<p style="margin-top:16px; font-size:0.85rem;">Escolha uma opção para ver na hora se acertou e o porquê de cada alternativa.</p>`}
 
       <div class="actions">
         ${state.convTestIndex > 0 ? `<button class="btn secondary" onclick="prevConvTestQuestion()">Voltar</button>` : ""}
-        <button class="btn" ${selected === undefined ? "disabled" : ""} onclick="nextConvTestQuestion()">
+        <button class="btn" ${revealed ? "" : "disabled"} onclick="nextConvTestQuestion()">
           ${isLast ? "Ver resultado" : "Próxima"}
         </button>
       </div>
@@ -885,7 +951,7 @@ function renderConvMistakesReview(mistakes) {
             let cls = "explain-item";
             let tag = "";
             if (i === q.correct) { cls += " is-correct"; tag = " (resposta certa)"; }
-            else if (i === m.selected) { tag = " (sua resposta)"; }
+            else if (i === m.selected) { cls += " is-wrong-pick"; tag = " (sua resposta)"; }
             return `<div class="${cls}"><strong>${escapeHtml(opt)}${tag}:</strong> ${escapeHtml(q.explanations[i])}</div>`;
           }).join("")}
         </div>

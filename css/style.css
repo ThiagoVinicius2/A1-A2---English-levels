@@ -323,6 +323,8 @@ p { color: var(--muted); margin: 0 0 16px; }
 .explain-item strong { color: var(--ink); }
 .explain-item.is-correct { background: var(--good-bg); color: var(--good); }
 .explain-item.is-correct strong { color: var(--good); }
+.explain-item.is-wrong-pick { background: var(--bad-bg); color: var(--bad); }
+.explain-item.is-wrong-pick strong { color: var(--bad); }
 
 /* Results */
 .score-hero {
