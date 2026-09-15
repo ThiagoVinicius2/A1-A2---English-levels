@@ -1,6 +1,6 @@
 /* ===================== Estado da aplicação ===================== */
 const STORAGE_KEY = "enCheckLastResults";
-const CONV_STORAGE_KEY = "enCheckConvResults";
+const CONV_STORAGE_KEY = "enCheckConvResults_r3";   // r3: banco de questões refeito na 3ª rodada de feedback
 const WEAK_THRESHOLD = 75;   // usado só para colorir a barra de desempenho (verde/amarelo/vermelho)
 const MASTERY_PCT = 100;     // qualquer categoria abaixo disso sempre entra na revisão/prática
 
@@ -93,14 +93,27 @@ function findTestQuestionById(id) {
   return TEST_QUESTIONS.find(q => q.id === id);
 }
 
+/* Rótulo da alternativa dentro da explicação. Quando a alternativa é uma frase
+   inteira (já terminada em ponto), o dois-pontos é dispensado para não ficar ".:" */
+function explainLabel(opt, tag = "") {
+  const text = escapeHtml(opt) + tag;
+  return /[.!?]$/.test(text) ? text : text + ":";
+}
+
 function findConvTestQuestionById(id) {
   return CONV_TEST_QUESTIONS.find(q => q.id === id);
 }
 
+/* Mantém só as categorias que ainda existem no banco atual: um resultado salvo em
+   rodada anterior pode citar padrões que já foram removidos. */
+function knownCategories(keys, dict) {
+  return (keys || []).filter(k => dict[k]);
+}
+
 function convResultLabel(overall) {
-  // Mesmos limiares do teste A1-A2, mas descrevendo domínio dos 10 padrões da conversa real,
+  // Mesmos limiares do teste A1-A2, mas descrevendo domínio dos padrões da conversa real,
   // não um nível CEFR.
-  if (overall >= 97) return "Os 10 padrões da sua conversa real já estão sob controle";
+  if (overall >= 97) return `Os ${Object.keys(CONV_CATEGORIES).length} padrões da sua conversa real já estão sob controle`;
   if (overall >= 85) return "Bom domínio, mas alguns padrões ainda escapam de vez em quando";
   if (overall >= 55) return "Você já reconhece parte dos padrões, mas ainda erra com frequência";
   return "Os padrões da sua conversa real ainda aparecem bastante — vale reforçar aqui";
@@ -402,17 +415,18 @@ function renderLanding() {
 
 function renderLandingCard() {
   const last = loadResults();
+  const lastImprovable = last ? knownCategories(last.improvableCategories, CATEGORIES) : [];
   const lastBlock = last ? `
     <div class="last-result">
       <strong>Último resultado:</strong> ${last.overallPct}% de acertos — ${escapeHtml(last.cefr)}
-      <br>${last.improvableCategories.length
-        ? `Categorias que ainda não estão em 100%: ${last.improvableCategories.map(k => CATEGORIES[k].label).join(", ")}`
+      <br>${lastImprovable.length
+        ? `Categorias que ainda não estão em 100%: ${lastImprovable.map(k => CATEGORIES[k].label).join(", ")}`
         : "Você acertou 100% em todas as categorias da última vez. 🎉"}
     </div>
   ` : "";
 
-  const practiceShortcut = last && last.improvableCategories.length ? `
-    <button class="btn secondary block" onclick="startExercises(${JSON.stringify(last.improvableCategories).replace(/"/g, "&quot;")})">
+  const practiceShortcut = lastImprovable.length ? `
+    <button class="btn secondary block" onclick="startExercises(${JSON.stringify(lastImprovable).replace(/"/g, "&quot;")})">
       Praticar categorias que ainda não estão em 100% (do último teste)
     </button>
   ` : "";
@@ -480,17 +494,18 @@ function renderLandingCard() {
 /* ---------- Landing: módulo "Erros da Conversa Real" ---------- */
 function renderConvLandingCard() {
   const last = loadResults(CONV_STORAGE_KEY);
+  const lastImprovable = last ? knownCategories(last.improvableCategories, CONV_CATEGORIES) : [];
   const lastBlock = last ? `
     <div class="last-result">
       <strong>Última prática:</strong> ${last.overallPct}% de acertos — ${escapeHtml(last.label)}
-      <br>${last.improvableCategories.length
-        ? `Padrões que ainda não estão em 100%: ${last.improvableCategories.map(k => CONV_CATEGORIES[k].label).join(", ")}`
+      <br>${lastImprovable.length
+        ? `Padrões que ainda não estão em 100%: ${lastImprovable.map(k => CONV_CATEGORIES[k].label).join(", ")}`
         : "Você acertou 100% em todos os padrões na última vez. 🎉"}
     </div>
   ` : "";
 
-  const practiceShortcut = last && last.improvableCategories.length ? `
-    <button class="btn secondary block" onclick="startConvExercises(${JSON.stringify(last.improvableCategories).replace(/"/g, "&quot;")})">
+  const practiceShortcut = lastImprovable.length ? `
+    <button class="btn secondary block" onclick="startConvExercises(${JSON.stringify(lastImprovable).replace(/"/g, "&quot;")})">
       Praticar padrões que ainda não estão em 100% (da última vez)
     </button>
   ` : "";
@@ -500,7 +515,7 @@ function renderConvLandingCard() {
   return `
     <div class="card conv-card">
       <div class="hero-badges">
-        <span class="badge">10 padrões</span>
+        <span class="badge">${Object.keys(CONV_CATEGORIES).length} padrões</span>
         <span class="badge accent2">Diagnóstico real</span>
       </div>
       <div class="title-row">
@@ -510,14 +525,14 @@ function renderConvLandingCard() {
           ${detailsOpen ? "✕" : "ⓘ"}
         </button>
       </div>
-      <p class="lead">Numa conversa em inglês sobre a rotina em família, mapeei 10 padrões de erro
-      que se repetem no seu inglês. Esta prática ataca especificamente esses padrões, com vocabulário
+      <p class="lead">Numa conversa em inglês sobre a rotina em família, mapeei ${Object.keys(CONV_CATEGORIES).length} padrões de erro
+      da rodada mais recente. Esta prática ataca especificamente esses padrões, com vocabulário
       de família para reforçar sua aula sobre esse tema.
       ${CONV_TEST_QUESTIONS.length} questões no total.</p>
 
       ${detailsOpen ? `
         <div class="info-box">
-          Cada questão testa um dos 10 padrões identificados no seu diagnóstico:
+          Cada questão testa um dos ${Object.keys(CONV_CATEGORIES).length} padrões identificados no seu diagnóstico mais recente:
           <ul class="conv-pattern-list">
             ${Object.values(CONV_CATEGORIES).map(c => `<li><strong>${escapeHtml(c.tag)}:</strong> ${escapeHtml(c.label)}</li>`).join("")}
           </ul>
@@ -557,7 +572,7 @@ function renderAnswerFeedback(q, selected) {
           cls += " is-wrong-pick";
           tag = " (sua resposta)";
         }
-        return `<div class="${cls}"><strong>${escapeHtml(opt)}${tag}:</strong> ${escapeHtml(q.explanations[i])}</div>`;
+        return `<div class="${cls}"><strong>${explainLabel(opt, tag)}</strong> ${escapeHtml(q.explanations[i])}</div>`;
       }).join("")}
     </div>
   `;
@@ -696,7 +711,7 @@ function renderMistakesReview(mistakes) {
             let tag = "";
             if (i === q.correct) { cls += " is-correct"; tag = " (resposta certa)"; }
             else if (i === m.selected) { cls += " is-wrong-pick"; tag = " (sua resposta)"; }
-            return `<div class="${cls}"><strong>${escapeHtml(opt)}${tag}:</strong> ${escapeHtml(q.explanations[i])}</div>`;
+            return `<div class="${cls}"><strong>${explainLabel(opt, tag)}</strong> ${escapeHtml(q.explanations[i])}</div>`;
           }).join("")}
         </div>
       </div>
@@ -760,7 +775,7 @@ function renderExercise() {
         <div class="explain-list">
           ${q.options.map((opt, i) => `
             <div class="explain-item ${i === q.correct ? "is-correct" : ""}">
-              <strong>${escapeHtml(opt)}:</strong> ${escapeHtml(q.explanations[i])}
+              <strong>${explainLabel(opt)}</strong> ${escapeHtml(q.explanations[i])}
             </div>
           `).join("")}
         </div>
@@ -952,7 +967,7 @@ function renderConvMistakesReview(mistakes) {
             let tag = "";
             if (i === q.correct) { cls += " is-correct"; tag = " (resposta certa)"; }
             else if (i === m.selected) { cls += " is-wrong-pick"; tag = " (sua resposta)"; }
-            return `<div class="${cls}"><strong>${escapeHtml(opt)}${tag}:</strong> ${escapeHtml(q.explanations[i])}</div>`;
+            return `<div class="${cls}"><strong>${explainLabel(opt, tag)}</strong> ${escapeHtml(q.explanations[i])}</div>`;
           }).join("")}
         </div>
       </div>
@@ -1016,7 +1031,7 @@ function renderConvExercise() {
         <div class="explain-list">
           ${q.options.map((opt, i) => `
             <div class="explain-item ${i === q.correct ? "is-correct" : ""}">
-              <strong>${escapeHtml(opt)}:</strong> ${escapeHtml(q.explanations[i])}
+              <strong>${explainLabel(opt)}</strong> ${escapeHtml(q.explanations[i])}
             </div>
           `).join("")}
         </div>
