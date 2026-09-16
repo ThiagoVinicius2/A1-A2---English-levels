@@ -1,6 +1,6 @@
 /* ===================== Estado da aplicação ===================== */
 const STORAGE_KEY = "enCheckLastResults";
-const CONV_STORAGE_KEY = "enCheckConvResults_r4";   // r4: banco de questões refeito na 4ª rodada de feedback (tecnologia)
+const CONV_STORAGE_KEY = "enCheckConvResults_r5";   // r5: banco refeito na 5ª rodada (2ª conversa sobre tecnologia)
 const WEAK_THRESHOLD = 75;   // usado só para colorir a barra de desempenho (verde/amarelo/vermelho)
 const MASTERY_PCT = 100;     // qualquer categoria abaixo disso sempre entra na revisão/prática
 
@@ -525,11 +525,11 @@ function renderConvLandingCard() {
           ${detailsOpen ? "✕" : "ⓘ"}
         </button>
       </div>
-      <p class="lead">Numa conversa em inglês sobre tecnologia e computadores, mapeei ${Object.keys(CONV_CATEGORIES).length} padrões
-      da rodada mais recente. Esta prática ataca especificamente esses padrões, com vocabulário
-      de computador e acessórios para reforçar sua aula sobre esse tema.
-      O Padrão 1 (o "-s" da 3ª pessoa) é o que mais resiste: apareceu de novo nesta rodada.
-      ${CONV_TEST_QUESTIONS.length} questões no total.</p>
+      <p class="lead">Na 2ª conversa sobre tecnologia e ferramentas de trabalho — a rodada mais limpa até agora —
+      sobraram ${Object.keys(CONV_CATEGORIES).length} padrões. O "-s" da 3ª pessoa zerou e o vocabulário da lição
+      finalmente apareceu, então os dois saíram do banco. O que resiste em todas as rodadas,
+      de todos os temas, é artigo e preposição: por isso o artigo abre o módulo e as preposições
+      ocupam três dos oito padrões. ${CONV_TEST_QUESTIONS.length} questões no total.</p>
 
       ${detailsOpen ? `
         <div class="info-box">
