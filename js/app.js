@@ -1,6 +1,6 @@
 /* ===================== Estado da aplicação ===================== */
 const STORAGE_KEY = "enCheckLastResults";
-const CONV_STORAGE_KEY = "enCheckConvResults_r3";   // r3: banco de questões refeito na 3ª rodada de feedback
+const CONV_STORAGE_KEY = "enCheckConvResults_r4";   // r4: banco de questões refeito na 4ª rodada de feedback (tecnologia)
 const WEAK_THRESHOLD = 75;   // usado só para colorir a barra de desempenho (verde/amarelo/vermelho)
 const MASTERY_PCT = 100;     // qualquer categoria abaixo disso sempre entra na revisão/prática
 
@@ -525,9 +525,10 @@ function renderConvLandingCard() {
           ${detailsOpen ? "✕" : "ⓘ"}
         </button>
       </div>
-      <p class="lead">Numa conversa em inglês sobre a rotina em família, mapeei ${Object.keys(CONV_CATEGORIES).length} padrões de erro
+      <p class="lead">Numa conversa em inglês sobre tecnologia e computadores, mapeei ${Object.keys(CONV_CATEGORIES).length} padrões
       da rodada mais recente. Esta prática ataca especificamente esses padrões, com vocabulário
-      de família para reforçar sua aula sobre esse tema.
+      de computador e acessórios para reforçar sua aula sobre esse tema.
+      O Padrão 1 (o "-s" da 3ª pessoa) é o que mais resiste: apareceu de novo nesta rodada.
       ${CONV_TEST_QUESTIONS.length} questões no total.</p>
 
       ${detailsOpen ? `
