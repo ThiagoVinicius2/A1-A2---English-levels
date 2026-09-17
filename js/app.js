@@ -1,6 +1,6 @@
 /* ===================== Estado da aplicação ===================== */
 const STORAGE_KEY = "enCheckLastResults";
-const CONV_STORAGE_KEY = "enCheckConvResults_r5";   // r5: banco refeito na 5ª rodada (2ª conversa sobre tecnologia)
+const CONV_STORAGE_KEY = "enCheckConvResults_r6";   // r6: banco refeito na 6ª rodada (vocabulário que travou na aula)
 const WEAK_THRESHOLD = 75;   // usado só para colorir a barra de desempenho (verde/amarelo/vermelho)
 const MASTERY_PCT = 100;     // qualquer categoria abaixo disso sempre entra na revisão/prática
 
@@ -525,15 +525,16 @@ function renderConvLandingCard() {
           ${detailsOpen ? "✕" : "ⓘ"}
         </button>
       </div>
-      <p class="lead">Na 2ª conversa sobre tecnologia e ferramentas de trabalho — a rodada mais limpa até agora —
-      sobraram ${Object.keys(CONV_CATEGORIES).length} padrões. O "-s" da 3ª pessoa zerou e o vocabulário da lição
-      finalmente apareceu, então os dois saíram do banco. O que resiste em todas as rodadas,
-      de todos os temas, é artigo e preposição: por isso o artigo abre o módulo e as preposições
-      ocupam três dos oito padrões. ${CONV_TEST_QUESTIONS.length} questões no total.</p>
+      <p class="lead">Desta vez o diagnóstico não é de gramática: são as palavras e expressões que
+      você não conseguiu lembrar durante a aula com a professora. Cada questão é uma frase da sua
+      conversa com a palavra-chave apagada — festa e convite, celular e aparelhos, útil × inútil,
+      escola e regras da filha, acessibilidade e o dia a dia com dinheiro. São
+      ${Object.keys(CONV_CATEGORIES).length} temas e ${CONV_TEST_QUESTIONS.length} questões no total,
+      e o bloco maior é o de tecnologia e celular, onde mais palavras faltaram na hora de falar.</p>
 
       ${detailsOpen ? `
         <div class="info-box">
-          Cada questão testa um dos ${Object.keys(CONV_CATEGORIES).length} padrões identificados no seu diagnóstico mais recente:
+          Cada questão traz uma frase da sua aula com a palavra-chave apagada, agrupada por tema:
           <ul class="conv-pattern-list">
             ${Object.values(CONV_CATEGORIES).map(c => `<li><strong>${escapeHtml(c.tag)}:</strong> ${escapeHtml(c.label)}</li>`).join("")}
           </ul>
