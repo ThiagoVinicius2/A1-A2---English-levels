@@ -1,7 +1,7 @@
 /* ===================== Estado da aplicação ===================== */
 const STORAGE_KEY = "enCheckLastResults";
 const CONV_STORAGE_KEY = "enCheckConvResults_r6";   // r6: banco refeito na 6ª rodada (vocabulário que travou na aula)
-const TRANS_STORAGE_KEY = "enCheckTransResults_r1"; // r1: cartões do deck MemHack #01 (subir se o banco for trocado)
+const TRANS_STORAGE_KEY = "enCheckTransResults_r2"; // r2: guarda o histórico POR DECK, não o resultado de uma rodada
 const WEAK_THRESHOLD = 75;   // usado só para colorir a barra de desempenho (verde/amarelo/vermelho)
 const MASTERY_PCT = 100;     // qualquer categoria abaixo disso sempre entra na revisão/prática
 
@@ -40,6 +40,7 @@ const state = {
   transIndex: 0,
   transAnswers: {},         // { cardId: texto digitado }
   transGrades: {},          // { cardId: "certo" | "quase" | "diferente" | "aceitoManual" | "naoLembro" }
+  transFirstGrades: {},     // idem, mas só o 1º veredito: a autoavaliação NUNCA mexe aqui
   transRevealed: {},        // { cardId: true } assim que a resposta é conferida
   transResults: null,
   transLandingDetailsOpen: false,
@@ -1130,6 +1131,24 @@ function transIsHit(grade) {
   return TRANS_OK_GRADES.indexOf(grade) !== -1;
 }
 
+/* Acerto "de primeira": o que valeu na primeira resposta, antes de qualquer
+   autoavaliação. "quase" entra porque o inglês produzido estava certo — só a
+   digitação escorregou. É esta a régua da porcentagem por deck. */
+function transIsFirstHit(grade) {
+  return grade === "certo" || grade === "quase";
+}
+
+/* Histórico por deck: { deckKey: { pct, correct, total, date } }.
+   Fica aninhado em `decks` porque saveResults() injeta um `date` no topo. */
+function loadTransDeckStats() {
+  const guardado = loadResults(TRANS_STORAGE_KEY);
+  return (guardado && guardado.decks) || {};
+}
+
+function saveTransDeckStats(stats) {
+  saveResults({ decks: stats }, TRANS_STORAGE_KEY);
+}
+
 function transResultLabel(overall) {
   if (overall >= 97) return "Você escreve essas frases em inglês sem hesitar";
   if (overall >= 85) return "Quase tudo sai certo — faltam poucos detalhes";
@@ -1175,6 +1194,7 @@ function startTransRound(deckKeys) {
   state.transIndex = 0;
   state.transAnswers = {};
   state.transGrades = {};
+  state.transFirstGrades = {};
   state.transRevealed = {};
   state.transResults = null;
   state.transEmptyWarn = false;
@@ -1197,6 +1217,7 @@ function submitTransAnswer() {
   state.transEmptyWarn = false;
   state.transAnswers[card.id] = digitado;
   state.transGrades[card.id] = nota.level;
+  state.transFirstGrades[card.id] = nota.level;   // congelado: é o "de primeira"
   state.transRevealed[card.id] = true;
   render();
 }
@@ -1205,6 +1226,8 @@ function submitTransAnswer() {
 function markTransAnswerCorrect() {
   const card = transCurrentCard();
   if (!card || !state.transRevealed[card.id]) return;
+  /* De propósito só mexe em transGrades: transFirstGrades guarda o primeiro
+     veredito e é o que alimenta a porcentagem "de primeira" de cada deck. */
   state.transGrades[card.id] = "aceitoManual";
   render();
 }
@@ -1215,6 +1238,7 @@ function skipTransCard() {
   state.transEmptyWarn = false;
   state.transAnswers[card.id] = "";
   state.transGrades[card.id] = "naoLembro";
+  state.transFirstGrades[card.id] = "naoLembro";
   state.transRevealed[card.id] = true;
   render();
 }
@@ -1290,30 +1314,32 @@ function finishTransRound() {
     totalCorrect,
     totalQuestions: state.transCards.length,
   };
-  saveResults(state.transResults, TRANS_STORAGE_KEY);
+  /* Histórico por deck, com a régua estrita (transFirstGrades): mescla no que
+     já estava gravado, então deck fora desta rodada mantém a nota da última vez
+     em que foi praticado. */
+  const stats = loadTransDeckStats();
+  const agora = new Date().toISOString();
+  const dePrimeira = {};
+  state.transCards.forEach(card => {
+    dePrimeira[card.deck] = dePrimeira[card.deck] || { correct: 0, total: 0 };
+    dePrimeira[card.deck].total++;
+    if (transIsFirstHit(state.transFirstGrades[card.id])) dePrimeira[card.deck].correct++;
+  });
+  Object.keys(dePrimeira).forEach(key => {
+    const d = dePrimeira[key];
+    stats[key] = { pct: pct(d.correct, d.total), correct: d.correct, total: d.total, date: agora };
+  });
+  saveTransDeckStats(stats);
+
   state.view = "transResults";
   render();
 }
 
 /* ---------- Landing: card do módulo ---------- */
 function renderTransLandingCard() {
-  const last = loadResults(TRANS_STORAGE_KEY);
-  const lastImprovable = last ? knownCategories(last.improvableCategories, TRANS_DECKS) : [];
-  const lastBlock = last ? `
-    <div class="last-result">
-      <strong>Última rodada:</strong> ${last.overallPct}% de acertos — ${escapeHtml(last.label)}
-      <br>${lastImprovable.length
-        ? `Decks que ainda não estão em 100%: ${lastImprovable.map(k => TRANS_DECKS[k].label).join(", ")}`
-        : "Você acertou 100% em todos os decks da última vez. 🎉"}
-    </div>
-  ` : "";
-
-  const practiceShortcut = lastImprovable.length ? `
-    <button class="btn secondary block" onclick="startTransRound(${JSON.stringify(lastImprovable).replace(/"/g, "&quot;")})">
-      Refazer os decks que ainda não estão em 100%
-    </button>
-  ` : "";
-
+  /* Sem bloco de resultado geral aqui de propósito: com muitos decks uma média
+     só não diz onde o estudo está fraco. O feedback vive na tela de decks, uma
+     porcentagem por deck. */
   const detailsOpen = state.transLandingDetailsOpen;
 
   return `
@@ -1340,18 +1366,16 @@ function renderTransLandingCard() {
           pontuação e contração (<strong>"When are we leaving?"</strong> vale por
           <strong>"When're we leaving?"</strong>), separa erro de digitação de erro de inglês
           e mostra palavra por palavra o que faltou. Se a sua tradução estiver certa de outro
-          jeito, você marca como certa. Os decks:
+          jeito, você marca como certa. Na tela de escolha, cada deck mostra quanto você
+          acertou <strong>de primeira</strong> na última vez que o praticou. Os decks:
           <ul class="conv-pattern-list">
             ${Object.keys(TRANS_DECKS).map(k => `<li><strong>${escapeHtml(TRANS_DECKS[k].tag)}:</strong> ${escapeHtml(TRANS_DECKS[k].label)} — ${getTransCardsForDeck(k).length} cartões</li>`).join("")}
           </ul>
         </div>
       ` : ""}
 
-      ${lastBlock}
-
       <div class="actions" style="flex-direction:column;">
         <button class="btn block" onclick="openTransDecks()">Escolher os decks e começar</button>
-        ${practiceShortcut}
       </div>
     </div>
   `;
@@ -1360,6 +1384,7 @@ function renderTransLandingCard() {
 /* ---------- Tela de escolha dos decks ---------- */
 function renderTransDecks() {
   const selecionados = state.transDeckSelection;
+  const stats = loadTransDeckStats();
   const totalSelecionado = selecionados.reduce((n, k) => n + getTransCardsForDeck(k).length, 0);
 
   app.innerHTML = `
@@ -1367,10 +1392,16 @@ function renderTransDecks() {
       <h2>Quais decks você quer praticar?</h2>
       <p class="lead">Cada cartão mostra uma frase em português para você escrever em inglês.
       Marque quantos decks quiser — os cartões vêm embaralhados.</p>
+      <p class="trans-deck-legend">A porcentagem à direita é quanto você acertou <strong>de primeira</strong>
+      na última vez que praticou aquele deck — sem contar os cartões que você marcou como certos depois.</p>
 
       <div class="trans-deck-list">
         ${Object.keys(TRANS_DECKS).map(key => {
           const marcado = selecionados.indexOf(key) !== -1;
+          const stat = stats[key];
+          const nota = stat
+            ? `<span class="trans-deck-score ${barClass(stat.pct)}" title="Acertos de primeira na última vez: ${stat.correct} de ${stat.total}">${stat.pct}%</span>`
+            : `<span class="trans-deck-score none" title="Você ainda não praticou este deck">&mdash;</span>`;
           return `
             <button class="trans-deck-option${marcado ? " selected" : ""}"
               aria-pressed="${marcado}" onclick="toggleTransDeck('${key}')">
@@ -1379,6 +1410,7 @@ function renderTransDecks() {
                 <strong>${escapeHtml(TRANS_DECKS[key].label)}</strong>
                 <span class="trans-deck-meta">${escapeHtml(TRANS_DECKS[key].tag)} &middot; ${getTransCardsForDeck(key).length} cartões</span>
               </span>
+              ${nota}
             </button>
           `;
         }).join("")}

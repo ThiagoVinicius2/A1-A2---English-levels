@@ -534,8 +534,26 @@ p { color: var(--muted); margin: 0 0 16px; }
   background: var(--primary);
   border-color: var(--primary);
 }
-.trans-deck-name { display: flex; flex-direction: column; gap: 2px; }
+.trans-deck-name { flex: 1; display: flex; flex-direction: column; gap: 2px; }
 .trans-deck-meta { color: var(--muted); font-size: 0.82rem; }
+
+/* Acerto "de primeira" na última vez que o deck foi praticado. */
+.trans-deck-legend {
+  margin: -6px 0 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.trans-deck-score {
+  margin-left: auto;
+  flex: 0 0 auto;
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;   /* as porcentagens alinham entre as linhas */
+}
+.trans-deck-score.ok { color: var(--good); }
+.trans-deck-score.warn { color: var(--warn); }
+.trans-deck-score.bad { color: var(--bad); }
+.trans-deck-score.none { color: var(--muted); font-weight: 600; }
 
 /* Sua resposta x resposta do cartão, com o diff palavra a palavra */
 .trans-answer-row {
@@ -581,6 +599,7 @@ p { color: var(--muted); margin: 0 0 16px; }
 @media (max-width: 560px) {
   .trans-answer-row { flex-direction: column; gap: 4px; }
   .trans-answer-tag { flex: none; }
+  .trans-deck-score { font-size: 0.88rem; }
 }
 
 @media (max-width: 760px) {

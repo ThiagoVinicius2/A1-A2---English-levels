@@ -68,8 +68,21 @@ Banco de cartões vindo do CSV do deck MemHack do curso (colunas
   próprio `js/data-translate.js`, porque são funções puras sobre os cartões.
   Ela ignora acento, caixa, pontuação, hífen e contração, e distingue erro de
   digitação (`quase`) de erro de inglês (`diferente`).
-- Ao trocar o banco de cartões, suba `TRANS_STORAGE_KEY` em `js/app.js`
-  (`_r1` → `_r2` → …) para o resultado da rodada anterior não se misturar.
+- `TRANS_STORAGE_KEY` guarda **histórico por deck**, não o resultado de uma
+  rodada: `{ date, decks: { deckKey: { pct, correct, total, date } } }`. Cada
+  rodada **mescla** — só os decks praticados são atualizados, os outros mantêm a
+  nota da última vez. Suba a chave (`_r2` → `_r3` → …) se o formato mudar de novo.
+- **Duas notas por cartão, e elas não podem se misturar:**
+  `state.transGrades` é o placar da rodada (a autoavaliação "minha resposta também
+  está certa" conta ali) e `state.transFirstGrades` guarda só o **primeiro
+  veredito**, que alimenta a porcentagem "de primeira" mostrada em cada deck.
+  `markTransAnswerCorrect()` só pode tocar `transGrades` — se algum dia escrever
+  também em `transFirstGrades`, a porcentagem por deck perde o sentido.
+  Conta como acerto de primeira: `certo` e `quase` (o inglês estava certo, só a
+  digitação escorregou). Não contam: `diferente`, `naoLembro` e `aceitoManual`.
+- O card da página inicial **não** mostra resultado geral de propósito: com muitos
+  decks, uma média só não diz onde o estudo está fraco. O feedback fica na tela de
+  escolha de decks, uma porcentagem à direita de cada deck.
 - **Cuidado com o campo de digitação:** é o único `<input>` do projeto. Nunca
   chame `render()` enquanto a pessoa digita (o `innerHTML` é reescrito inteiro e
   leva junto o campo, o foco e o cursor) e nunca coloque texto digitado ou frase
@@ -83,6 +96,10 @@ Banco de cartões vindo do CSV do deck MemHack do curso (colunas
   existente e a contagem por deck igual à do CSV
 - Autoteste do corretor de tradução: para todo cartão, a própria resposta (`en`) e
   cada string de `accept` precisam ser corrigidas como `certo`
+- Teste da porcentagem por deck: numa rodada com um acerto, um typo, uma resposta
+  diferente aceita na autoavaliação e um "Não lembro", a tela de resultado mostra
+  75% e o histórico do deck grava 50% — se os dois números baterem, as duas notas
+  se misturaram
 - Smoke test no Chromium (Playwright, `executablePath: '/opt/pw-browsers/chromium'`):
   abrir `index.html` por `file://`, responder o teste inteiro, chegar no resultado
   e rodar a prática dirigida; no módulo de tradução, escolher um deck e passar por
