@@ -1,11 +1,14 @@
 /* ===================== Estado da aplicação ===================== */
 const STORAGE_KEY = "enCheckLastResults";
 const CONV_STORAGE_KEY = "enCheckConvResults_r6";   // r6: banco refeito na 6ª rodada (vocabulário que travou na aula)
+const TRANS_STORAGE_KEY = "enCheckTransResults_r1"; // r1: cartões do deck MemHack #01 (subir se o banco for trocado)
 const WEAK_THRESHOLD = 75;   // usado só para colorir a barra de desempenho (verde/amarelo/vermelho)
 const MASTERY_PCT = 100;     // qualquer categoria abaixo disso sempre entra na revisão/prática
 
 const state = {
-  view: "landing",       // landing | test | results | exercise | exerciseSummary | convTest | convResults | convExercise | convExerciseSummary
+  view: "landing",       // landing | test | results | exercise | exerciseSummary
+                         // convTest | convResults | convExercise | convExerciseSummary
+                         // transDecks | transRound | transResults
   testQuestions: [],
   testIndex: 0,
   testAnswers: {},        // { questionId: selectedOptionIndex }
@@ -30,6 +33,18 @@ const state = {
   convExerciseRevealed: {},
   convLandingDetailsOpen: false,
   convTestExitConfirmOpen: false,
+
+  // --- Módulo "Do Português para o Inglês" (resposta digitada, não múltipla escolha) ---
+  transDeckSelection: [],   // decks marcados na tela de escolha
+  transCards: [],           // cartões sorteados para a rodada
+  transIndex: 0,
+  transAnswers: {},         // { cardId: texto digitado }
+  transGrades: {},          // { cardId: "certo" | "quase" | "diferente" | "aceitoManual" | "naoLembro" }
+  transRevealed: {},        // { cardId: true } assim que a resposta é conferida
+  transResults: null,
+  transLandingDetailsOpen: false,
+  transExitConfirmOpen: false,
+  transEmptyWarn: false,    // avisa que o campo está vazio, sem revelar a resposta
 };
 
 const app = document.getElementById("app");
@@ -401,6 +416,9 @@ function render() {
   if (state.view === "convResults") return renderConvResults();
   if (state.view === "convExercise") return renderConvExercise();
   if (state.view === "convExerciseSummary") return renderConvExerciseSummary();
+  if (state.view === "transDecks") return renderTransDecks();
+  if (state.view === "transRound") return renderTransRound();
+  if (state.view === "transResults") return renderTransResults();
 }
 
 /* ---------- Landing ---------- */
@@ -409,6 +427,7 @@ function renderLanding() {
     <div class="landing-grid">
       <div class="landing-col">${renderLandingCard()}</div>
       <div class="landing-col">${renderConvLandingCard()}</div>
+      <div class="landing-col">${renderTransLandingCard()}</div>
     </div>
   `;
 }
@@ -1092,4 +1111,483 @@ function renderConvExerciseSummary() {
 }
 
 /* ===================== Início ===================== */
+/* ===================== Módulo "Do Português para o Inglês" =====================
+   Único módulo com resposta digitada. Duas regras valem em toda esta seção:
+
+   1. Nenhum render() enquanto a pessoa digita — render() reescreve o innerHTML
+      inteiro e levaria junto o campo, o foco e o cursor. O texto só é lido no
+      momento de conferir, direto do DOM, antes de mexer no estado.
+   2. Nada de texto digitado (nem das frases dos cartões) dentro de atributo HTML:
+      o escapeHtml daqui não escapa aspas, e há frases em português com aspas.
+      Tudo vai para nó de texto. */
+
+const TRANS_OK_GRADES = ["certo", "quase", "aceitoManual"];
+
+function transIsHit(grade) {
+  return TRANS_OK_GRADES.indexOf(grade) !== -1;
+}
+
+function transResultLabel(overall) {
+  if (overall >= 97) return "Você escreve essas frases em inglês sem hesitar";
+  if (overall >= 85) return "Quase tudo sai certo — faltam poucos detalhes";
+  if (overall >= 55) return "Você entende as frases, mas ainda trava na hora de escrever";
+  return "Escrever do zero ainda custa — é exatamente o que este módulo treina";
+}
+
+function transCurrentCard() {
+  return state.transCards[state.transIndex];
+}
+
+/* ---------- Navegação ---------- */
+function toggleTransLandingDetails() {
+  state.transLandingDetailsOpen = !state.transLandingDetailsOpen;
+  render();
+}
+
+function openTransDecks(preSelecionados) {
+  state.transDeckSelection = knownCategories(preSelecionados, TRANS_DECKS);
+  state.view = "transDecks";
+  render();
+}
+
+function toggleTransDeck(key) {
+  const i = state.transDeckSelection.indexOf(key);
+  if (i === -1) state.transDeckSelection.push(key);
+  else state.transDeckSelection.splice(i, 1);
+  render();
+}
+
+function selectAllTransDecks(marcar) {
+  state.transDeckSelection = marcar ? Object.keys(TRANS_DECKS) : [];
+  render();
+}
+
+function startTransRound(deckKeys) {
+  const decks = knownCategories(deckKeys, TRANS_DECKS);
+  const escolhidos = decks.length ? decks : Object.keys(TRANS_DECKS);
+  let pool = [];
+  escolhidos.forEach(key => { pool = pool.concat(getTransCardsForDeck(key)); });
+  state.transDeckSelection = escolhidos;
+  state.transCards = shuffle(pool);
+  state.transIndex = 0;
+  state.transAnswers = {};
+  state.transGrades = {};
+  state.transRevealed = {};
+  state.transResults = null;
+  state.transEmptyWarn = false;
+  state.view = "transRound";
+  render();
+}
+
+/* Lê o campo ANTES de qualquer mudança de estado: o render() seguinte o destrói. */
+function submitTransAnswer() {
+  const card = transCurrentCard();
+  if (!card || state.transRevealed[card.id]) return;
+  const campo = document.getElementById("trans-input");
+  const digitado = campo ? campo.value : "";
+  const nota = gradeTransAnswer(card, digitado);
+  if (nota.level === "vazio") {
+    state.transEmptyWarn = true;
+    render();
+    return;
+  }
+  state.transEmptyWarn = false;
+  state.transAnswers[card.id] = digitado;
+  state.transGrades[card.id] = nota.level;
+  state.transRevealed[card.id] = true;
+  render();
+}
+
+/* Tradução válida que o comparador não conhecia: quem decide é quem respondeu. */
+function markTransAnswerCorrect() {
+  const card = transCurrentCard();
+  if (!card || !state.transRevealed[card.id]) return;
+  state.transGrades[card.id] = "aceitoManual";
+  render();
+}
+
+function skipTransCard() {
+  const card = transCurrentCard();
+  if (!card || state.transRevealed[card.id]) return;
+  state.transEmptyWarn = false;
+  state.transAnswers[card.id] = "";
+  state.transGrades[card.id] = "naoLembro";
+  state.transRevealed[card.id] = true;
+  render();
+}
+
+function nextTransCard() {
+  state.transEmptyWarn = false;
+  if (state.transIndex < state.transCards.length - 1) {
+    state.transIndex++;
+    render();
+  } else {
+    finishTransRound();
+  }
+}
+
+function prevTransCard() {
+  state.transEmptyWarn = false;
+  if (state.transIndex > 0) {
+    state.transIndex--;
+    render();
+  }
+}
+
+function requestExitTransRound() {
+  state.transExitConfirmOpen = true;
+  render();
+}
+
+function cancelExitTransRound() {
+  state.transExitConfirmOpen = false;
+  render();
+}
+
+function confirmExitTransRound() {
+  state.transExitConfirmOpen = false;
+  goLanding();
+}
+
+function finishTransRound() {
+  const byDeck = {};
+  let totalCorrect = 0;
+  const mistakes = [];
+
+  state.transCards.forEach(card => {
+    byDeck[card.deck] = byDeck[card.deck] || { correct: 0, total: 0 };
+    byDeck[card.deck].total++;
+    if (transIsHit(state.transGrades[card.id])) {
+      byDeck[card.deck].correct++;
+      totalCorrect++;
+    } else {
+      mistakes.push({
+        cardId: card.id,
+        typed: state.transAnswers[card.id] || "",
+        grade: state.transGrades[card.id],
+      });
+    }
+  });
+
+  const categoryPct = {};
+  const improvableCategories = [];
+  Object.keys(byDeck).forEach(key => {
+    const p = pct(byDeck[key].correct, byDeck[key].total);
+    categoryPct[key] = p;
+    if (p < MASTERY_PCT) improvableCategories.push(key);
+  });
+
+  const overallPct = pct(totalCorrect, state.transCards.length);
+  state.transResults = {
+    overallPct,
+    label: transResultLabel(overallPct),
+    categoryPct,
+    improvableCategories,
+    mistakes,
+    totalCorrect,
+    totalQuestions: state.transCards.length,
+  };
+  saveResults(state.transResults, TRANS_STORAGE_KEY);
+  state.view = "transResults";
+  render();
+}
+
+/* ---------- Landing: card do módulo ---------- */
+function renderTransLandingCard() {
+  const last = loadResults(TRANS_STORAGE_KEY);
+  const lastImprovable = last ? knownCategories(last.improvableCategories, TRANS_DECKS) : [];
+  const lastBlock = last ? `
+    <div class="last-result">
+      <strong>Última rodada:</strong> ${last.overallPct}% de acertos — ${escapeHtml(last.label)}
+      <br>${lastImprovable.length
+        ? `Decks que ainda não estão em 100%: ${lastImprovable.map(k => TRANS_DECKS[k].label).join(", ")}`
+        : "Você acertou 100% em todos os decks da última vez. 🎉"}
+    </div>
+  ` : "";
+
+  const practiceShortcut = lastImprovable.length ? `
+    <button class="btn secondary block" onclick="startTransRound(${JSON.stringify(lastImprovable).replace(/"/g, "&quot;")})">
+      Refazer os decks que ainda não estão em 100%
+    </button>
+  ` : "";
+
+  const detailsOpen = state.transLandingDetailsOpen;
+
+  return `
+    <div class="card trans-card">
+      <div class="hero-badges">
+        <span class="badge">${TRANS_CARDS.length} cartões</span>
+        <span class="badge accent2">Resposta digitada</span>
+      </div>
+      <div class="title-row">
+        <h2>Do Português para o Inglês</h2>
+        <button class="icon-btn" title="${detailsOpen ? "Ocultar detalhes" : "Ver detalhes deste módulo"}"
+          aria-expanded="${detailsOpen}" onclick="toggleTransLandingDetails()">
+          ${detailsOpen ? "✕" : "ⓘ"}
+        </button>
+      </div>
+      <p class="lead">Aqui não há alternativa para marcar: a frase aparece em português e você
+      escreve a versão em inglês. É a diferença entre reconhecer e produzir — o que realmente
+      acontece numa conversa. São ${TRANS_CARDS.length} cartões do seu deck, divididos em
+      ${Object.keys(TRANS_DECKS).length} temas, e você escolhe quais praticar.</p>
+
+      ${detailsOpen ? `
+        <div class="info-box">
+          Escolha um ou mais decks e responda digitando. A correção ignora acento, maiúscula,
+          pontuação e contração (<strong>"When are we leaving?"</strong> vale por
+          <strong>"When're we leaving?"</strong>), separa erro de digitação de erro de inglês
+          e mostra palavra por palavra o que faltou. Se a sua tradução estiver certa de outro
+          jeito, você marca como certa. Os decks:
+          <ul class="conv-pattern-list">
+            ${Object.keys(TRANS_DECKS).map(k => `<li><strong>${escapeHtml(TRANS_DECKS[k].tag)}:</strong> ${escapeHtml(TRANS_DECKS[k].label)} — ${getTransCardsForDeck(k).length} cartões</li>`).join("")}
+          </ul>
+        </div>
+      ` : ""}
+
+      ${lastBlock}
+
+      <div class="actions" style="flex-direction:column;">
+        <button class="btn block" onclick="openTransDecks()">Escolher os decks e começar</button>
+        ${practiceShortcut}
+      </div>
+    </div>
+  `;
+}
+
+/* ---------- Tela de escolha dos decks ---------- */
+function renderTransDecks() {
+  const selecionados = state.transDeckSelection;
+  const totalSelecionado = selecionados.reduce((n, k) => n + getTransCardsForDeck(k).length, 0);
+
+  app.innerHTML = `
+    <div class="card">
+      <h2>Quais decks você quer praticar?</h2>
+      <p class="lead">Cada cartão mostra uma frase em português para você escrever em inglês.
+      Marque quantos decks quiser — os cartões vêm embaralhados.</p>
+
+      <div class="trans-deck-list">
+        ${Object.keys(TRANS_DECKS).map(key => {
+          const marcado = selecionados.indexOf(key) !== -1;
+          return `
+            <button class="trans-deck-option${marcado ? " selected" : ""}"
+              aria-pressed="${marcado}" onclick="toggleTransDeck('${key}')">
+              <span class="trans-deck-check">${marcado ? "✓" : ""}</span>
+              <span class="trans-deck-name">
+                <strong>${escapeHtml(TRANS_DECKS[key].label)}</strong>
+                <span class="trans-deck-meta">${escapeHtml(TRANS_DECKS[key].tag)} &middot; ${getTransCardsForDeck(key).length} cartões</span>
+              </span>
+            </button>
+          `;
+        }).join("")}
+      </div>
+
+      <div class="actions">
+        <button class="btn secondary" onclick="selectAllTransDecks(true)">Marcar todos</button>
+        ${selecionados.length ? `<button class="btn secondary" onclick="selectAllTransDecks(false)">Limpar</button>` : ""}
+      </div>
+
+      <div class="actions" style="flex-direction:column; margin-top:18px;">
+        <button class="btn block" ${totalSelecionado ? "" : "disabled"}
+          onclick="startTransRound(${JSON.stringify(selecionados).replace(/"/g, "&quot;")})">
+          ${totalSelecionado ? `Começar — ${totalSelecionado} ${totalSelecionado === 1 ? "cartão" : "cartões"}` : "Marque ao menos um deck"}
+        </button>
+      </div>
+
+      <div class="exit-actions">
+        <button class="btn secondary block" onclick="goLanding()">Voltar ao início</button>
+      </div>
+    </div>
+  `;
+}
+
+/* Diff palavra a palavra: verde o que faltou na sua resposta, vermelho o que sobrou. */
+function renderTransDiff(expected, typed) {
+  const d = transDiffWords(expected, typed);
+  const linha = (tokens, cls) => tokens.map(w =>
+    w.state === "same" ? escapeHtml(w.text) : `<span class="${cls}">${escapeHtml(w.text)}</span>`
+  ).join(" ");
+  return `
+    <div class="trans-answer-row">
+      <span class="trans-answer-tag">Você escreveu</span>
+      <span class="trans-answer-text">${typed.trim() ? linha(d.typed, "diff-extra") : "<em>(em branco)</em>"}</span>
+    </div>
+    <div class="trans-answer-row">
+      <span class="trans-answer-tag">Resposta do cartão</span>
+      <span class="trans-answer-text">${linha(d.expected, "diff-miss")}</span>
+    </div>
+  `;
+}
+
+/* ---------- A tela do cartão ---------- */
+function renderTransRound() {
+  const card = transCurrentCard();
+  const total = state.transCards.length;
+  const current = state.transIndex + 1;
+  const revealed = !!state.transRevealed[card.id];
+  const grade = state.transGrades[card.id];
+  const typed = state.transAnswers[card.id] || "";
+  const isLast = state.transIndex === total - 1;
+
+  let feedback = "";
+  if (revealed) {
+    const esperada = grade === "naoLembro"
+      ? card.en
+      : gradeTransAnswer(card, typed).best;
+
+    const caixa = {
+      certo:        { cls: "good", texto: "✅ Certo!" },
+      quase:        { cls: "warn", texto: "🟡 Quase — a tradução está certa, escorregou só na digitação." },
+      aceitoManual: { cls: "good", texto: "✅ Marcado por você como certo." },
+      diferente:    { cls: "bad",  texto: "❌ Não bate com a resposta do cartão — compare abaixo." },
+      naoLembro:    { cls: "bad",  texto: "👀 Resposta revelada. Este cartão conta como erro." },
+    }[grade] || { cls: "bad", texto: "" };
+
+    feedback = `
+      <div class="explain-box ${caixa.cls}">${caixa.texto}</div>
+      ${grade === "certo" || grade === "aceitoManual" ? `
+        <div class="trans-answer-row">
+          <span class="trans-answer-tag">Resposta do cartão</span>
+          <span class="trans-answer-text">${escapeHtml(card.en)}</span>
+        </div>
+      ` : renderTransDiff(esperada, typed)}
+      ${card.note ? `<p class="trans-note">${escapeHtml(card.note)}</p>` : ""}
+      ${grade === "diferente" ? `
+        <button class="btn secondary block" style="margin-top:14px;" onclick="markTransAnswerCorrect()">
+          Minha resposta também está certa
+        </button>
+      ` : ""}
+    `;
+  }
+
+  app.innerHTML = `
+    <div class="card">
+      <div class="progress-wrap">
+        <div class="progress-label">
+          <span>Cartão ${current} de ${total}</span>
+          <span>${Math.round((state.transIndex / total) * 100)}%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${(state.transIndex / total) * 100}%"></div></div>
+      </div>
+
+      <span class="q-level">Escreva em inglês</span>
+      <div class="q-prompt">${escapeHtml(card.pt)}</div>
+
+      ${revealed ? "" : `
+        <input type="text" id="trans-input" class="trans-input"
+          autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
+          placeholder="Escreva a frase em inglês e aperte Enter"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();submitTransAnswer();}">
+        ${state.transEmptyWarn ? `<p class="trans-warn">Escreva alguma coisa antes de conferir — ou use "Não lembro".</p>` : ""}
+        <div class="actions">
+          <button class="btn" onclick="submitTransAnswer()">Conferir</button>
+          <button class="btn secondary" onclick="skipTransCard()">Não lembro</button>
+        </div>
+      `}
+
+      ${feedback}
+
+      ${revealed ? `
+        <div class="actions">
+          ${state.transIndex > 0 ? `<button class="btn secondary" onclick="prevTransCard()">Voltar</button>` : ""}
+          <button class="btn" id="trans-next" onclick="nextTransCard()">${isLast ? "Ver resultado" : "Próximo cartão"}</button>
+        </div>
+      ` : ""}
+
+      <div class="exit-actions">
+        <button class="btn secondary block" onclick="requestExitTransRound()">Voltar ao início</button>
+      </div>
+    </div>
+    ${state.transExitConfirmOpen ? renderConfirmModal({
+      title: "Sair da rodada?",
+      message: "Você ainda não terminou esta rodada. Se sair agora, as respostas dadas até aqui serão perdidas.",
+      confirmLabel: "Sair e perder respostas",
+      cancelLabel: "Continuar rodada",
+      onConfirm: "confirmExitTransRound()",
+      onCancel: "cancelExitTransRound()",
+    }) : ""}
+  `;
+
+  /* Foco: no campo quando há o que digitar, senão no botão de avançar — assim
+     o fluxo inteiro é digita → Enter → Enter, sem tirar a mão do teclado.
+     innerHTML é síncrono, então os elementos já existem aqui. */
+  if (!state.transExitConfirmOpen) {
+    const campo = document.getElementById("trans-input");
+    if (campo) campo.focus();
+    else {
+      const proximo = document.getElementById("trans-next");
+      if (proximo) proximo.focus();
+    }
+  }
+}
+
+/* ---------- Resultado da rodada ---------- */
+function renderTransResults() {
+  const r = state.transResults;
+  const decks = Object.keys(r.categoryPct);
+  const improvableNames = r.improvableCategories.map(k => TRANS_DECKS[k].label);
+
+  app.innerHTML = `
+    <div class="card">
+      <div class="score-hero">
+        <div class="score-number">${r.overallPct}%</div>
+        <div class="score-level">${escapeHtml(r.label)}</div>
+        <p style="margin-top:8px;">${r.totalCorrect} de ${r.totalQuestions} cartões corretos</p>
+      </div>
+
+      <h2>Desempenho por deck</h2>
+      ${decks.map(key => `
+        <div class="cat-row">
+          <div class="cat-name">${escapeHtml(TRANS_DECKS[key].label)}</div>
+          <div class="cat-bar-wrap"><div class="cat-bar-fill ${barClass(r.categoryPct[key])}" style="width:${r.categoryPct[key]}%"></div></div>
+          <div class="cat-pct">${r.categoryPct[key]}%</div>
+        </div>
+      `).join("")}
+
+      <div class="section-title">Decks que ainda não estão em 100%</div>
+      ${improvableNames.length
+        ? `<div class="weak-list">${improvableNames.map(n => `<span class="weak-chip">${escapeHtml(n)}</span>`).join("")}</div>`
+        : `<div class="all-good">Excelente! Você escreveu certo todos os cartões desta rodada.</div>`
+      }
+
+      ${renderTransMistakesReview(r.mistakes)}
+
+      <div class="actions" style="flex-direction:column; margin-top:24px;">
+        ${improvableNames.length
+          ? `<button class="btn block" onclick='startTransRound(${JSON.stringify(r.improvableCategories)})'>Refazer os decks abaixo de 100%</button>`
+          : ""
+        }
+        <button class="btn secondary block" onclick='startTransRound(${JSON.stringify(decks)})'>Refazer esta rodada</button>
+        <button class="btn secondary block" onclick="openTransDecks()">Escolher outros decks</button>
+        <button class="btn secondary block" onclick="goLanding()">Voltar ao início</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderTransMistakesReview(mistakes) {
+  if (!mistakes.length) return "";
+  return `
+    <div class="section-title">Revisão dos cartões que ficaram para trás</div>
+    <div class="card" style="box-shadow:none; border-color:var(--border);">
+      ${mistakes.map(m => {
+        const card = TRANS_CARDS.find(c => c.id === m.cardId);
+        if (!card) return "";
+        const esperada = m.grade === "naoLembro" ? card.en : gradeTransAnswer(card, m.typed).best;
+        return `
+          <div class="trans-review-item">
+            <div class="trans-review-pt">${escapeHtml(card.pt)}</div>
+            ${m.grade === "naoLembro"
+              ? `<div class="trans-answer-row">
+                   <span class="trans-answer-tag">Você não lembrou</span>
+                   <span class="trans-answer-text">${escapeHtml(card.en)}</span>
+                 </div>`
+              : renderTransDiff(esperada, m.typed)}
+            ${card.note ? `<p class="trans-note">${escapeHtml(card.note)}</p>` : ""}
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
 render();
