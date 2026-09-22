@@ -46,6 +46,7 @@ const state = {
   transLandingDetailsOpen: false,
   transExitConfirmOpen: false,
   transEmptyWarn: false,    // avisa que o campo está vazio, sem revelar a resposta
+  transIsRetry: false,      // rodada só com as frases erradas: não mexe no histórico do deck
 };
 
 const app = document.getElementById("app");
@@ -1198,6 +1199,31 @@ function startTransRound(deckKeys) {
   state.transRevealed = {};
   state.transResults = null;
   state.transEmptyWarn = false;
+  state.transIsRetry = false;
+  state.view = "transRound";
+  render();
+}
+
+/* Rodada de correção: só os cartões que ficaram errados na rodada que acabou.
+   Não toca no histórico por deck — a porcentagem "de primeira" mede o deck
+   inteiro, e refazer só os erros acertando tudo gravaria um 100% falso. */
+function startTransRetry() {
+  const r = state.transResults;
+  if (!r || !r.mistakes.length) return;
+  const cartoes = r.mistakes
+    .map(m => TRANS_CARDS.find(c => c.id === m.cardId))
+    .filter(Boolean);
+  if (!cartoes.length) return;
+
+  state.transCards = shuffle(cartoes);
+  state.transIndex = 0;
+  state.transAnswers = {};
+  state.transGrades = {};
+  state.transFirstGrades = {};
+  state.transRevealed = {};
+  state.transResults = null;
+  state.transEmptyWarn = false;
+  state.transIsRetry = true;
   state.view = "transRound";
   render();
 }
@@ -1313,23 +1339,29 @@ function finishTransRound() {
     mistakes,
     totalCorrect,
     totalQuestions: state.transCards.length,
+    isRetry: state.transIsRetry,
   };
   /* Histórico por deck, com a régua estrita (transFirstGrades): mescla no que
      já estava gravado, então deck fora desta rodada mantém a nota da última vez
-     em que foi praticado. */
-  const stats = loadTransDeckStats();
-  const agora = new Date().toISOString();
-  const dePrimeira = {};
-  state.transCards.forEach(card => {
-    dePrimeira[card.deck] = dePrimeira[card.deck] || { correct: 0, total: 0 };
-    dePrimeira[card.deck].total++;
-    if (transIsFirstHit(state.transFirstGrades[card.id])) dePrimeira[card.deck].correct++;
-  });
-  Object.keys(dePrimeira).forEach(key => {
-    const d = dePrimeira[key];
-    stats[key] = { pct: pct(d.correct, d.total), correct: d.correct, total: d.total, date: agora };
-  });
-  saveTransDeckStats(stats);
+     em que foi praticado.
+
+     Rodada de correção fica de fora: ela traz só os cartões errados, então
+     gravaria uma porcentagem que não representa o deck. */
+  if (!state.transIsRetry) {
+    const stats = loadTransDeckStats();
+    const agora = new Date().toISOString();
+    const dePrimeira = {};
+    state.transCards.forEach(card => {
+      dePrimeira[card.deck] = dePrimeira[card.deck] || { correct: 0, total: 0 };
+      dePrimeira[card.deck].total++;
+      if (transIsFirstHit(state.transFirstGrades[card.id])) dePrimeira[card.deck].correct++;
+    });
+    Object.keys(dePrimeira).forEach(key => {
+      const d = dePrimeira[key];
+      stats[key] = { pct: pct(d.correct, d.total), correct: d.correct, total: d.total, date: agora };
+    });
+    saveTransDeckStats(stats);
+  }
 
   state.view = "transResults";
   render();
@@ -1498,7 +1530,7 @@ function renderTransRound() {
     <div class="card">
       <div class="progress-wrap">
         <div class="progress-label">
-          <span>Cartão ${current} de ${total}</span>
+          <span>${state.transIsRetry ? "Correção &middot; cartão" : "Cartão"} ${current} de ${total}</span>
           <span>${Math.round((state.transIndex / total) * 100)}%</span>
         </div>
         <div class="progress-bar"><div class="progress-fill" style="width:${(state.transIndex / total) * 100}%"></div></div>
@@ -1584,14 +1616,18 @@ function renderTransResults() {
         : `<div class="all-good">Excelente! Você escreveu certo todos os cartões desta rodada.</div>`
       }
 
+      ${r.isRetry ? `<p class="trans-note">Esta foi uma rodada de correção, só com as frases que você tinha errado.
+      A porcentagem de acerto de primeira dos decks não muda aqui — ela só é recalculada quando
+      você pratica o deck inteiro.</p>` : ""}
+
       ${renderTransMistakesReview(r.mistakes)}
 
       <div class="actions" style="flex-direction:column; margin-top:24px;">
-        ${improvableNames.length
-          ? `<button class="btn block" onclick='startTransRound(${JSON.stringify(r.improvableCategories)})'>Refazer os decks abaixo de 100%</button>`
+        ${r.mistakes.length
+          ? `<button class="btn block" onclick="startTransRetry()">Refazer só as ${r.mistakes.length === 1 ? "frase que errei" : `${r.mistakes.length} frases que errei`}</button>`
           : ""
         }
-        <button class="btn secondary block" onclick='startTransRound(${JSON.stringify(decks)})'>Refazer esta rodada</button>
+        <button class="btn secondary block" onclick='startTransRound(${JSON.stringify(decks)})'>Refazer ${r.isRetry ? "o deck inteiro" : "esta rodada"}</button>
         <button class="btn secondary block" onclick="openTransDecks()">Escolher outros decks</button>
         <button class="btn secondary block" onclick="goLanding()">Voltar ao início</button>
       </div>
