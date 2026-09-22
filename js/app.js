@@ -407,6 +407,9 @@ function nextConvExercise() {
 /* ===================== Render principal ===================== */
 function render() {
   window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
+  /* A tela inicial usa uma faixa mais larga para os três cards caberem sem rolagem;
+     as telas de questão ficam nos 960px, que é a largura boa de leitura. */
+  app.className = state.view === "landing" ? "app app-landing" : "app";
   if (state.view === "landing") return renderLanding();
   if (state.view === "test") return renderTest();
   if (state.view === "results") return renderResults();
