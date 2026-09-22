@@ -83,6 +83,12 @@ Banco de cartões vindo do CSV do deck MemHack do curso (colunas
 - O card da página inicial **não** mostra resultado geral de propósito: com muitos
   decks, uma média só não diz onde o estudo está fraco. O feedback fica na tela de
   escolha de decks, uma porcentagem à direita de cada deck.
+- **Rodada de correção** (`startTransRetry()`, primeiro botão da tela de resultado):
+  refaz só os cartões que ficaram errados, não o deck inteiro. Ela marca
+  `state.transIsRetry`, e com esse sinal `finishTransRound()` **não grava** o
+  histórico do deck — refazer só os erros acertando tudo gravaria um 100% que não
+  representa o deck. A porcentagem de um deck só é recalculada quando ele é
+  praticado inteiro.
 - **Cuidado com o campo de digitação:** é o único `<input>` do projeto. Nunca
   chame `render()` enquanto a pessoa digita (o `innerHTML` é reescrito inteiro e
   leva junto o campo, o foco e o cursor) e nunca coloque texto digitado ou frase
@@ -100,6 +106,9 @@ Banco de cartões vindo do CSV do deck MemHack do curso (colunas
   diferente aceita na autoavaliação e um "Não lembro", a tela de resultado mostra
   75% e o histórico do deck grava 50% — se os dois números baterem, as duas notas
   se misturaram
+- Teste da rodada de correção: errando 4 de 9 cartões e depois acertando os 4 na
+  correção, o histórico do deck precisa continuar em 56% (5/9) — se virar 100%,
+  a correção voltou a gravar por cima
 - Smoke test no Chromium (Playwright, `executablePath: '/opt/pw-browsers/chromium'`):
   abrir `index.html` por `file://`, responder o teste inteiro, chegar no resultado
   e rodar a prática dirigida; no módulo de tradução, escolher um deck e passar por
