@@ -68,6 +68,9 @@ body {
   padding: 24px 20px 40px;
   min-height: 60vh;
 }
+/* Só a tela inicial: com os três cards, 960px espremia o texto e jogava a
+   página para baixo. 1280px é a maior largura que ainda cabe num 1366. */
+.app.app-landing { max-width: 1280px; }
 
 .footer {
   text-align: center;
@@ -445,9 +448,8 @@ p { color: var(--muted); margin: 0 0 16px; }
 }
 .landing-col { min-width: 0; display: flex; }
 .landing-col > .card { width: 100%; }
-/* Com três colunas o card fica estreito: o h1 do teste A1-A2 quebraria em quatro linhas. */
-.landing-col h1 { font-size: 1.45rem; }
-.landing-col h2 { font-size: 1.25rem; }
+.landing-col h1 { font-size: 1.55rem; }
+.landing-col h2 { font-size: 1.3rem; }
 .conv-card { border-color: var(--warn); }
 .conv-pattern-list {
   margin: 6px 0 0;
