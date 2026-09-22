@@ -307,6 +307,7 @@ p { color: var(--muted); margin: 0 0 16px; }
 }
 .explain-box.good { background: var(--good-bg); color: var(--good); }
 .explain-box.bad { background: var(--bad-bg); color: var(--bad); }
+.explain-box.warn { background: var(--warn-bg); color: var(--warn-light); }
 .explain-list {
   margin-top: 14px;
   display: flex;
@@ -434,15 +435,19 @@ p { color: var(--muted); margin: 0 0 16px; }
   .cat-columns { flex-direction: column; gap: 14px; }
 }
 
-/* Landing hub: teste original (esquerda) + módulo "Erros da Conversa Real" (direita) */
+/* Landing hub: os três módulos lado a lado. auto-fit acomoda o terceiro card e
+   degrada sozinho para 2 e depois 1 coluna conforme a tela encolhe. */
 .landing-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
   gap: 20px;
   align-items: stretch;
 }
 .landing-col { min-width: 0; display: flex; }
 .landing-col > .card { width: 100%; }
+/* Com três colunas o card fica estreito: o h1 do teste A1-A2 quebraria em quatro linhas. */
+.landing-col h1 { font-size: 1.45rem; }
+.landing-col h2 { font-size: 1.25rem; }
 .conv-card { border-color: var(--warn); }
 .conv-pattern-list {
   margin: 6px 0 0;
@@ -451,6 +456,130 @@ p { color: var(--muted); margin: 0 0 16px; }
   font-size: 0.92rem;
 }
 .conv-pattern-list li { margin-bottom: 4px; }
+
+/* ---------- Módulo "Do Português para o Inglês" ----------
+   Primeiros estilos de campo de texto do projeto: até aqui tudo era botão. */
+.trans-card { border-color: var(--primary); }
+
+.trans-input {
+  width: 100%;
+  margin-top: 18px;
+  padding: 14px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel-bg);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 1.05rem;   /* >= 16px: evita o zoom automático do iOS ao focar */
+  line-height: 1.4;
+}
+.trans-input::placeholder { color: var(--muted); }
+.trans-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(90, 224, 143, .18);
+}
+
+.trans-warn {
+  margin: 10px 0 0;
+  color: var(--warn);
+  font-size: 0.85rem;
+}
+.trans-note {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+/* Escolha dos decks */
+.trans-deck-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 18px;
+}
+.trans-deck-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel-bg);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 0.98rem;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.trans-deck-option:hover { background: var(--hover-tint); }
+.trans-deck-option.selected { border-color: var(--primary); background: var(--hover-tint); }
+.trans-deck-check {
+  flex: 0 0 22px;
+  height: 22px;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--btn-ink);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.trans-deck-option.selected .trans-deck-check {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+.trans-deck-name { display: flex; flex-direction: column; gap: 2px; }
+.trans-deck-meta { color: var(--muted); font-size: 0.82rem; }
+
+/* Sua resposta x resposta do cartão, com o diff palavra a palavra */
+.trans-answer-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  font-size: 0.95rem;
+}
+.trans-answer-tag {
+  flex: 0 0 140px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  padding-top: 2px;
+}
+.trans-answer-text { flex: 1; color: var(--ink); }
+.diff-miss {
+  background: var(--good-bg);
+  color: var(--good);
+  border-radius: 4px;
+  padding: 1px 4px;
+  font-weight: 600;
+}
+.diff-extra {
+  background: var(--bad-bg);
+  color: var(--bad);
+  border-radius: 4px;
+  padding: 1px 4px;
+  text-decoration: line-through;
+}
+
+.trans-review-item {
+  padding: 14px 0;
+  border-bottom: 1px dashed var(--border);
+}
+.trans-review-item:last-child { border-bottom: none; }
+.trans-review-pt { font-weight: 600; color: var(--ink); }
+
+@media (max-width: 560px) {
+  .trans-answer-row { flex-direction: column; gap: 4px; }
+  .trans-answer-tag { flex: none; }
+}
 
 @media (max-width: 760px) {
   .landing-grid { grid-template-columns: 1fr; }
