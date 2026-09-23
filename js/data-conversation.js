@@ -20,12 +20,12 @@
    ============================================================ */
 
 const CONV_CATEGORIES = {
-  plans:   { label: "Planos e eventos: festa, convite e pedidos",        tag: "Padrão 1" },
-  tech:    { label: "Tecnologia e celular: aparelhos e verbos do tema",  tag: "Padrão 2" },
-  useful:  { label: "Útil × inútil: useful, useless e pointless",        tag: "Padrão 3" },
-  rules:   { label: "Filha, escola e regras: proibição e hábito",        tag: "Padrão 4" },
-  access:  { label: "Acessibilidade e conhecimento: deaf, illiterate",   tag: "Padrão 5" },
-  daily:   { label: "Dia a dia e dinheiro: cash, taxes e rotina",        tag: "Padrão 6" },
+  plans:   { label: "Plans and events: party, invitation, requests",     tag: "Pattern 1" },
+  tech:    { label: "Tech and phones: devices and their verbs",          tag: "Pattern 2" },
+  useful:  { label: "Useful vs useless: useful, useless, pointless",     tag: "Pattern 3" },
+  rules:   { label: "Daughter, school and rules: bans and habits",       tag: "Pattern 4" },
+  access:  { label: "Accessibility and knowledge: deaf, illiterate",     tag: "Pattern 5" },
+  daily:   { label: "Everyday life and money: cash, taxes, routine",     tag: "Pattern 6" },
 };
 
 /* ================= TESTE: ERROS DA CONVERSA REAL ================= */

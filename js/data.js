@@ -1,17 +1,17 @@
 /* Categorias avaliadas no teste A1-A2 */
 const CATEGORIES = {
-  tobe:          { label: "Verbo To Be",                 level: "A1" },
-  pronouns:      { label: "Pronomes e Possessivos",       level: "A1" },
-  articles:      { label: "Artigos (a / an / the)",       level: "A1" },
-  plurals:       { label: "Plural dos Substantivos",      level: "A1" },
+  tobe:          { label: "Verb To Be",                    level: "A1" },
+  pronouns:      { label: "Pronouns and Possessives",      level: "A1" },
+  articles:      { label: "Articles (a / an / the)",       level: "A1" },
+  plurals:       { label: "Noun Plurals",                  level: "A1" },
   presentsimple: { label: "Present Simple",               level: "A1" },
-  prepositions:  { label: "Preposições (in / on / at)",   level: "A1" },
-  vocabulary:    { label: "Vocabulário de Trabalho",      level: "A1" },
-  questionwords: { label: "Palavras Interrogativas (Wh-)", level: "A1" },
+  prepositions:  { label: "Prepositions (in / on / at)",   level: "A1" },
+  vocabulary:    { label: "Workplace Vocabulary",          level: "A1" },
+  questionwords: { label: "Question Words (Wh-)",          level: "A1" },
   continuous:    { label: "Present Continuous",           level: "A2" },
   pastsimple:    { label: "Simple Past",                  level: "A2" },
-  comparatives:  { label: "Comparativos e Superlativos",  level: "A2" },
-  can:           { label: "Can / Can't (habilidade)",     level: "A2" },
+  comparatives:  { label: "Comparatives and Superlatives", level: "A2" },
+  can:           { label: "Can / Can't (ability)",         level: "A2" },
 };
 
 /* ================= TESTE DE NIVELAMENTO =================

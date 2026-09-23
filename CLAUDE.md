@@ -1,4 +1,4 @@
-# EN•Check — Teste de Inglês A1-A2 para Dados
+# Fluent Data — inglês A1-A2 para quem trabalha com Dados
 
 Site estático (HTML + CSS + JS puro, sem build e sem dependências) publicado
 pelo GitHub Pages a partir da branch `main`. São três avaliações independentes:
@@ -22,11 +22,46 @@ Para **toda** alteração, leve até o site estar no ar:
 3. Push, PR e **merge na `main`** — é o merge que publica no Pages (leva 1-2 min)
 4. Confirmar que a `main` ficou com o conteúdo novo
 
-Mensagens de commit, PR e textos da interface em português.
+Mensagens de commit, PR e **comentários de código em português**.
+
+## Idioma: interface em inglês, conteúdo em português
+
+Regra que vale em todo o site, e a linha é esta:
+
+- **Interface em inglês** — botões, títulos, progresso, resultados, rótulos de
+  categoria e de deck, avisos, modais. Tudo que é moldura.
+- **Conteúdo pedagógico em português** — os enunciados, as opções e, sobretudo,
+  as explicações dos exercícios (`Correto! …` / `Errado. …`). São para ensinar a
+  regra na língua de quem estuda.
+- No módulo de tradução, a frase em português **é o enunciado**: traduzi-la
+  eliminaria o módulo. O campo `pt` nunca vira inglês.
 
 Ao mudar qualquer arquivo em `css/` ou `js/`, suba o cache-busting dos quatro
 scripts e do CSS em `index.html` (`?v=AAAAMMDD` + letra, ex.: `?v=20260916a`),
 senão o navegador serve a versão antiga.
+
+## Visual
+
+O tema vem de um design feito no Claude Design ("Fluent Data"): fundo quase
+preto `#0a0b0d`, destaque ciano `#4fd1e5` e roxo `#9b8cff`, texto `#e6eaee`,
+Schibsted Grotesk no texto e IBM Plex Mono nas etiquetas. Os tokens estão no
+`:root` de `css/style.css` — mexa neles, não em valores soltos.
+
+- O **fundo decorativo** (estrelas, constelações, grade e os gráficos) é markup
+  estático em `index.html`, dentro de `.backdrop`, animado só por CSS. Fica
+  **fora de `#app`** de propósito: `render()` reescreve `#app` inteiro e apagaria
+  o fundo a cada tela. As estrelas e o heatmap são preenchidos uma única vez por
+  `initBackdrop()`, no boot.
+- O palco do fundo tem 1920x1080 fixos e encolhe por `--bgs` em telas menores,
+  senão os gráficos ficam cortados na borda.
+- `.app` leva `overflow-x: clip` porque o brilho do hero (`.hero::before`) sangra
+  22% para os lados e, sem isso, cria rolagem lateral em tela estreita. `clip`
+  (e não `hidden`) evita virar contêiner de rolagem, e não corta o modal, que é
+  `position: fixed`.
+- A tela inicial usa `.app.app-landing` (mais larga, centralizada na altura); as
+  telas de questão ficam nos 960px, que é a largura boa de leitura.
+- `renderModuleCard()` monta os três cards da tela inicial no formato do design:
+  número, etiqueta, título, uma linha de descrição e os links no rodapé do card.
 
 ## Regras do módulo "Erros da Conversa Real"
 

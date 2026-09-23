@@ -1,29 +1,149 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Teste de Inglês A1-A2 para Dados</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Source+Sans+3:wght@400;600;700&display=swap">
-<link rel="stylesheet" href="css/style.css?v=20260922d">
+<title>Fluent Data — English for data &amp; business</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@300;400;500&display=swap">
+<link rel="stylesheet" href="css/style.css?v=20260923a">
 </head>
 <body>
+  <!-- Fundo decorativo: markup estático, animado só por CSS. Fica fora de
+       #app para o render() não reescrever a cada mudança de tela. -->
+  <div class="backdrop" aria-hidden="true">
+    <div style="position: fixed; inset: 0; overflow: hidden; pointer-events: none; font-family: 'IBM Plex Mono', ui-monospace, monospace;">
+    <div style="position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; transform: translate(-50%, -50%) scale(var(--bgs, 1)); opacity: var(--bgo, 1); transition: opacity .6s ease;">
+      <div style="position: absolute; inset: -20%; background: radial-gradient(42% 46% at 18% 82%, color-mix(in oklab, var(--acc, #4fd1e5) 26%, transparent), transparent 70%); filter: blur(30px); opacity: .5;"></div>
+      <div style="position: absolute; inset: -20%; background: radial-gradient(38% 42% at 84% 14%, color-mix(in oklab, var(--acc2, #9b8cff) 22%, transparent), transparent 70%); filter: blur(30px); opacity: .45;"></div>
+      <div style="position: absolute; inset: 0; background: radial-gradient(60% 60% at 50% 46%, rgba(255,255,255,.035), transparent 72%);"></div>
+      <div style="position: absolute; inset: 0; background-image: linear-gradient(to right, rgba(230,238,244,.045) 1px, transparent 1px), linear-gradient(to bottom, rgba(230,238,244,.045) 1px, transparent 1px); background-size: 64px 64px; mask-image: radial-gradient(78% 78% at 50% 50%, #000 30%, transparent 100%); -webkit-mask-image: radial-gradient(78% 78% at 50% 50%, #000 30%, transparent 100%);"></div>
+      <div style="position: absolute; inset: 0; background-image: linear-gradient(to right, rgba(230,238,244,.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(230,238,244,.08) 1px, transparent 1px); background-size: 320px 320px; opacity: .5;"></div>
+      <div style="position: absolute; inset: 0; animation: drift calc(26s * var(--mo, 1)) ease-in-out infinite;" id="bg-stars">
+        <!-- estrelas geradas em initBackdrop() -->
+      </div>
+      <svg width="1920" height="1080" viewBox="0 0 1920 1080" style="position: absolute; inset: 0; overflow: visible; animation: drift2 calc(34s * var(--mo, 1)) ease-in-out infinite;">
+        <g fill="none" style="stroke: var(--acc, #4fd1e5);" stroke-width="1" opacity=".26">
+          <polyline points="196,214 318,286 268,392 148,352 196,214"></polyline>
+          <polyline points="318,286 452,240 520,338 268,392"></polyline>
+          <polyline points="1512,196 1642,150 1748,238 1660,338 1528,308 1512,196"></polyline>
+          <polyline points="1642,150 1660,338"></polyline>
+          <polyline points="332,862 470,806 596,884 512,962 366,946 332,862"></polyline>
+          <polyline points="1436,880 1560,830 1690,896 1614,978 1470,962 1436,880"></polyline>
+        </g>
+        <g style="fill: var(--acc, #4fd1e5);" opacity=".5">
+          <circle cx="196" cy="214" r="2.5"></circle><circle cx="318" cy="286" r="2"></circle><circle cx="268" cy="392" r="2"></circle>
+          <circle cx="148" cy="352" r="2"></circle><circle cx="452" cy="240" r="2"></circle><circle cx="520" cy="338" r="2.5"></circle>
+          <circle cx="1512" cy="196" r="2"></circle><circle cx="1642" cy="150" r="2.5"></circle><circle cx="1748" cy="238" r="2"></circle>
+          <circle cx="1660" cy="338" r="2"></circle><circle cx="1528" cy="308" r="2.5"></circle><circle cx="332" cy="862" r="2"></circle>
+          <circle cx="470" cy="806" r="2.5"></circle><circle cx="596" cy="884" r="2"></circle><circle cx="512" cy="962" r="2"></circle>
+          <circle cx="366" cy="946" r="2"></circle><circle cx="1436" cy="880" r="2.5"></circle><circle cx="1560" cy="830" r="2"></circle>
+          <circle cx="1690" cy="896" r="2"></circle><circle cx="1614" cy="978" r="2"></circle><circle cx="1470" cy="962" r="2"></circle>
+        </g>
+      </svg>
+      <div style="position: absolute; left: 120px; top: 128px; opacity: var(--wdo, 1); transition: opacity .4s; width: 268px;">
+        <svg width="268" height="156" viewBox="0 0 268 156" style="display: block; overflow: visible;">
+          <g stroke="rgba(230,238,244,.1)" stroke-width="1">
+            <line x1="0" y1="140" x2="268" y2="140"></line><line x1="0" y1="94" x2="268" y2="94" stroke-dasharray="3 8"></line><line x1="0" y1="48" x2="268" y2="48" stroke-dasharray="3 8"></line>
+          </g>
+          <g style="fill: var(--acc, #4fd1e5);">
+            <rect x="6" y="96" width="26" height="44" rx="2" opacity=".38"></rect>
+            <rect x="46" y="74" width="26" height="66" rx="2" opacity=".5"></rect>
+            <rect x="86" y="86" width="26" height="54" rx="2" opacity=".44"></rect>
+            <rect x="126" y="44" width="26" height="96" rx="2" opacity=".78"></rect>
+            <rect x="166" y="60" width="26" height="80" rx="2" opacity=".56"></rect>
+            <rect x="206" y="26" width="26" height="114" rx="2" opacity=".9" style="fill: var(--acc, #4fd1e5); animation: glow calc(9s * var(--mo, 1)) ease-in-out infinite;"></rect>
+          </g>
+        </svg>
+    
+      </div>
+      <div style="position: absolute; left: 1430px; top: 112px; opacity: var(--wdo, 1); transition: opacity .4s;">
+        <svg width="356" height="252" viewBox="0 0 356 252" style="display: block;">
+          <g fill="none" stroke="rgba(230,238,244,.16)" stroke-width="1">
+            <path d="M178,126 L62,54 M178,126 L296,42 M178,126 L38,168 M178,126 L318,152 M178,126 L120,224 M178,126 L246,222 M62,54 L296,42 M38,168 L120,224 M318,152 L246,222 M296,42 L318,152"></path>
+          </g>
+          <g>
+            <circle cx="178" cy="126" r="13" style="fill: var(--acc2, #9b8cff);" opacity=".8"></circle>
+            <circle cx="178" cy="126" r="26" fill="none" style="stroke: var(--acc2, #9b8cff);" stroke-width="1" opacity=".35"></circle>
+            <circle cx="62" cy="54" r="6" style="fill: var(--acc, #4fd1e5);" opacity=".6"></circle>
+            <circle cx="296" cy="42" r="8" style="fill: var(--acc, #4fd1e5);" opacity=".7"></circle>
+            <circle cx="38" cy="168" r="5" style="fill: var(--acc, #4fd1e5);" opacity=".5"></circle>
+            <circle cx="318" cy="152" r="7" style="fill: var(--acc2, #9b8cff);" opacity=".6"></circle>
+            <circle cx="120" cy="224" r="5" style="fill: var(--acc, #4fd1e5);" opacity=".45"></circle>
+            <circle cx="246" cy="222" r="6" style="fill: var(--acc2, #9b8cff);" opacity=".5"></circle>
+          </g>
+        </svg>
+    
+      </div>
+      <div style="position: absolute; left: 152px; top: 452px; opacity: var(--wdo, 1); transition: opacity .4s;">
+        <svg width="216" height="216" viewBox="0 0 216 216" style="display: block;">
+          <circle cx="108" cy="108" r="70" fill="none" stroke="rgba(230,238,244,.07)" stroke-width="18"></circle>
+          <g fill="none" stroke-width="18" stroke-linecap="butt" transform="rotate(-90 108 108)">
+            <circle cx="108" cy="108" r="70" style="stroke: var(--acc, #4fd1e5);" stroke-dasharray="198 242" opacity=".85"></circle>
+            <circle cx="108" cy="108" r="70" style="stroke: var(--acc2, #9b8cff);" stroke-dasharray="120 320" stroke-dashoffset="-204" opacity=".6"></circle>
+            <circle cx="108" cy="108" r="70" stroke="rgba(230,238,244,.3)" stroke-dasharray="62 378" stroke-dashoffset="-330" opacity=".5"></circle>
+          </g>
+          <circle cx="108" cy="108" r="88" fill="none" style="stroke: var(--acc, #4fd1e5);" stroke-width="1" stroke-dasharray="1 7" opacity=".3"></circle>
+        </svg>
+      </div>
+      <div style="position: absolute; left: 1496px; top: 470px; opacity: var(--wdo, 1); transition: opacity .4s; width: 296px; padding: 22px 24px; border: 1px solid rgba(230,238,244,.1); border-radius: 16px; background: rgba(230,238,244,.035); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 30px 80px -40px rgba(0,0,0,.9);">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: rgba(230,238,244,.4);">
+          <span>conversion</span><span>90d</span>
+        </div>
+        <div style="display: flex; align-items: flex-end; gap: 10px; margin-top: 12px;">
+          <span style="font-size: 40px; font-weight: 300; letter-spacing: -.02em; color: rgba(230,238,244,.92);">4.82%</span>
+          <span style="font-size: 13px; padding-bottom: 8px; color: var(--acc, #4fd1e5);">+0.64</span>
+        </div>
+        <svg width="248" height="52" viewBox="0 0 248 52" style="display: block; margin-top: 14px;">
+          <path d="M0,44 L28,36 L56,40 L84,26 L112,30 L140,18 L168,22 L196,10 L224,14 L248,4" fill="none" style="stroke: var(--acc, #4fd1e5);" stroke-width="1.5" opacity=".7"></path>
+          <path d="M0,44 L28,36 L56,40 L84,26 L112,30 L140,18 L168,22 L196,10 L224,14 L248,4 L248,52 L0,52 Z" style="fill: var(--acc, #4fd1e5);" opacity=".1"></path>
+        </svg>
+      </div>
+      <div style="position: absolute; left: 212px; top: 772px; opacity: var(--wdo, 1); transition: opacity .4s;">
+        <svg width="312" height="212" viewBox="0 0 312 212" style="display: block;">
+          <g stroke="rgba(230,238,244,.1)" stroke-width="1">
+            <line x1="0" y1="196" x2="312" y2="196"></line><line x1="0" y1="196" x2="0" y2="8"></line>
+          </g>
+          <line x1="12" y1="176" x2="298" y2="42" style="stroke: var(--acc2, #9b8cff);" stroke-width="1.5" stroke-dasharray="7 7" opacity=".5"></line>
+          <g style="fill: var(--acc, #4fd1e5);">
+            <circle cx="34" cy="168" r="5" opacity=".6"></circle><circle cx="62" cy="152" r="4" opacity=".45"></circle><circle cx="88" cy="160" r="6" opacity=".55"></circle>
+            <circle cx="112" cy="132" r="5" opacity=".7"></circle><circle cx="140" cy="118" r="4" opacity=".5"></circle><circle cx="158" cy="136" r="7" opacity=".4"></circle>
+            <circle cx="186" cy="98" r="5" opacity=".65"></circle><circle cx="208" cy="82" r="4" opacity=".5"></circle><circle cx="226" cy="96" r="6" opacity=".45"></circle>
+            <circle cx="252" cy="64" r="5" opacity=".7"></circle><circle cx="272" cy="72" r="4" opacity=".5"></circle><circle cx="292" cy="44" r="7" opacity=".8"></circle>
+          </g>
+        </svg>
+    
+      </div>
+      <div style="position: absolute; left: 1466px; top: 800px; opacity: var(--wdo, 1); transition: opacity .4s;">
+        <div style="display: grid; grid-template-columns: repeat(10, 26px); grid-auto-rows: 26px; gap: 4px;" id="bg-heat">
+          <!-- heatmap gerado em initBackdrop() -->
+        </div>
+    
+      </div>
+      <div style="position: absolute; inset: 0; background: radial-gradient(120% 90% at 50% 50%, transparent 42%, rgba(3,4,6,.72) 100%); pointer-events: none;"></div>
+    </div>
+    </div>
+  </div>
+
   <header class="topbar">
     <div class="topbar-inner">
-      <span class="logo">EN<span class="logo-accent">•</span>Check</span>
-      <span class="topbar-sub">Avaliação exigente de Inglês A1-A2 para quem trabalha com Dados</span>
+      <a class="logo" href="#" onclick="goLanding(); return false;">
+        <svg width="26" height="26" viewBox="0 0 26 26" style="display:block;" aria-hidden="true">
+          <rect x="2" y="14" width="5" height="10" rx="1" fill="#4fd1e5" opacity=".5"></rect>
+          <rect x="10.5" y="8" width="5" height="16" rx="1" fill="#4fd1e5" opacity=".75"></rect>
+          <rect x="19" y="2" width="5" height="22" rx="1" fill="#9b8cff"></rect>
+        </svg>
+        <span>Fluent Data</span>
+      </a>
     </div>
   </header>
 
   <main id="app" class="app"></main>
 
-  <footer class="footer">
-    <p>Teste de nivelamento A1-A2 &middot; Foco em vocabulário e situações de trabalho para analistas de dados</p>
-  </footer>
-
-  <script src="js/data.js?v=20260922d"></script>
-  <script src="js/data-conversation.js?v=20260922d"></script>
-  <script src="js/data-translate.js?v=20260922d"></script>
-  <script src="js/app.js?v=20260922d"></script>
+  <script src="js/data.js?v=20260923a"></script>
+  <script src="js/data-conversation.js?v=20260923a"></script>
+  <script src="js/data-translate.js?v=20260923a"></script>
+  <script src="js/app.js?v=20260923a"></script>
 </body>
 </html>

@@ -75,10 +75,10 @@ function barClass(p) {
 function cefrLabel(overall) {
   // Critério exigente: este teste é propositalmente mais rigoroso que a média,
   // já que o objetivo é confirmar que o inglês está pronto para o mercado de trabalho.
-  if (overall >= 97) return "Nível A2 sólido — pronto(a) para avançar ao B1 em contexto profissional";
-  if (overall >= 85) return "Nível A2, mas ainda com pontos a firmar antes de uma entrevista real";
-  if (overall >= 55) return "Nível A1";
-  return "Iniciante (pré-A1) — vamos reforçar o básico";
+  if (overall >= 97) return "Solid A2 — ready to move to B1 in a professional setting";
+  if (overall >= 85) return "A2, with a few things to firm up before a real interview";
+  if (overall >= 55) return "A1";
+  return "Beginner (pre-A1) — let us shore up the basics";
 }
 
 function saveResults(results, key = STORAGE_KEY) {
@@ -130,10 +130,10 @@ function knownCategories(keys, dict) {
 function convResultLabel(overall) {
   // Mesmos limiares do teste A1-A2, mas descrevendo domínio dos padrões da conversa real,
   // não um nível CEFR.
-  if (overall >= 97) return `Os ${Object.keys(CONV_CATEGORIES).length} padrões da sua conversa real já estão sob controle`;
-  if (overall >= 85) return "Bom domínio, mas alguns padrões ainda escapam de vez em quando";
-  if (overall >= 55) return "Você já reconhece parte dos padrões, mas ainda erra com frequência";
-  return "Os padrões da sua conversa real ainda aparecem bastante — vale reforçar aqui";
+  if (overall >= 97) return `The ${Object.keys(CONV_CATEGORIES).length} patterns from your real conversation are under control`;
+  if (overall >= 85) return "Good grasp, but a few patterns still slip through now and then";
+  if (overall >= 55) return "You recognise some of the patterns, but still miss them often";
+  return "The patterns from your conversation still show up a lot — worth drilling here";
 }
 
 function renderConfirmModal({ title, message, confirmLabel, cancelLabel, onConfirm, onCancel }) {
@@ -429,150 +429,120 @@ function render() {
 /* ---------- Landing ---------- */
 function renderLanding() {
   app.innerHTML = `
-    <div class="landing-grid">
-      <div class="landing-col">${renderLandingCard()}</div>
-      <div class="landing-col">${renderConvLandingCard()}</div>
-      <div class="landing-col">${renderTransLandingCard()}</div>
-    </div>
+    <section class="hero">
+      <div class="hero-eyebrow">English for data &amp; business</div>
+      <h1 class="hero-title">Talk about data with the same precision you analyze it.</h1>
+      <p class="hero-sub">Find your level, fix the mistakes from your conversations and practice
+      translation with the vocabulary of metrics, reports and meetings.</p>
+      <button class="btn" onclick="startTest()">Take the level test</button>
+    </section>
+
+    <section class="modules">
+      ${renderLandingCard()}
+      ${renderConvLandingCard()}
+      ${renderTransLandingCard()}
+    </section>
+  `;
+}
+
+/* Um card de módulo no formato do design: número, etiqueta, título, uma linha
+   de descrição e os links no rodapé do card. `links` já vem montado. */
+function renderModuleCard({ num, kind, title, text, accent2, details, links }) {
+  return `
+    <article class="module-card${accent2 ? " accent2" : ""}">
+      <div class="module-top">
+        <span>${num}</span>
+        <span class="module-kind">${escapeHtml(kind)}</span>
+      </div>
+      <h3>${escapeHtml(title)}</h3>
+      <p>${text}</p>
+      ${details || ""}
+      <div class="module-actions">${links}</div>
+    </article>
   `;
 }
 
 function renderLandingCard() {
   const last = loadResults();
   const lastImprovable = last ? knownCategories(last.improvableCategories, CATEGORIES) : [];
-  const lastBlock = last ? `
-    <div class="last-result">
-      <strong>Último resultado:</strong> ${last.overallPct}% de acertos — ${escapeHtml(last.cefr)}
-      <br>${lastImprovable.length
-        ? `Categorias que ainda não estão em 100%: ${lastImprovable.map(k => CATEGORIES[k].label).join(", ")}`
-        : "Você acertou 100% em todas as categorias da última vez. 🎉"}
-    </div>
-  ` : "";
-
-  const practiceShortcut = lastImprovable.length ? `
-    <button class="btn secondary block" onclick="startExercises(${JSON.stringify(lastImprovable).replace(/"/g, "&quot;")})">
-      Praticar categorias que ainda não estão em 100% (do último teste)
-    </button>
-  ` : "";
-
   const detailsOpen = state.landingDetailsOpen;
 
-  return `
-    <div class="card">
-      <div class="hero-badges">
-        <span class="badge">Nível A1</span>
-        <span class="badge accent2">Nível A2</span>
-      </div>
-      <div class="title-row">
-        <h1>Teste de nivelamento de Inglês para carreira em Dados</h1>
-        <button class="icon-btn" title="${detailsOpen ? "Ocultar detalhes" : "Ver detalhes do teste"}"
-          aria-expanded="${detailsOpen}" onclick="toggleLandingDetails()">
-          ${detailsOpen ? "✕" : "ⓘ"}
-        </button>
-      </div>
-      <p class="lead">Confirme, com confiança, que seu inglês está pronto para uma entrevista de analista de dados.
-      ${TEST_QUESTIONS.length} questões contextualizadas em relatórios, dashboards e reuniões.</p>
-
-      ${detailsOpen ? `
-        <p class="lead">Eu sou um professor exigente: este teste de A1-A2 é propositalmente mais difícil do que a maioria dos
-        testes de nivelamento por aí, com questões contextualizadas (não apenas frases soltas) e pegadinhas
-        pensadas para pessoas que já estudaram o básico. O objetivo não é te aprovar fácil — é confirmar,
-        com confiança, que seu inglês está pronto para uma entrevista real. Todas as perguntas e exercícios
-        giram em torno do dia a dia de quem trabalha com dados (relatórios, planilhas, dashboards, reuniões
-        e processos seletivos em inglês), já que essa é a sua meta: conseguir uma vaga que exija inglês.</p>
-
-        <div class="info-box">
-          Responda ${TEST_QUESTIONS.length} questões de gramática e vocabulário. <strong>A cada resposta você já vê na hora
-          se acertou</strong>, por que a alternativa certa é a certa e por que cada uma das outras está errada.
-          Ao final, você vê seu desempenho
-          por categoria, revê <strong>todas</strong> as questões que errou com explicação detalhada, e recebe
-          exercícios extras para <strong>toda categoria que não ficar 100%</strong> — mesmo que tenha errado só uma
-          questão nela. O teste cobre:
-          <div class="cat-columns">
-            <div class="cat-column">
-              <div class="cat-column-title">Nível A1</div>
-              <ul>
-                ${Object.values(CATEGORIES).filter(c => c.level === "A1").map(c => `<li>${escapeHtml(c.label)}</li>`).join("")}
-              </ul>
-            </div>
-            <div class="cat-column">
-              <div class="cat-column-title accent2">Nível A2</div>
-              <ul>
-                ${Object.values(CATEGORIES).filter(c => c.level === "A2").map(c => `<li>${escapeHtml(c.label)}</li>`).join("")}
-              </ul>
-            </div>
-          </div>
+  const details = detailsOpen ? `
+    <div class="info-box">
+      ${TEST_QUESTIONS.length} questions on grammar and vocabulary, all set in the day-to-day of
+      someone who works with data: reports, spreadsheets, dashboards, meetings and interviews in
+      English. <strong>Every answer is graded on the spot</strong>, with the reason each option is
+      right or wrong. At the end you get your score per category, a review of every question you
+      missed, and extra drills for <strong>any category below 100%</strong>.
+      <div class="cat-columns">
+        <div class="cat-column">
+          <div class="cat-column-title">Level A1</div>
+          <ul>${Object.values(CATEGORIES).filter(c => c.level === "A1").map(c => `<li>${escapeHtml(c.label)}</li>`).join("")}</ul>
         </div>
-      ` : ""}
-
-      ${lastBlock}
-
-      <div class="actions" style="flex-direction:column;">
-        <button class="btn block" onclick="startTest()">Iniciar teste</button>
-        ${practiceShortcut}
+        <div class="cat-column">
+          <div class="cat-column-title accent2">Level A2</div>
+          <ul>${Object.values(CATEGORIES).filter(c => c.level === "A2").map(c => `<li>${escapeHtml(c.label)}</li>`).join("")}</ul>
+        </div>
       </div>
     </div>
+  ` : "";
+
+  const links = `
+    <button class="module-link" onclick="startTest()">Take the test &rarr;</button>
+    ${lastImprovable.length ? `
+      <button class="module-link quiet" onclick="startExercises(${JSON.stringify(lastImprovable).replace(/"/g, "&quot;")})">
+        Practise the ${lastImprovable.length} ${lastImprovable.length === 1 ? "category" : "categories"} below 100% &rarr;
+      </button>` : ""}
+    <button class="module-link quiet" onclick="toggleLandingDetails()">${detailsOpen ? "Hide details" : "What is in the test"}</button>
+    ${last ? `<span class="module-score">Last run · ${last.overallPct}% · ${escapeHtml(last.cefr)}</span>` : ""}
   `;
+
+  return renderModuleCard({
+    num: "01",
+    kind: "Assessment",
+    title: "Level test",
+    text: `Answer ${TEST_QUESTIONS.length} questions and find out your current level.`,
+    details,
+    links,
+  });
 }
 
 /* ---------- Landing: módulo "Erros da Conversa Real" ---------- */
 function renderConvLandingCard() {
   const last = loadResults(CONV_STORAGE_KEY);
   const lastImprovable = last ? knownCategories(last.improvableCategories, CONV_CATEGORIES) : [];
-  const lastBlock = last ? `
-    <div class="last-result">
-      <strong>Última prática:</strong> ${last.overallPct}% de acertos — ${escapeHtml(last.label)}
-      <br>${lastImprovable.length
-        ? `Padrões que ainda não estão em 100%: ${lastImprovable.map(k => CONV_CATEGORIES[k].label).join(", ")}`
-        : "Você acertou 100% em todos os padrões na última vez. 🎉"}
-    </div>
-  ` : "";
-
-  const practiceShortcut = lastImprovable.length ? `
-    <button class="btn secondary block" onclick="startConvExercises(${JSON.stringify(lastImprovable).replace(/"/g, "&quot;")})">
-      Praticar padrões que ainda não estão em 100% (da última vez)
-    </button>
-  ` : "";
-
   const detailsOpen = state.convLandingDetailsOpen;
 
-  return `
-    <div class="card conv-card">
-      <div class="hero-badges">
-        <span class="badge">${Object.keys(CONV_CATEGORIES).length} padrões</span>
-        <span class="badge accent2">Diagnóstico real</span>
-      </div>
-      <div class="title-row">
-        <h2>Erros da Conversa Real</h2>
-        <button class="icon-btn" title="${detailsOpen ? "Ocultar detalhes" : "Ver detalhes desta prática"}"
-          aria-expanded="${detailsOpen}" onclick="toggleConvLandingDetails()">
-          ${detailsOpen ? "✕" : "ⓘ"}
-        </button>
-      </div>
-      <p class="lead">Desta vez o diagnóstico não é de gramática: são as palavras e expressões que
-      você não conseguiu lembrar durante a aula com a professora. Cada questão é uma frase da sua
-      conversa com a palavra-chave apagada — festa e convite, celular e aparelhos, útil × inútil,
-      escola e regras da filha, acessibilidade e o dia a dia com dinheiro. São
-      ${Object.keys(CONV_CATEGORIES).length} temas e ${CONV_TEST_QUESTIONS.length} questões no total,
-      e o bloco maior é o de tecnologia e celular, onde mais palavras faltaram na hora de falar.</p>
-
-      ${detailsOpen ? `
-        <div class="info-box">
-          Cada questão traz uma frase da sua aula com a palavra-chave apagada, agrupada por tema:
-          <ul class="conv-pattern-list">
-            ${Object.values(CONV_CATEGORIES).map(c => `<li><strong>${escapeHtml(c.tag)}:</strong> ${escapeHtml(c.label)}</li>`).join("")}
-          </ul>
-        </div>
-      ` : ""}
-
-      ${lastBlock}
-
-      <div class="actions" style="flex-direction:column;">
-        <button class="btn block" onclick="startConvTest()">Praticar meus erros</button>
-        ${practiceShortcut}
-      </div>
+  const details = detailsOpen ? `
+    <div class="info-box">
+      Each question is a sentence from your own conversation class with the key word removed,
+      grouped by theme:
+      <ul class="conv-pattern-list">
+        ${Object.values(CONV_CATEGORIES).map(c => `<li><strong>${escapeHtml(c.tag)}:</strong> ${escapeHtml(c.label)}</li>`).join("")}
+      </ul>
     </div>
+  ` : "";
+
+  const links = `
+    <button class="module-link" onclick="startConvTest()">Review mistakes &rarr;</button>
+    ${lastImprovable.length ? `
+      <button class="module-link quiet" onclick="startConvExercises(${JSON.stringify(lastImprovable).replace(/"/g, "&quot;")})">
+        Practise the ${lastImprovable.length} ${lastImprovable.length === 1 ? "pattern" : "patterns"} below 100% &rarr;
+      </button>` : ""}
+    <button class="module-link quiet" onclick="toggleConvLandingDetails()">${detailsOpen ? "Hide details" : "What is in this round"}</button>
+    ${last ? `<span class="module-score">Last run · ${last.overallPct}%</span>` : ""}
   `;
+
+  return renderModuleCard({
+    num: "02",
+    kind: "Class feedback",
+    title: "Conversation mistakes",
+    text: `Exercises built from the words you could not recall in your last class —
+    ${Object.keys(CONV_CATEGORIES).length} themes, ${CONV_TEST_QUESTIONS.length} questions.`,
+    accent2: true,
+    details,
+    links,
+  });
 }
 
 /* ---------- Test ---------- */
@@ -584,8 +554,8 @@ function renderAnswerFeedback(q, selected) {
   return `
     <div class="explain-box ${isCorrect ? "good" : "bad"}">
       ${isCorrect
-        ? "✅ Você acertou! Veja abaixo por que esta é a resposta certa e por que as outras não são."
-        : "❌ Não foi dessa vez — veja abaixo por que a resposta certa é a certa e onde a sua escolha escorregou."}
+        ? "✅ Correct! Below, why this is the right answer and why the others are not."
+        : "❌ Not this time — below, why the right answer is right and where your pick slipped."}
     </div>
     <div class="explain-list">
       ${q.options.map((opt, i) => {
@@ -593,10 +563,10 @@ function renderAnswerFeedback(q, selected) {
         let tag = "";
         if (i === q.correct) {
           cls += " is-correct";
-          tag = i === selected ? " (resposta certa — sua resposta)" : " (resposta certa)";
+          tag = i === selected ? " (correct answer — your answer)" : " (correct answer)";
         } else if (i === selected) {
           cls += " is-wrong-pick";
-          tag = " (sua resposta)";
+          tag = " (your answer)";
         }
         return `<div class="${cls}"><strong>${explainLabel(opt, tag)}</strong> ${escapeHtml(q.explanations[i])}</div>`;
       }).join("")}
@@ -616,7 +586,7 @@ function renderTest() {
     <div class="card">
       <div class="progress-wrap">
         <div class="progress-label">
-          <span>Questão ${current} de ${total}</span>
+          <span>Question ${current} of ${total}</span>
           <span>${Math.round((state.testIndex / total) * 100)}%</span>
         </div>
         <div class="progress-bar"><div class="progress-fill" style="width:${(state.testIndex / total) * 100}%"></div></div>
@@ -644,23 +614,23 @@ function renderTest() {
 
       ${revealed
         ? renderAnswerFeedback(q, selected)
-        : `<p style="margin-top:16px; font-size:0.85rem;">Escolha uma opção para ver na hora se acertou e o porquê de cada alternativa.</p>`}
+        : `<p style="margin-top:16px; font-size:0.85rem;">Pick an option to see right away whether you got it and why each choice is what it is.</p>`}
 
       <div class="actions">
-        ${state.testIndex > 0 ? `<button class="btn secondary" onclick="prevTestQuestion()">Voltar</button>` : ""}
+        ${state.testIndex > 0 ? `<button class="btn secondary" onclick="prevTestQuestion()">Back</button>` : ""}
         <button class="btn" ${revealed ? "" : "disabled"} onclick="nextTestQuestion()">
-          ${isLast ? "Ver resultado" : "Próxima"}
+          ${isLast ? "See results" : "Next"}
         </button>
       </div>
       <div class="exit-actions">
-        <button class="btn secondary block" onclick="requestExitTest()">Voltar ao início</button>
+        <button class="btn secondary block" onclick="requestExitTest()">Back to start</button>
       </div>
     </div>
     ${state.testExitConfirmOpen ? renderConfirmModal({
-      title: "Sair do teste?",
-      message: "Você ainda não terminou este teste. Se sair agora, todas as respostas dadas até aqui serão perdidas.",
-      confirmLabel: "Sair e perder respostas",
-      cancelLabel: "Continuar teste",
+      title: "Leave the test?",
+      message: "You have not finished this test. If you leave now, every answer so far is lost.",
+      confirmLabel: "Leave and lose answers",
+      cancelLabel: "Keep going",
       onConfirm: "confirmExitTest()",
       onCancel: "cancelExitTest()",
     }) : ""}
@@ -677,10 +647,10 @@ function renderResults() {
       <div class="score-hero">
         <div class="score-number">${r.overallPct}%</div>
         <div class="score-level">${escapeHtml(r.cefr)}</div>
-        <p style="margin-top:8px;">${r.totalCorrect} de ${r.totalQuestions} questões corretas</p>
+        <p style="margin-top:8px;">${r.totalCorrect} de ${r.totalQuestions} questions correct</p>
       </div>
 
-      <h2>Desempenho por categoria</h2>
+      <h2>Performance by category</h2>
       ${Object.keys(CATEGORIES).map(key => {
         const p = r.categoryPct[key];
         return `
@@ -692,23 +662,23 @@ function renderResults() {
         `;
       }).join("")}
 
-      <div class="section-title">Categorias que ainda não estão em 100%</div>
+      <div class="section-title">Categories not yet at 100%</div>
       ${improvableNames.length
         ? `<div class="weak-list">${improvableNames.map(n => `<span class="weak-chip">${escapeHtml(n)}</span>`).join("")}</div>
-           <p style="margin-top:10px; font-size:0.85rem;">Meu critério é rígido de propósito: qualquer categoria abaixo de 100%
-           entra na lista de prática, mesmo que tenha sido só uma questão errada.</p>`
-        : `<div class="all-good">Excelente! Você acertou 100% em todas as categorias neste teste.</div>`
+           <p style="margin-top:10px; font-size:0.85rem;">The bar is strict on purpose: any category below 100% goes on the practice list,
+           even if you missed a single question.</p>`
+        : `<div class="all-good">Excellent! You scored 100% in every category on this test.</div>`
       }
 
       ${renderMistakesReview(r.mistakes)}
 
       <div class="actions" style="flex-direction:column; margin-top:24px;">
         ${improvableNames.length
-          ? `<button class="btn block" onclick='startExercises(${JSON.stringify(r.improvableCategories)})'>Praticar categorias abaixo de 100%</button>`
-          : `<button class="btn block" onclick='startExercises(${JSON.stringify(Object.keys(CATEGORIES))})'>Praticar todas as categorias (revisão geral)</button>`
+          ? `<button class="btn block" onclick='startExercises(${JSON.stringify(r.improvableCategories)})'>Practise categories below 100%</button>`
+          : `<button class="btn block" onclick='startExercises(${JSON.stringify(Object.keys(CATEGORIES))})'>Practise every category (general review)</button>`
         }
-        <button class="btn secondary block" onclick="startTest()">Refazer o teste</button>
-        <button class="btn secondary block" onclick="goLanding()">Voltar ao início</button>
+        <button class="btn secondary block" onclick="startTest()">Retake the test</button>
+        <button class="btn secondary block" onclick="goLanding()">Back to start</button>
       </div>
     </div>
   `;
@@ -719,8 +689,8 @@ function renderResults() {
 function renderMistakesReview(mistakes) {
   if (!mistakes || !mistakes.length) {
     return `
-      <div class="section-title">Revisão das respostas erradas</div>
-      <div class="all-good">Você não errou nenhuma questão neste teste. Nada para revisar aqui!</div>
+      <div class="section-title">Review of wrong answers</div>
+      <div class="all-good">You did not miss a single question on this test. Nothing to review!</div>
     `;
   }
 
@@ -735,8 +705,8 @@ function renderMistakesReview(mistakes) {
           ${q.options.map((opt, i) => {
             let cls = "explain-item";
             let tag = "";
-            if (i === q.correct) { cls += " is-correct"; tag = " (resposta certa)"; }
-            else if (i === m.selected) { cls += " is-wrong-pick"; tag = " (sua resposta)"; }
+            if (i === q.correct) { cls += " is-correct"; tag = " (correct answer)"; }
+            else if (i === m.selected) { cls += " is-wrong-pick"; tag = " (your answer)"; }
             return `<div class="${cls}"><strong>${explainLabel(opt, tag)}</strong> ${escapeHtml(q.explanations[i])}</div>`;
           }).join("")}
         </div>
@@ -745,8 +715,8 @@ function renderMistakesReview(mistakes) {
   }).join("");
 
   return `
-    <div class="section-title">Revisão das respostas erradas (${mistakes.length})</div>
-    <p style="font-size:0.85rem; margin-top:-4px;">Toda questão errada é sempre revisada aqui, com a explicação completa de cada opção.</p>
+    <div class="section-title">Review of wrong answers (${mistakes.length})</div>
+    <p style="font-size:0.85rem; margin-top:-4px;">Every wrong answer is reviewed here, with the full explanation of each option.</p>
     ${blocks}
   `;
 }
@@ -764,7 +734,7 @@ function renderExercise() {
     <div class="card">
       <div class="progress-wrap">
         <div class="progress-label">
-          <span>Exercício ${current} de ${total}</span>
+          <span>Exercise ${current} of ${total}</span>
           <span>${Math.round((state.exerciseIndex / total) * 100)}%</span>
         </div>
         <div class="progress-bar"><div class="progress-fill" style="width:${(state.exerciseIndex / total) * 100}%"></div></div>
@@ -796,7 +766,7 @@ function renderExercise() {
 
       ${revealed ? `
         <div class="explain-box ${selected === q.correct ? "good" : "bad"}">
-          ${selected === q.correct ? "✅ Você acertou!" : "❌ Não foi dessa vez — veja as explicações abaixo."}
+          ${selected === q.correct ? "✅ Correct!" : "❌ Not this time — see the explanations below."}
         </div>
         <div class="explain-list">
           ${q.options.map((opt, i) => `
@@ -806,10 +776,10 @@ function renderExercise() {
           `).join("")}
         </div>
         <div class="actions">
-          <button class="btn block" onclick="nextExercise()">${isLast ? "Ver resumo" : "Próximo exercício"}</button>
+          <button class="btn block" onclick="nextExercise()">${isLast ? "See summary" : "Next exercise"}</button>
         </div>
       ` : `
-        <p style="margin-top:16px; font-size:0.85rem;">Escolha uma opção para ver a explicação.</p>
+        <p style="margin-top:16px; font-size:0.85rem;">Pick an option to see the explanation.</p>
       `}
     </div>
   `;
@@ -835,11 +805,11 @@ function renderExerciseSummary() {
     <div class="card">
       <div class="score-hero">
         <div class="score-number">${pct(correct, total)}%</div>
-        <div class="score-level">Resultado da prática</div>
-        <p style="margin-top:8px;">${correct} de ${total} exercícios corretos</p>
+        <div class="score-level">Practice result</div>
+        <p style="margin-top:8px;">${correct} de ${total} exercises correct</p>
       </div>
 
-      <h2>Por categoria</h2>
+      <h2>By category</h2>
       ${Object.keys(byCategory).map(key => `
         <div class="summary-row">
           <span>${escapeHtml(CATEGORIES[key].label)}</span>
@@ -850,10 +820,10 @@ function renderExerciseSummary() {
       <div class="actions" style="flex-direction:column; margin-top:24px;">
         ${improvableCategories.length
           ? `<button class="btn block" onclick='startExercises(${JSON.stringify(improvableCategories)})'>Praticar categoria${improvableCategories.length > 1 ? "s" : ""} abaixo de 100%</button>`
-          : `<button class="btn block" onclick='startExercises(${JSON.stringify(Object.keys(byCategory))})'>Praticar todas as categorias (revisão geral)</button>`
+          : `<button class="btn block" onclick='startExercises(${JSON.stringify(Object.keys(byCategory))})'>Practise every category (general review)</button>`
         }
         <button class="btn secondary block" onclick="startTest()">Refazer o teste completo</button>
-        <button class="btn secondary block" onclick="goLanding()">Voltar ao início</button>
+        <button class="btn secondary block" onclick="goLanding()">Back to start</button>
       </div>
     </div>
   `;
@@ -872,7 +842,7 @@ function renderConvTest() {
     <div class="card">
       <div class="progress-wrap">
         <div class="progress-label">
-          <span>Questão ${current} de ${total}</span>
+          <span>Question ${current} of ${total}</span>
           <span>${Math.round((state.convTestIndex / total) * 100)}%</span>
         </div>
         <div class="progress-bar"><div class="progress-fill" style="width:${(state.convTestIndex / total) * 100}%"></div></div>
@@ -900,23 +870,23 @@ function renderConvTest() {
 
       ${revealed
         ? renderAnswerFeedback(q, selected)
-        : `<p style="margin-top:16px; font-size:0.85rem;">Escolha uma opção para ver na hora se acertou e o porquê de cada alternativa.</p>`}
+        : `<p style="margin-top:16px; font-size:0.85rem;">Pick an option to see right away whether you got it and why each choice is what it is.</p>`}
 
       <div class="actions">
-        ${state.convTestIndex > 0 ? `<button class="btn secondary" onclick="prevConvTestQuestion()">Voltar</button>` : ""}
+        ${state.convTestIndex > 0 ? `<button class="btn secondary" onclick="prevConvTestQuestion()">Back</button>` : ""}
         <button class="btn" ${revealed ? "" : "disabled"} onclick="nextConvTestQuestion()">
-          ${isLast ? "Ver resultado" : "Próxima"}
+          ${isLast ? "See results" : "Next"}
         </button>
       </div>
       <div class="exit-actions">
-        <button class="btn secondary block" onclick="requestExitConvTest()">Voltar ao início</button>
+        <button class="btn secondary block" onclick="requestExitConvTest()">Back to start</button>
       </div>
     </div>
     ${state.convTestExitConfirmOpen ? renderConfirmModal({
-      title: "Sair da prática?",
-      message: "Você ainda não terminou esta prática. Se sair agora, todas as respostas dadas até aqui serão perdidas.",
-      confirmLabel: "Sair e perder respostas",
-      cancelLabel: "Continuar prática",
+      title: "Leave the practice?",
+      message: "You have not finished this practice. If you leave now, every answer so far is lost.",
+      confirmLabel: "Leave and lose answers",
+      cancelLabel: "Keep practising",
       onConfirm: "confirmExitConvTest()",
       onCancel: "cancelExitConvTest()",
     }) : ""}
@@ -933,10 +903,10 @@ function renderConvResults() {
       <div class="score-hero">
         <div class="score-number">${r.overallPct}%</div>
         <div class="score-level">${escapeHtml(r.label)}</div>
-        <p style="margin-top:8px;">${r.totalCorrect} de ${r.totalQuestions} questões corretas</p>
+        <p style="margin-top:8px;">${r.totalCorrect} de ${r.totalQuestions} questions correct</p>
       </div>
 
-      <h2>Desempenho por padrão</h2>
+      <h2>Performance by pattern</h2>
       ${Object.keys(CONV_CATEGORIES).map(key => {
         const p = r.categoryPct[key];
         return `
@@ -948,23 +918,22 @@ function renderConvResults() {
         `;
       }).join("")}
 
-      <div class="section-title">Padrões que ainda não estão em 100%</div>
+      <div class="section-title">Patterns not yet at 100%</div>
       ${improvableNames.length
         ? `<div class="weak-list">${improvableNames.map(n => `<span class="weak-chip">${escapeHtml(n)}</span>`).join("")}</div>
-           <p style="margin-top:10px; font-size:0.85rem;">Qualquer padrão abaixo de 100% entra na lista de prática, mesmo que
-           tenha sido só uma questão errada.</p>`
-        : `<div class="all-good">Excelente! Você acertou 100% em todos os padrões nesta prática.</div>`
+           <p style="margin-top:10px; font-size:0.85rem;">Any pattern below 100% goes on the practice list, even if you missed a single question.</p>`
+        : `<div class="all-good">Excellent! You scored 100% in every pattern in this practice.</div>`
       }
 
       ${renderConvMistakesReview(r.mistakes)}
 
       <div class="actions" style="flex-direction:column; margin-top:24px;">
         ${improvableNames.length
-          ? `<button class="btn block" onclick='startConvExercises(${JSON.stringify(r.improvableCategories)})'>Praticar padrões abaixo de 100%</button>`
-          : `<button class="btn block" onclick='startConvExercises(${JSON.stringify(Object.keys(CONV_CATEGORIES))})'>Praticar todos os padrões (revisão geral)</button>`
+          ? `<button class="btn block" onclick='startConvExercises(${JSON.stringify(r.improvableCategories)})'>Practise patterns below 100%</button>`
+          : `<button class="btn block" onclick='startConvExercises(${JSON.stringify(Object.keys(CONV_CATEGORIES))})'>Practise every pattern (general review)</button>`
         }
-        <button class="btn secondary block" onclick="startConvTest()">Refazer a prática</button>
-        <button class="btn secondary block" onclick="goLanding()">Voltar ao início</button>
+        <button class="btn secondary block" onclick="startConvTest()">Redo the practice</button>
+        <button class="btn secondary block" onclick="goLanding()">Back to start</button>
       </div>
     </div>
   `;
@@ -975,8 +944,8 @@ function renderConvResults() {
 function renderConvMistakesReview(mistakes) {
   if (!mistakes || !mistakes.length) {
     return `
-      <div class="section-title">Revisão das respostas erradas</div>
-      <div class="all-good">Você não errou nenhuma questão nesta prática. Nada para revisar aqui!</div>
+      <div class="section-title">Review of wrong answers</div>
+      <div class="all-good">You did not miss a single question in this practice. Nothing to review!</div>
     `;
   }
 
@@ -991,8 +960,8 @@ function renderConvMistakesReview(mistakes) {
           ${q.options.map((opt, i) => {
             let cls = "explain-item";
             let tag = "";
-            if (i === q.correct) { cls += " is-correct"; tag = " (resposta certa)"; }
-            else if (i === m.selected) { cls += " is-wrong-pick"; tag = " (sua resposta)"; }
+            if (i === q.correct) { cls += " is-correct"; tag = " (correct answer)"; }
+            else if (i === m.selected) { cls += " is-wrong-pick"; tag = " (your answer)"; }
             return `<div class="${cls}"><strong>${explainLabel(opt, tag)}</strong> ${escapeHtml(q.explanations[i])}</div>`;
           }).join("")}
         </div>
@@ -1001,8 +970,8 @@ function renderConvMistakesReview(mistakes) {
   }).join("");
 
   return `
-    <div class="section-title">Revisão das respostas erradas (${mistakes.length})</div>
-    <p style="font-size:0.85rem; margin-top:-4px;">Toda questão errada é sempre revisada aqui, com a explicação completa de cada opção.</p>
+    <div class="section-title">Review of wrong answers (${mistakes.length})</div>
+    <p style="font-size:0.85rem; margin-top:-4px;">Every wrong answer is reviewed here, with the full explanation of each option.</p>
     ${blocks}
   `;
 }
@@ -1020,7 +989,7 @@ function renderConvExercise() {
     <div class="card">
       <div class="progress-wrap">
         <div class="progress-label">
-          <span>Exercício ${current} de ${total}</span>
+          <span>Exercise ${current} of ${total}</span>
           <span>${Math.round((state.convExerciseIndex / total) * 100)}%</span>
         </div>
         <div class="progress-bar"><div class="progress-fill" style="width:${(state.convExerciseIndex / total) * 100}%"></div></div>
@@ -1052,7 +1021,7 @@ function renderConvExercise() {
 
       ${revealed ? `
         <div class="explain-box ${selected === q.correct ? "good" : "bad"}">
-          ${selected === q.correct ? "✅ Você acertou!" : "❌ Não foi dessa vez — veja as explicações abaixo."}
+          ${selected === q.correct ? "✅ Correct!" : "❌ Not this time — see the explanations below."}
         </div>
         <div class="explain-list">
           ${q.options.map((opt, i) => `
@@ -1062,10 +1031,10 @@ function renderConvExercise() {
           `).join("")}
         </div>
         <div class="actions">
-          <button class="btn block" onclick="nextConvExercise()">${isLast ? "Ver resumo" : "Próximo exercício"}</button>
+          <button class="btn block" onclick="nextConvExercise()">${isLast ? "See summary" : "Next exercise"}</button>
         </div>
       ` : `
-        <p style="margin-top:16px; font-size:0.85rem;">Escolha uma opção para ver a explicação.</p>
+        <p style="margin-top:16px; font-size:0.85rem;">Pick an option to see the explanation.</p>
       `}
     </div>
   `;
@@ -1091,11 +1060,11 @@ function renderConvExerciseSummary() {
     <div class="card">
       <div class="score-hero">
         <div class="score-number">${pct(correct, total)}%</div>
-        <div class="score-level">Resultado da prática</div>
-        <p style="margin-top:8px;">${correct} de ${total} exercícios corretos</p>
+        <div class="score-level">Practice result</div>
+        <p style="margin-top:8px;">${correct} de ${total} exercises correct</p>
       </div>
 
-      <h2>Por padrão</h2>
+      <h2>By pattern</h2>
       ${Object.keys(byCategory).map(key => `
         <div class="summary-row">
           <span>${escapeHtml(CONV_CATEGORIES[key].label)}</span>
@@ -1105,11 +1074,11 @@ function renderConvExerciseSummary() {
 
       <div class="actions" style="flex-direction:column; margin-top:24px;">
         ${improvableCategories.length
-          ? `<button class="btn block" onclick='startConvExercises(${JSON.stringify(improvableCategories)})'>Praticar ${improvableCategories.length > 1 ? "padrões" : "padrão"} abaixo de 100%</button>`
-          : `<button class="btn block" onclick='startConvExercises(${JSON.stringify(Object.keys(byCategory))})'>Praticar todos os padrões (revisão geral)</button>`
+          ? `<button class="btn block" onclick='startConvExercises(${JSON.stringify(improvableCategories)})'>Practise ${improvableCategories.length > 1 ? "patterns" : "pattern"} below 100%</button>`
+          : `<button class="btn block" onclick='startConvExercises(${JSON.stringify(Object.keys(byCategory))})'>Practise every pattern (general review)</button>`
         }
-        <button class="btn secondary block" onclick="startConvTest()">Refazer a prática completa</button>
-        <button class="btn secondary block" onclick="goLanding()">Voltar ao início</button>
+        <button class="btn secondary block" onclick="startConvTest()">Redo the full practice</button>
+        <button class="btn secondary block" onclick="goLanding()">Back to start</button>
       </div>
     </div>
   `;
@@ -1151,10 +1120,10 @@ function saveTransDeckStats(stats) {
 }
 
 function transResultLabel(overall) {
-  if (overall >= 97) return "Você escreve essas frases em inglês sem hesitar";
-  if (overall >= 85) return "Quase tudo sai certo — faltam poucos detalhes";
-  if (overall >= 55) return "Você entende as frases, mas ainda trava na hora de escrever";
-  return "Escrever do zero ainda custa — é exatamente o que este módulo treina";
+  if (overall >= 97) return "You write these sentences in English without hesitating";
+  if (overall >= 85) return "Almost everything lands — only small details left";
+  if (overall >= 55) return "You understand the sentences, but still freeze when writing them";
+  return "Writing from scratch is still hard — which is exactly what this module trains";
 }
 
 function transCurrentCard() {
@@ -1369,48 +1338,38 @@ function finishTransRound() {
 
 /* ---------- Landing: card do módulo ---------- */
 function renderTransLandingCard() {
-  /* Sem bloco de resultado geral aqui de propósito: com muitos decks uma média
-     só não diz onde o estudo está fraco. O feedback vive na tela de decks, uma
-     porcentagem por deck. */
+  /* Sem resultado geral aqui de propósito: com muitos decks uma média só não diz
+     onde o estudo está fraco. O feedback vive na tela de decks, por deck. */
   const detailsOpen = state.transLandingDetailsOpen;
 
-  return `
-    <div class="card trans-card">
-      <div class="hero-badges">
-        <span class="badge">${TRANS_CARDS.length} cartões</span>
-        <span class="badge accent2">Resposta digitada</span>
-      </div>
-      <div class="title-row">
-        <h2>Do Português para o Inglês</h2>
-        <button class="icon-btn" title="${detailsOpen ? "Ocultar detalhes" : "Ver detalhes deste módulo"}"
-          aria-expanded="${detailsOpen}" onclick="toggleTransLandingDetails()">
-          ${detailsOpen ? "✕" : "ⓘ"}
-        </button>
-      </div>
-      <p class="lead">Aqui não há alternativa para marcar: a frase aparece em português e você
-      escreve a versão em inglês. É a diferença entre reconhecer e produzir — o que realmente
-      acontece numa conversa. São ${TRANS_CARDS.length} cartões do seu deck, divididos em
-      ${Object.keys(TRANS_DECKS).length} temas, e você escolhe quais praticar.</p>
-
-      ${detailsOpen ? `
-        <div class="info-box">
-          Escolha um ou mais decks e responda digitando. A correção ignora acento, maiúscula,
-          pontuação e contração (<strong>"When are we leaving?"</strong> vale por
-          <strong>"When're we leaving?"</strong>), separa erro de digitação de erro de inglês
-          e mostra palavra por palavra o que faltou. Se a sua tradução estiver certa de outro
-          jeito, você marca como certa. Na tela de escolha, cada deck mostra quanto você
-          acertou <strong>de primeira</strong> na última vez que o praticou. Os decks:
-          <ul class="conv-pattern-list">
-            ${Object.keys(TRANS_DECKS).map(k => `<li><strong>${escapeHtml(TRANS_DECKS[k].tag)}:</strong> ${escapeHtml(TRANS_DECKS[k].label)} — ${getTransCardsForDeck(k).length} cartões</li>`).join("")}
-          </ul>
-        </div>
-      ` : ""}
-
-      <div class="actions" style="flex-direction:column;">
-        <button class="btn block" onclick="openTransDecks()">Escolher os decks e começar</button>
-      </div>
+  const details = detailsOpen ? `
+    <div class="info-box">
+      Pick one or more decks and answer by typing. The checker ignores accents, case, punctuation
+      and contractions (<strong>"When are we leaving?"</strong> counts for
+      <strong>"When're we leaving?"</strong>), tells a typo apart from an English mistake and shows
+      word by word what was missing. If your translation is right in another way, you mark it as
+      correct. On the deck screen each deck shows how much you got right
+      <strong>on the first try</strong> last time. The decks:
+      <ul class="conv-pattern-list">
+        ${Object.keys(TRANS_DECKS).map(k => `<li><strong>${escapeHtml(TRANS_DECKS[k].tag)}:</strong> ${escapeHtml(TRANS_DECKS[k].label)} — ${getTransCardsForDeck(k).length} cards</li>`).join("")}
+      </ul>
     </div>
+  ` : "";
+
+  const links = `
+    <button class="module-link" onclick="openTransDecks()">Translate sentences &rarr;</button>
+    <button class="module-link quiet" onclick="toggleTransLandingDetails()">${detailsOpen ? "Hide details" : "How the checking works"}</button>
   `;
+
+  return renderModuleCard({
+    num: "03",
+    kind: "Flashcards",
+    title: "Sentence translation",
+    text: `${TRANS_CARDS.length} Portuguese sentences from your flashcard deck to write in English,
+    across ${Object.keys(TRANS_DECKS).length} decks.`,
+    details,
+    links,
+  });
 }
 
 /* ---------- Tela de escolha dos decks ---------- */
@@ -1421,26 +1380,26 @@ function renderTransDecks() {
 
   app.innerHTML = `
     <div class="card">
-      <h2>Quais decks você quer praticar?</h2>
-      <p class="lead">Cada cartão mostra uma frase em português para você escrever em inglês.
-      Marque quantos decks quiser — os cartões vêm embaralhados.</p>
-      <p class="trans-deck-legend">A porcentagem à direita é quanto você acertou <strong>de primeira</strong>
-      na última vez que praticou aquele deck — sem contar os cartões que você marcou como certos depois.</p>
+      <h2>Which decks do you want to practise?</h2>
+      <p class="lead">Each card shows a Portuguese sentence for you to write in English.
+      Pick as many decks as you like — the cards come shuffled.</p>
+      <p class="trans-deck-legend">The percentage on the right is how much you got right <strong>on the first try</strong>
+      the last time you practised that deck — not counting cards you marked correct afterwards.</p>
 
       <div class="trans-deck-list">
         ${Object.keys(TRANS_DECKS).map(key => {
           const marcado = selecionados.indexOf(key) !== -1;
           const stat = stats[key];
           const nota = stat
-            ? `<span class="trans-deck-score ${barClass(stat.pct)}" title="Acertos de primeira na última vez: ${stat.correct} de ${stat.total}">${stat.pct}%</span>`
-            : `<span class="trans-deck-score none" title="Você ainda não praticou este deck">&mdash;</span>`;
+            ? `<span class="trans-deck-score ${barClass(stat.pct)}" title="First-try hits last time: ${stat.correct} of ${stat.total}">${stat.pct}%</span>`
+            : `<span class="trans-deck-score none" title="You have not practised this deck yet">&mdash;</span>`;
           return `
             <button class="trans-deck-option${marcado ? " selected" : ""}"
               aria-pressed="${marcado}" onclick="toggleTransDeck('${key}')">
               <span class="trans-deck-check">${marcado ? "✓" : ""}</span>
               <span class="trans-deck-name">
                 <strong>${escapeHtml(TRANS_DECKS[key].label)}</strong>
-                <span class="trans-deck-meta">${escapeHtml(TRANS_DECKS[key].tag)} &middot; ${getTransCardsForDeck(key).length} cartões</span>
+                <span class="trans-deck-meta">${escapeHtml(TRANS_DECKS[key].tag)} &middot; ${getTransCardsForDeck(key).length} cards</span>
               </span>
               ${nota}
             </button>
@@ -1449,19 +1408,19 @@ function renderTransDecks() {
       </div>
 
       <div class="actions">
-        <button class="btn secondary" onclick="selectAllTransDecks(true)">Marcar todos</button>
-        ${selecionados.length ? `<button class="btn secondary" onclick="selectAllTransDecks(false)">Limpar</button>` : ""}
+        <button class="btn secondary" onclick="selectAllTransDecks(true)">Select all</button>
+        ${selecionados.length ? `<button class="btn secondary" onclick="selectAllTransDecks(false)">Clear</button>` : ""}
       </div>
 
       <div class="actions" style="flex-direction:column; margin-top:18px;">
         <button class="btn block" ${totalSelecionado ? "" : "disabled"}
           onclick="startTransRound(${JSON.stringify(selecionados).replace(/"/g, "&quot;")})">
-          ${totalSelecionado ? `Começar — ${totalSelecionado} ${totalSelecionado === 1 ? "cartão" : "cartões"}` : "Marque ao menos um deck"}
+          ${totalSelecionado ? `Start — ${totalSelecionado} ${totalSelecionado === 1 ? "card" : "cards"}` : "Select at least one deck"}
         </button>
       </div>
 
       <div class="exit-actions">
-        <button class="btn secondary block" onclick="goLanding()">Voltar ao início</button>
+        <button class="btn secondary block" onclick="goLanding()">Back to start</button>
       </div>
     </div>
   `;
@@ -1475,11 +1434,11 @@ function renderTransDiff(expected, typed) {
   ).join(" ");
   return `
     <div class="trans-answer-row">
-      <span class="trans-answer-tag">Você escreveu</span>
-      <span class="trans-answer-text">${typed.trim() ? linha(d.typed, "diff-extra") : "<em>(em branco)</em>"}</span>
+      <span class="trans-answer-tag">You wrote</span>
+      <span class="trans-answer-text">${typed.trim() ? linha(d.typed, "diff-extra") : "<em>(blank)</em>"}</span>
     </div>
     <div class="trans-answer-row">
-      <span class="trans-answer-tag">Resposta do cartão</span>
+      <span class="trans-answer-tag">Card answer</span>
       <span class="trans-answer-text">${linha(d.expected, "diff-miss")}</span>
     </div>
   `;
@@ -1502,25 +1461,25 @@ function renderTransRound() {
       : gradeTransAnswer(card, typed).best;
 
     const caixa = {
-      certo:        { cls: "good", texto: "✅ Certo!" },
-      quase:        { cls: "warn", texto: "🟡 Quase — a tradução está certa, escorregou só na digitação." },
-      aceitoManual: { cls: "good", texto: "✅ Marcado por você como certo." },
-      diferente:    { cls: "bad",  texto: "❌ Não bate com a resposta do cartão — compare abaixo." },
-      naoLembro:    { cls: "bad",  texto: "👀 Resposta revelada. Este cartão conta como erro." },
+      certo:        { cls: "good", texto: "✅ Correct!" },
+      quase:        { cls: "warn", texto: "🟡 So close — the translation is right, only the typing slipped." },
+      aceitoManual: { cls: "good", texto: "✅ Marked correct by you." },
+      diferente:    { cls: "bad",  texto: "❌ Does not match the card — compare below." },
+      naoLembro:    { cls: "bad",  texto: "👀 Answer revealed. This card counts as a miss." },
     }[grade] || { cls: "bad", texto: "" };
 
     feedback = `
       <div class="explain-box ${caixa.cls}">${caixa.texto}</div>
       ${grade === "certo" || grade === "aceitoManual" ? `
         <div class="trans-answer-row">
-          <span class="trans-answer-tag">Resposta do cartão</span>
+          <span class="trans-answer-tag">Card answer</span>
           <span class="trans-answer-text">${escapeHtml(card.en)}</span>
         </div>
       ` : renderTransDiff(esperada, typed)}
       ${card.note ? `<p class="trans-note">${escapeHtml(card.note)}</p>` : ""}
       ${grade === "diferente" ? `
         <button class="btn secondary block" style="margin-top:14px;" onclick="markTransAnswerCorrect()">
-          Minha resposta também está certa
+          My answer is also correct
         </button>
       ` : ""}
     `;
@@ -1530,24 +1489,24 @@ function renderTransRound() {
     <div class="card">
       <div class="progress-wrap">
         <div class="progress-label">
-          <span>${state.transIsRetry ? "Correção &middot; cartão" : "Cartão"} ${current} de ${total}</span>
+          <span>${state.transIsRetry ? "Fix-ups &middot; card" : "Card"} ${current} of ${total}</span>
           <span>${Math.round((state.transIndex / total) * 100)}%</span>
         </div>
         <div class="progress-bar"><div class="progress-fill" style="width:${(state.transIndex / total) * 100}%"></div></div>
       </div>
 
-      <span class="q-level">Escreva em inglês</span>
+      <span class="q-level">Write it in English</span>
       <div class="q-prompt">${escapeHtml(card.pt)}</div>
 
       ${revealed ? "" : `
         <input type="text" id="trans-input" class="trans-input"
           autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
-          placeholder="Escreva a frase em inglês e aperte Enter"
+          placeholder="Type the sentence in English and press Enter"
           onkeydown="if(event.key==='Enter'){event.preventDefault();submitTransAnswer();}">
-        ${state.transEmptyWarn ? `<p class="trans-warn">Escreva alguma coisa antes de conferir — ou use "Não lembro".</p>` : ""}
+        ${state.transEmptyWarn ? `<p class="trans-warn">Type something before checking — or use “I don\u2019t remember”.</p>` : ""}
         <div class="actions">
-          <button class="btn" onclick="submitTransAnswer()">Conferir</button>
-          <button class="btn secondary" onclick="skipTransCard()">Não lembro</button>
+          <button class="btn" onclick="submitTransAnswer()">Check</button>
+          <button class="btn secondary" onclick="skipTransCard()">I don’t remember</button>
         </div>
       `}
 
@@ -1555,20 +1514,20 @@ function renderTransRound() {
 
       ${revealed ? `
         <div class="actions">
-          ${state.transIndex > 0 ? `<button class="btn secondary" onclick="prevTransCard()">Voltar</button>` : ""}
-          <button class="btn" id="trans-next" onclick="nextTransCard()">${isLast ? "Ver resultado" : "Próximo cartão"}</button>
+          ${state.transIndex > 0 ? `<button class="btn secondary" onclick="prevTransCard()">Back</button>` : ""}
+          <button class="btn" id="trans-next" onclick="nextTransCard()">${isLast ? "See results" : "Next card"}</button>
         </div>
       ` : ""}
 
       <div class="exit-actions">
-        <button class="btn secondary block" onclick="requestExitTransRound()">Voltar ao início</button>
+        <button class="btn secondary block" onclick="requestExitTransRound()">Back to start</button>
       </div>
     </div>
     ${state.transExitConfirmOpen ? renderConfirmModal({
-      title: "Sair da rodada?",
-      message: "Você ainda não terminou esta rodada. Se sair agora, as respostas dadas até aqui serão perdidas.",
-      confirmLabel: "Sair e perder respostas",
-      cancelLabel: "Continuar rodada",
+      title: "Leave the round?",
+      message: "You have not finished this round. If you leave now, the answers so far are lost.",
+      confirmLabel: "Leave and lose answers",
+      cancelLabel: "Keep going",
       onConfirm: "confirmExitTransRound()",
       onCancel: "cancelExitTransRound()",
     }) : ""}
@@ -1598,10 +1557,10 @@ function renderTransResults() {
       <div class="score-hero">
         <div class="score-number">${r.overallPct}%</div>
         <div class="score-level">${escapeHtml(r.label)}</div>
-        <p style="margin-top:8px;">${r.totalCorrect} de ${r.totalQuestions} cartões corretos</p>
+        <p style="margin-top:8px;">${r.totalCorrect} de ${r.totalQuestions} cards correct</p>
       </div>
 
-      <h2>Desempenho por deck</h2>
+      <h2>Performance by deck</h2>
       ${decks.map(key => `
         <div class="cat-row">
           <div class="cat-name">${escapeHtml(TRANS_DECKS[key].label)}</div>
@@ -1610,26 +1569,26 @@ function renderTransResults() {
         </div>
       `).join("")}
 
-      <div class="section-title">Decks que ainda não estão em 100%</div>
+      <div class="section-title">Decks not yet at 100%</div>
       ${improvableNames.length
         ? `<div class="weak-list">${improvableNames.map(n => `<span class="weak-chip">${escapeHtml(n)}</span>`).join("")}</div>`
-        : `<div class="all-good">Excelente! Você escreveu certo todos os cartões desta rodada.</div>`
+        : `<div class="all-good">Excellent! You wrote every card in this round correctly.</div>`
       }
 
-      ${r.isRetry ? `<p class="trans-note">Esta foi uma rodada de correção, só com as frases que você tinha errado.
-      A porcentagem de acerto de primeira dos decks não muda aqui — ela só é recalculada quando
-      você pratica o deck inteiro.</p>` : ""}
+      ${r.isRetry ? `<p class="trans-note">This was a fix-up round, only with the sentences you had missed.
+      The first-try percentage of a deck does not change here — it is recalculated only when
+      you practise the whole deck.</p>` : ""}
 
       ${renderTransMistakesReview(r.mistakes)}
 
       <div class="actions" style="flex-direction:column; margin-top:24px;">
         ${r.mistakes.length
-          ? `<button class="btn block" onclick="startTransRetry()">Refazer só as ${r.mistakes.length === 1 ? "frase que errei" : `${r.mistakes.length} frases que errei`}</button>`
+          ? `<button class="btn block" onclick="startTransRetry()">Redo only the ${r.mistakes.length === 1 ? "sentence I missed" : `${r.mistakes.length} sentences I missed`}</button>`
           : ""
         }
-        <button class="btn secondary block" onclick='startTransRound(${JSON.stringify(decks)})'>Refazer ${r.isRetry ? "o deck inteiro" : "esta rodada"}</button>
-        <button class="btn secondary block" onclick="openTransDecks()">Escolher outros decks</button>
-        <button class="btn secondary block" onclick="goLanding()">Voltar ao início</button>
+        <button class="btn secondary block" onclick='startTransRound(${JSON.stringify(decks)})'>Redo ${r.isRetry ? "the whole deck" : "this round"}</button>
+        <button class="btn secondary block" onclick="openTransDecks()">Choose other decks</button>
+        <button class="btn secondary block" onclick="goLanding()">Back to start</button>
       </div>
     </div>
   `;
@@ -1638,7 +1597,7 @@ function renderTransResults() {
 function renderTransMistakesReview(mistakes) {
   if (!mistakes.length) return "";
   return `
-    <div class="section-title">Revisão dos cartões que ficaram para trás</div>
+    <div class="section-title">Review of the cards you missed</div>
     <div class="card" style="box-shadow:none; border-color:var(--border);">
       ${mistakes.map(m => {
         const card = TRANS_CARDS.find(c => c.id === m.cardId);
@@ -1649,7 +1608,7 @@ function renderTransMistakesReview(mistakes) {
             <div class="trans-review-pt">${escapeHtml(card.pt)}</div>
             ${m.grade === "naoLembro"
               ? `<div class="trans-answer-row">
-                   <span class="trans-answer-tag">Você não lembrou</span>
+                   <span class="trans-answer-tag">You did not recall</span>
                    <span class="trans-answer-text">${escapeHtml(card.en)}</span>
                  </div>`
               : renderTransDiff(esperada, m.typed)}
@@ -1661,4 +1620,35 @@ function renderTransMistakesReview(mistakes) {
   `;
 }
 
+/* Preenche as partes geradas do fundo decorativo (estrelas e heatmap). Roda uma
+   vez no boot: o fundo vive fora de #app, então render() nunca o reescreve. */
+function initBackdrop() {
+  const estrelas = document.getElementById("bg-stars");
+  if (estrelas && !estrelas.childElementCount) {
+    const cores = ["rgba(230,238,244,.9)", "rgba(230,238,244,.7)", "var(--acc)", "var(--acc2)"];
+    let html = "";
+    for (let i = 0; i < 70; i++) {
+      const d = (Math.random() * 1.6 + 1).toFixed(1);
+      const cor = cores[i % 7 === 0 ? 2 : (i % 11 === 0 ? 3 : i % 2)];
+      html += `<div style="position:absolute;left:${(Math.random() * 100).toFixed(2)}%;`
+            + `top:${(Math.random() * 100).toFixed(2)}%;width:${d}px;height:${d}px;`
+            + `border-radius:50%;background:${cor};`
+            + `animation:tw ${(Math.random() * 3.6 + 2.4).toFixed(1)}s ease-in-out infinite;`
+            + `animation-delay:${(Math.random() * 6).toFixed(1)}s;"></div>`;
+    }
+    estrelas.innerHTML = html;
+  }
+
+  const heat = document.getElementById("bg-heat");
+  if (heat && !heat.childElementCount) {
+    let html = "";
+    for (let i = 0; i < 40; i++) {
+      const a = Math.pow(Math.random(), 1.6) * 0.5 + 0.04;
+      html += `<div style="border-radius:3px;background:rgba(79,209,229,${a.toFixed(3)});"></div>`;
+    }
+    heat.innerHTML = html;
+  }
+}
+
+initBackdrop();
 render();
