@@ -132,13 +132,21 @@ unidade → escolha dos decks daquela unidade → rodada.
   Ela ignora acento, caixa, pontuação, hífen e contração (inclusive `gonna` ==
   `going to` e `7 a.m.` == `7 AM` == `7am`), e distingue erro de digitação
   (`quase`) de erro de inglês (`diferente`).
-- **O `'s` de substantivo é ambíguo** e não sai por lista fixa: `my name's
-  Seaburn` é "name is", mas `my friend's child` é posse. `transNormalizeVariants()`
-  gera as duas leituras **dos dois lados** da comparação e basta uma bater — assim
-  a forma contraída e a longa valem igual, sem reprovar quem escreve a posse sem
-  apóstrofo. Guardas para não passar a aceitar inglês inexistente: nada de `'s`
-  depois de `this/these/those`, de pronome de sujeito (`you's`) ou de palavra
-  terminada em sibilante (`Friends's`). Ao importar uma unidade nova, veja
+- **`'s` e `'d` são ambíguos** e não saem por lista fixa: `my name's Seaburn` é
+  "is", `my friend's child` é posse, `he's gone` é "has", `I'd like` é "would" e
+  `I'd been` é "had". `transNormalizeVariants()` gera **todas as leituras dos dois
+  lados** da comparação e basta uma bater — a forma contraída e a longa valem
+  igual, sem reprovar quem escreve a posse sem apóstrofo. Por isso esses dois
+  **não** entram em `TRANS_CONTRACTIONS`; as demais contrações (`'re`, `'ve`,
+  `'ll`, `'m`, `n't`) entram, porque têm leitura única.
+- Guardas para não passar a aceitar inglês inexistente, em `transReadings()`:
+  nada de `'s` valendo verbo depois de `this/these/those` ou de pronome de
+  sujeito (`you's`), nem depois de sibilante (`Friends's`); e `TRANS_S_NEVER_POSSESSIVE`
+  impede `its` de valer por `it's`.
+- **Contração nova numa unidade futura o teste acusa sozinho.** Toda palavra com
+  apóstrofo nos cartões é conferida: se termina em `'re`, `'ve`, `'ll`, `'m` ou
+  `n't` e não está em `TRANS_CONTRACTIONS`, o autoteste falha nomeando o cartão.
+  O conserto é uma linha na lista. `'s` e `'d` não precisam de nada. Ao importar uma unidade nova, veja
   se ela trouxe contração ou gíria ainda não coberta e acrescente em
   `TRANS_CONTRACTIONS` — vale para o banco inteiro, então rode o autoteste
   depois para conferir que nenhuma unidade antiga quebrou.
@@ -191,8 +199,12 @@ unidade → escolha dos decks daquela unidade → rodada.
 - Cruzamento dos enunciados repetidos: dois cartões com o mesmo `pt` precisam
   aceitar a resposta um do outro
 - Contração nos dois sentidos: para toda resposta do banco, a versão contraída e
-  a expandida precisam dar `certo` — e `This's`, `Friends's` e `you's` precisam
-  continuar sendo reprovadas
+  a expandida precisam dar `certo` — e `This's`, `Friends's`, `you's`, `its` por
+  `it's` e `they're` por `their` precisam continuar sendo reprovadas
+- Rede das unidades futuras: nenhum apóstrofo dos cartões pode ficar sem
+  cobertura, e as frases sintéticas (`he's gone` == `he has gone`, `I'd like` ==
+  `I would like`, `I'd been` == `I had been`, `could've`) precisam dar `certo`
+  mesmo não existindo ainda no banco
 - Smoke test no Chromium (Playwright, `executablePath: '/opt/pw-browsers/chromium'`):
   abrir `index.html` por `file://`, responder o teste inteiro, chegar no resultado
   e rodar a prática dirigida; no módulo de tradução, escolher um deck e passar por
