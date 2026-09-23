@@ -115,12 +115,26 @@ unidade → escolha dos decks daquela unidade → rodada.
   igualmente corretas) e `note`. **Cadastre `accept` sempre que a frase em
   português admitir mais de um inglês certo** — sobretudo nas despedidas do deck
   Immersion Time; sem isso a rodada reprova resposta boa.
-- Se uma célula do CSV trouxer duas respostas (`Peace! / Peace out!`), separe: a
-  primeira vira `en`, a segunda entra em `accept`, e `note` avisa na interface.
+- Se uma célula do CSV trouxer mais de uma resposta (`Peace! / Peace out!`,
+  `Thanks a bunch / a ton / a million!`), separe: a primeira vira `en`, o resto
+  entra em `accept`, e `note` avisa na interface. Mesma coisa com parte opcional
+  (`I (really) appreciate it.`) e com reticências (`I can't thank you enough
+  (for) ...`): o `en` vira uma frase completa e o resto vai para `note`.
+- **`note` é interface, então em inglês** ("Also: Thanks a ton!").
+- Enunciado em português repetido entre cartões (acontece: `t-74`/`t-75`,
+  `t-93`/`t-98`) **precisa de `accept` cruzado** — cada um aceitando a resposta
+  do outro, senão uma resposta certa é reprovada. O autoteste detecta e cobra.
+- Se o enunciado em português trouxer duas glosas (`Você não deveria. / Não
+  precisava!`), deixe uma frase só no `pt` — o enunciado tem que ser traduzível
+  — e mande a outra para `note`.
 - A correção (`transNormalize`, `gradeTransAnswer`, `transDiffWords`) fica no
   próprio `js/data-translate.js`, porque são funções puras sobre os cartões.
-  Ela ignora acento, caixa, pontuação, hífen e contração, e distingue erro de
-  digitação (`quase`) de erro de inglês (`diferente`).
+  Ela ignora acento, caixa, pontuação, hífen e contração (inclusive `gonna` ==
+  `going to` e `7 a.m.` == `7 AM` == `7am`), e distingue erro de digitação
+  (`quase`) de erro de inglês (`diferente`). Ao importar uma unidade nova, veja
+  se ela trouxe contração ou gíria ainda não coberta e acrescente em
+  `TRANS_CONTRACTIONS` — vale para o banco inteiro, então rode o autoteste
+  depois para conferir que nenhuma unidade antiga quebrou.
 - `TRANS_STORAGE_KEY` guarda **histórico por deck**, não o resultado de uma
   rodada: `{ date, decks: { deckKey: { pct, correct, total, date } } }`. Cada
   rodada **mescla** — só os decks praticados são atualizados, os outros mantêm a
@@ -165,8 +179,10 @@ unidade → escolha dos decks daquela unidade → rodada.
   correção, o histórico do deck precisa continuar em 56% (5/9) — se virar 100%,
   a correção voltou a gravar por cima
 - Teste das unidades: 15 na grade, só as carregadas com link, toda chave de deck
-  começando com a chave da sua unidade, e o histórico gravado no formato antigo
-  migrando para a chave com prefixo
+  começando com a chave da sua unidade, nenhum deck vazando de uma unidade para
+  outra, e o histórico gravado no formato antigo migrando para a chave com prefixo
+- Cruzamento dos enunciados repetidos: dois cartões com o mesmo `pt` precisam
+  aceitar a resposta um do outro
 - Smoke test no Chromium (Playwright, `executablePath: '/opt/pw-browsers/chromium'`):
   abrir `index.html` por `file://`, responder o teste inteiro, chegar no resultado
   e rodar a prática dirigida; no módulo de tradução, escolher um deck e passar por
