@@ -725,19 +725,24 @@ const TRANS_CONTRACTIONS = [
   ["when're", "when are"], ["who're", "who are"], ["why're", "why are"],
   ["where're", "where are"], ["how're", "how are"], ["what're", "what are"],
   ["i'm", "i am"], ["you're", "you are"], ["we're", "we are"], ["they're", "they are"],
-  ["he's", "he is"], ["she's", "she is"], ["it's", "it is"], ["that's", "that is"],
-  ["what's", "what is"], ["when's", "when is"], ["who's", "who is"], ["why's", "why is"],
-  ["where's", "where is"], ["how's", "how is"], ["there's", "there is"], ["here's", "here is"],
+  /* "he's", "it's", "i'd" e companhia saíram daqui de propósito: o apóstrofo
+     deles tem mais de uma leitura e quem resolve é transNormalizeVariants(). */
   ["don't", "do not"], ["doesn't", "does not"], ["didn't", "did not"],
   ["isn't", "is not"], ["aren't", "are not"], ["wasn't", "was not"], ["weren't", "were not"],
   ["can't", "can not"], ["cannot", "can not"], ["won't", "will not"],
   ["i'll", "i will"], ["we'll", "we will"], ["you'll", "you will"], ["they'll", "they will"],
   ["i've", "i have"], ["we've", "we have"], ["you've", "you have"], ["they've", "they have"],
-  ["i'd", "i would"], ["let's", "let us"],
+  /* "let's" fica: é "let us", nunca "let is" — não cabe na regra genérica. */
+  ["let's", "let us"],
   ["shouldn't", "should not"], ["couldn't", "could not"], ["wouldn't", "would not"],
   ["haven't", "have not"], ["hasn't", "has not"], ["hadn't", "had not"],
-  ["mustn't", "must not"], ["he'll", "he will"], ["she'll", "she will"],
-  ["it'll", "it will"], ["that'll", "that will"],
+  ["mustn't", "must not"], ["needn't", "need not"], ["oughtn't", "ought not"],
+  ["shan't", "shall not"], ["he'll", "he will"], ["she'll", "she will"],
+  ["it'll", "it will"], ["that'll", "that will"], ["who'll", "who will"],
+  ["there'll", "there will"], ["this'll", "this will"],
+  ["could've", "could have"], ["should've", "should have"], ["would've", "would have"],
+  ["might've", "might have"], ["must've", "must have"], ["who've", "who have"],
+  ["there've", "there have"], ["there're", "there are"],
   /* fala coloquial: o cartão 76 traz "gonna" e quem escrever "going to" acerta */
   ["gonna", "going to"], ["wanna", "want to"], ["gotta", "got to"],
 ];
@@ -780,46 +785,65 @@ function transNormalize(str) {
   return transFinishNormalize(transNormalizeBase(str));
 }
 
-/* Depois de um substantivo, "'s" pode ser o verbo ("my name's Seaburn" =
-   my name is) ou posse ("my friend's child"). Não dá para saber qual sem
-   analisar a frase, então as duas leituras são geradas dos DOIS lados da
-   comparação e basta uma bater.
+/* "'s" e "'d" têm mais de uma leitura e não dá para saber qual sem analisar a
+   frase: "my name's Seaburn" é is, "my friend's child" é posse, "he's gone" é
+   has, "I'd like" é would e "I'd been" é had. Todas as leituras são geradas
+   dos DOIS lados da comparação e basta uma bater.
 
    Onde esse "'s" NÃO vale por "is", e por isso fica de fora:
    - depois de this/these/those — "This's" não existe em inglês;
    - depois de sibilante (s, x, z, sh, ch) — "Friends's", "boss's" não se
      contraem assim, é impronunciável.
    Sem essas guardas o corretor passaria a aceitar inglês errado. */
-/* Pronomes de sujeito também ficam de fora: "you's", "we's", "they's" não
-   existem (usam are/am), e he/she/it/that já saíram na lista de contrações. */
 const TRANS_NO_IS_S = ["this", "these", "those", "i", "you", "we", "they"];
 
-function transSCanBeIs(word) {
-  if (TRANS_NO_IS_S.indexOf(word) !== -1) return false;
-  return !/(s|x|z|sh|ch)$/.test(word);
+/* Palavras cujo "'s" NUNCA é posse, porque a posse delas é outra palavra
+   (its, his, their). Sem isto, "its" passaria por "it's" — erro clássico que
+   o corretor tem de continuar reprovando. */
+const TRANS_S_NEVER_POSSESSIVE = [
+  "he", "she", "it", "that", "what", "when", "where", "who", "why", "how",
+  "there", "here", "everybody", "everyone", "somebody", "someone", "nobody",
+];
+
+/* Todas as leituras possíveis de <palavra>'<sufixo>.
+   - "'d" é sempre would ou had ("I'd like" / "I'd been");
+   - "'s" pode ser posse/plural, "is" ou "has", conforme a palavra. */
+function transReadings(word, suffix) {
+  if (suffix === "d") return [" would", " had"];
+  const viraVerbo = TRANS_NO_IS_S.indexOf(word) === -1 && !/(s|x|z|sh|ch)$/.test(word);
+  const leituras = [];
+  if (TRANS_S_NEVER_POSSESSIVE.indexOf(word) === -1) leituras.push("s");
+  if (viraVerbo) leituras.push(" is", " has");
+  return leituras.length ? leituras : ["s"];
 }
 
 function transNormalizeVariants(str) {
   const base = transNormalizeBase(str);
   const pontos = [];
-  const re = /\b([a-z]+)'s\b/g;
+  const re = /\b([a-z]+)'(s|d)\b/g;
   let m;
-  while ((m = re.exec(base)) !== null && pontos.length < 4) {
-    if (transSCanBeIs(m[1])) pontos.push({ index: m.index, word: m[1], len: m[0].length });
+  /* teto de 3 apóstrofos ambíguos por frase: 3^3 = 27 variantes, de sobra para
+     qualquer frase do banco e sem risco de explodir. */
+  while ((m = re.exec(base)) !== null && pontos.length < 3) {
+    pontos.push({ index: m.index, word: m[1], len: m[0].length, leituras: transReadings(m[1], m[2]) });
   }
   if (!pontos.length) return [transFinishNormalize(base)];
 
-  const saidas = [];
-  for (let mask = 0; mask < (1 << pontos.length); mask++) {
+  let combos = [[]];
+  pontos.forEach(ponto => {
+    const proximo = [];
+    combos.forEach(c => ponto.leituras.forEach(l => proximo.push(c.concat([l]))));
+    combos = proximo;
+  });
+
+  const saidas = combos.map(escolhas => {
     let out = "", cursor = 0;
     pontos.forEach((ponto, i) => {
-      out += base.slice(cursor, ponto.index);
-      out += (mask & (1 << i)) ? ponto.word + " is" : ponto.word + "s";
+      out += base.slice(cursor, ponto.index) + ponto.word + escolhas[i];
       cursor = ponto.index + ponto.len;
     });
-    out += base.slice(cursor);
-    saidas.push(transFinishNormalize(out));
-  }
+    return transFinishNormalize(out + base.slice(cursor));
+  });
   return saidas.filter((v, i) => saidas.indexOf(v) === i);
 }
 
