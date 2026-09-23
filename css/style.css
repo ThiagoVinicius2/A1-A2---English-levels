@@ -552,6 +552,28 @@ p { margin: 0 0 16px; color: var(--ink-75); }
 .trans-warn { margin: 10px 0 0; color: var(--warn-light); font-size: .85rem; }
 .trans-note { margin: 10px 0 0; color: var(--ink-55); font-size: .85rem; }
 
+/* Grade das 15 unidades: cards mais estreitos que os da página inicial, porque
+   carregam bem menos texto. */
+.unit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+.unit-grid .module-card { padding: 16px 18px; gap: 6px; }
+.unit-grid .module-card h3 { font-size: 1.15rem; }
+.unit-grid .module-card p { font-size: .88rem; }
+.unit-grid .module-score { font-size: 11px; letter-spacing: .06em; }
+
+/* Unidade ainda sem baralho: presente na grade, mas visivelmente inativa. */
+.module-card.empty {
+  border-style: dashed;
+  background: transparent;
+  opacity: .45;
+}
+.module-card.empty:hover { border-color: var(--line); }
+.module-card.empty h3 { color: var(--ink-55); }
+
 .trans-deck-list { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
 .trans-deck-option {
   display: flex;
