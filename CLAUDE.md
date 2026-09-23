@@ -131,7 +131,14 @@ unidade → escolha dos decks daquela unidade → rodada.
   próprio `js/data-translate.js`, porque são funções puras sobre os cartões.
   Ela ignora acento, caixa, pontuação, hífen e contração (inclusive `gonna` ==
   `going to` e `7 a.m.` == `7 AM` == `7am`), e distingue erro de digitação
-  (`quase`) de erro de inglês (`diferente`). Ao importar uma unidade nova, veja
+  (`quase`) de erro de inglês (`diferente`).
+- **O `'s` de substantivo é ambíguo** e não sai por lista fixa: `my name's
+  Seaburn` é "name is", mas `my friend's child` é posse. `transNormalizeVariants()`
+  gera as duas leituras **dos dois lados** da comparação e basta uma bater — assim
+  a forma contraída e a longa valem igual, sem reprovar quem escreve a posse sem
+  apóstrofo. Guardas para não passar a aceitar inglês inexistente: nada de `'s`
+  depois de `this/these/those`, de pronome de sujeito (`you's`) ou de palavra
+  terminada em sibilante (`Friends's`). Ao importar uma unidade nova, veja
   se ela trouxe contração ou gíria ainda não coberta e acrescente em
   `TRANS_CONTRACTIONS` — vale para o banco inteiro, então rode o autoteste
   depois para conferir que nenhuma unidade antiga quebrou.
@@ -183,6 +190,9 @@ unidade → escolha dos decks daquela unidade → rodada.
   outra, e o histórico gravado no formato antigo migrando para a chave com prefixo
 - Cruzamento dos enunciados repetidos: dois cartões com o mesmo `pt` precisam
   aceitar a resposta um do outro
+- Contração nos dois sentidos: para toda resposta do banco, a versão contraída e
+  a expandida precisam dar `certo` — e `This's`, `Friends's` e `you's` precisam
+  continuar sendo reprovadas
 - Smoke test no Chromium (Playwright, `executablePath: '/opt/pw-browsers/chromium'`):
   abrir `index.html` por `file://`, responder o teste inteiro, chegar no resultado
   e rodar a prática dirigida; no módulo de tradução, escolher um deck e passar por
