@@ -88,6 +88,24 @@ consolidados saem e ficam registrados no comentário do topo do arquivo.
 Banco de cartões vindo do CSV do deck MemHack do curso (colunas
 `id, deck, ingles, portugues`).
 
+### Unidades
+
+Os decks vivem dentro de **unidades** (`TRANS_UNITS`, `Unit 1` … `Unit 15`), que
+são as unidades do curso. A navegação é: card da página inicial → escolha da
+unidade → escolha dos decks daquela unidade → rodada.
+
+- **A chave de cada deck é prefixada pela unidade** (`u01-comprehension`). Os
+  nomes de baralho se repetem a cada unidade do curso ("Comprehension Practice",
+  "Vocab Rocket", "Grammar Hacks"…), então sem o prefixo as chaves colidiriam —
+  e o histórico por deck no `localStorage` misturaria unidades diferentes.
+- O CSV já traz o número da unidade no nome do deck (`#01 | Comprehension
+  Practice`), então importar uma unidade nova é mapear esse prefixo para a chave
+  da unidade e declarar os decks com `unit: "uNN"`.
+- Unidade sem deck aparece na grade como **"No decks yet"**, com o card em
+  tracejado e sem link. É o estado normal das unidades ainda não importadas.
+- `transUnitProgress(unitKey)` dá a média de acerto "de primeira" dos decks já
+  praticados da unidade — é o que o card da unidade mostra.
+
 - **O CSV vem em UTF-8 com BOM.** Ao reimportar, ler com `encoding="utf-8-sig"`:
   com `utf-8` puro o cabeçalho da primeira coluna vira `\ufeffid` e a coluna `id`
   some sem dar erro.
@@ -106,7 +124,9 @@ Banco de cartões vindo do CSV do deck MemHack do curso (colunas
 - `TRANS_STORAGE_KEY` guarda **histórico por deck**, não o resultado de uma
   rodada: `{ date, decks: { deckKey: { pct, correct, total, date } } }`. Cada
   rodada **mescla** — só os decks praticados são atualizados, os outros mantêm a
-  nota da última vez. Suba a chave (`_r2` → `_r3` → …) se o formato mudar de novo.
+  nota da última vez. Suba a chave (`_r3` → `_r4` → …) se o formato mudar de novo.
+  `loadTransDeckStats()` tem uma migração única do `_r2` (chaves sem prefixo de
+  unidade) para o formato atual; pode sair quando não valer mais a pena.
 - **Duas notas por cartão, e elas não podem se misturar:**
   `state.transGrades` é o placar da rodada (a autoavaliação "minha resposta também
   está certa" conta ali) e `state.transFirstGrades` guarda só o **primeiro
@@ -144,6 +164,9 @@ Banco de cartões vindo do CSV do deck MemHack do curso (colunas
 - Teste da rodada de correção: errando 4 de 9 cartões e depois acertando os 4 na
   correção, o histórico do deck precisa continuar em 56% (5/9) — se virar 100%,
   a correção voltou a gravar por cima
+- Teste das unidades: 15 na grade, só as carregadas com link, toda chave de deck
+  começando com a chave da sua unidade, e o histórico gravado no formato antigo
+  migrando para a chave com prefixo
 - Smoke test no Chromium (Playwright, `executablePath: '/opt/pw-browsers/chromium'`):
   abrir `index.html` por `file://`, responder o teste inteiro, chegar no resultado
   e rodar a prática dirigida; no módulo de tradução, escolher um deck e passar por

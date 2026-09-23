@@ -1,7 +1,8 @@
 /* ===================== Estado da aplicação ===================== */
 const STORAGE_KEY = "enCheckLastResults";
 const CONV_STORAGE_KEY = "enCheckConvResults_r6";   // r6: banco refeito na 6ª rodada (vocabulário que travou na aula)
-const TRANS_STORAGE_KEY = "enCheckTransResults_r2"; // r2: guarda o histórico POR DECK, não o resultado de uma rodada
+const TRANS_STORAGE_KEY = "enCheckTransResults_r3"; // r3: chaves de deck prefixadas pela unidade (u01-...)
+const TRANS_STORAGE_KEY_R2 = "enCheckTransResults_r2";  // só para migrar o histórico antigo uma vez
 const WEAK_THRESHOLD = 75;   // usado só para colorir a barra de desempenho (verde/amarelo/vermelho)
 const MASTERY_PCT = 100;     // qualquer categoria abaixo disso sempre entra na revisão/prática
 
@@ -47,6 +48,7 @@ const state = {
   transExitConfirmOpen: false,
   transEmptyWarn: false,    // avisa que o campo está vazio, sem revelar a resposta
   transIsRetry: false,      // rodada só com as frases erradas: não mexe no histórico do deck
+  transUnit: null,          // unidade aberta na tela de decks
 };
 
 const app = document.getElementById("app");
@@ -421,6 +423,7 @@ function render() {
   if (state.view === "convResults") return renderConvResults();
   if (state.view === "convExercise") return renderConvExercise();
   if (state.view === "convExerciseSummary") return renderConvExerciseSummary();
+  if (state.view === "transUnits") return renderTransUnits();
   if (state.view === "transDecks") return renderTransDecks();
   if (state.view === "transRound") return renderTransRound();
   if (state.view === "transResults") return renderTransResults();
@@ -1112,7 +1115,21 @@ function transIsFirstHit(grade) {
    Fica aninhado em `decks` porque saveResults() injeta um `date` no topo. */
 function loadTransDeckStats() {
   const guardado = loadResults(TRANS_STORAGE_KEY);
-  return (guardado && guardado.decks) || {};
+  if (guardado && guardado.decks) return guardado.decks;
+
+  /* Migração única: antes das unidades as chaves eram "comprehension",
+     "vocab1"… Todas eram da unidade 1, então ganham o prefixo e o histórico
+     não se perde. Roda uma vez: a primeira gravação já usa a chave nova. */
+  const antigo = loadResults(TRANS_STORAGE_KEY_R2);
+  if (antigo && antigo.decks) {
+    const migrado = {};
+    Object.keys(antigo.decks).forEach(k => {
+      const nova = k.indexOf("-") === -1 ? "u01-" + k : k;
+      if (TRANS_DECKS[nova]) migrado[nova] = antigo.decks[k];
+    });
+    return migrado;
+  }
+  return {};
 }
 
 function saveTransDeckStats(stats) {
@@ -1136,10 +1153,37 @@ function toggleTransLandingDetails() {
   render();
 }
 
-function openTransDecks(preSelecionados) {
-  state.transDeckSelection = knownCategories(preSelecionados, TRANS_DECKS);
+function openTransUnits() {
+  state.view = "transUnits";
+  render();
+}
+
+/* Abre a lista de decks de uma unidade. Sem argumento, reabre a última. */
+function openTransDecks(unitKey, preSelecionados) {
+  const unidade = TRANS_UNITS[unitKey] ? unitKey : state.transUnit;
+  if (!unidade || !getTransDecksForUnit(unidade).length) return openTransUnits();
+  state.transUnit = unidade;
+  state.transDeckSelection = knownCategories(preSelecionados, TRANS_DECKS)
+    .filter(k => TRANS_DECKS[k].unit === unidade);
   state.view = "transDecks";
   render();
+}
+
+/* Média de acerto "de primeira" dos decks da unidade que já foram praticados.
+   Retorna null quando a unidade ainda não foi tocada. */
+function transUnitProgress(unitKey) {
+  const decks = getTransDecksForUnit(unitKey);
+  if (!decks.length) return null;
+  const stats = loadTransDeckStats();
+  let correct = 0, total = 0, praticados = 0;
+  decks.forEach(k => {
+    const d = stats[k];
+    if (!d) return;
+    praticados++;
+    correct += d.correct;
+    total += d.total;
+  });
+  return total ? { pct: pct(correct, total), praticados, decks: decks.length } : null;
 }
 
 function toggleTransDeck(key) {
@@ -1150,13 +1194,13 @@ function toggleTransDeck(key) {
 }
 
 function selectAllTransDecks(marcar) {
-  state.transDeckSelection = marcar ? Object.keys(TRANS_DECKS) : [];
+  state.transDeckSelection = marcar ? getTransDecksForUnit(state.transUnit) : [];
   render();
 }
 
 function startTransRound(deckKeys) {
   const decks = knownCategories(deckKeys, TRANS_DECKS);
-  const escolhidos = decks.length ? decks : Object.keys(TRANS_DECKS);
+  const escolhidos = decks.length ? decks : getTransDecksForUnit(state.transUnit);
   let pool = [];
   escolhidos.forEach(key => { pool = pool.concat(getTransCardsForDeck(key)); });
   state.transDeckSelection = escolhidos;
@@ -1357,7 +1401,7 @@ function renderTransLandingCard() {
   ` : "";
 
   const links = `
-    <button class="module-link" onclick="openTransDecks()">Translate sentences &rarr;</button>
+    <button class="module-link" onclick="openTransUnits()">Translate sentences &rarr;</button>
     <button class="module-link quiet" onclick="toggleTransLandingDetails()">${detailsOpen ? "Hide details" : "How the checking works"}</button>
   `;
 
@@ -1372,14 +1416,70 @@ function renderTransLandingCard() {
   });
 }
 
+/* ---------- Tela das unidades ---------- */
+function renderTransUnits() {
+  const chaves = Object.keys(TRANS_UNITS);
+  const comDeck = chaves.filter(k => getTransDecksForUnit(k).length);
+
+  app.innerHTML = `
+    <div class="card">
+      <h2>Which unit are you practising?</h2>
+      <p class="lead">Each unit holds the decks of one unit of your course.
+      ${comDeck.length} of ${chaves.length} units ${comDeck.length === 1 ? "is" : "are"} loaded so far.</p>
+
+      <div class="unit-grid">
+        ${chaves.map(key => {
+          const u = TRANS_UNITS[key];
+          const decks = getTransDecksForUnit(key);
+          const cartoes = countTransCardsForUnit(key);
+          const prog = transUnitProgress(key);
+
+          if (!decks.length) {
+            return `
+              <article class="module-card empty" aria-disabled="true">
+                <div class="module-top"><span>${u.num}</span><span class="module-kind">Empty</span></div>
+                <h3>${escapeHtml(u.label)}</h3>
+                <p>No decks yet.</p>
+              </article>
+            `;
+          }
+          return `
+            <article class="module-card">
+              <div class="module-top">
+                <span>${u.num}</span>
+                <span class="module-kind">${decks.length} ${decks.length === 1 ? "deck" : "decks"}</span>
+              </div>
+              <h3>${escapeHtml(u.label)}</h3>
+              <p>${cartoes} ${cartoes === 1 ? "sentence" : "sentences"} to translate.</p>
+              <div class="module-actions">
+                <button class="module-link" onclick="openTransDecks('${key}')">Open unit &rarr;</button>
+                ${prog
+                  ? `<span class="module-score">First try · ${prog.pct}% · ${prog.praticados}/${prog.decks} decks practised</span>`
+                  : `<span class="module-score">Not started yet</span>`}
+              </div>
+            </article>
+          `;
+        }).join("")}
+      </div>
+
+      <div class="exit-actions">
+        <button class="btn secondary block" onclick="goLanding()">Back to start</button>
+      </div>
+    </div>
+  `;
+}
+
 /* ---------- Tela de escolha dos decks ---------- */
 function renderTransDecks() {
   const selecionados = state.transDeckSelection;
   const stats = loadTransDeckStats();
+  const unidade = TRANS_UNITS[state.transUnit];
+  const decksDaUnidade = getTransDecksForUnit(state.transUnit);
   const totalSelecionado = selecionados.reduce((n, k) => n + getTransCardsForDeck(k).length, 0);
 
   app.innerHTML = `
     <div class="card">
+      <span class="q-level">${escapeHtml(unidade ? unidade.label : "")}</span>
       <h2>Which decks do you want to practise?</h2>
       <p class="lead">Each card shows a Portuguese sentence for you to write in English.
       Pick as many decks as you like — the cards come shuffled.</p>
@@ -1387,7 +1487,7 @@ function renderTransDecks() {
       the last time you practised that deck — not counting cards you marked correct afterwards.</p>
 
       <div class="trans-deck-list">
-        ${Object.keys(TRANS_DECKS).map(key => {
+        ${decksDaUnidade.map(key => {
           const marcado = selecionados.indexOf(key) !== -1;
           const stat = stats[key];
           const nota = stat
@@ -1420,7 +1520,7 @@ function renderTransDecks() {
       </div>
 
       <div class="exit-actions">
-        <button class="btn secondary block" onclick="goLanding()">Back to start</button>
+        <button class="btn secondary block" onclick="openTransUnits()">Back to units</button>
       </div>
     </div>
   `;
@@ -1588,6 +1688,7 @@ function renderTransResults() {
         }
         <button class="btn secondary block" onclick='startTransRound(${JSON.stringify(decks)})'>Redo ${r.isRetry ? "the whole deck" : "this round"}</button>
         <button class="btn secondary block" onclick="openTransDecks()">Choose other decks</button>
+        <button class="btn secondary block" onclick="openTransUnits()">Choose another unit</button>
         <button class="btn secondary block" onclick="goLanding()">Back to start</button>
       </div>
     </div>
