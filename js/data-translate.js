@@ -748,8 +748,10 @@ const TRANS_NUMBERS = {
   seven: "7", eight: "8", nine: "9", ten: "10", eleven: "11", twelve: "12",
 };
 
-/* Reduz a frase à sua forma comparável. */
-function transNormalize(str) {
+/* Primeira etapa: acentos, caixa, hífen e as contrações da lista acima.
+   Para aqui ainda COM apóstrofo, porque o "'s" solto precisa ser decidido
+   depois (ver transNormalizeVariants). */
+function transNormalizeBase(str) {
   let s = String(str == null ? "" : str);
   s = s.normalize("NFD").replace(/[̀-ͯ]/g, "");   // tira acentos
   s = s.toLowerCase();
@@ -759,13 +761,66 @@ function transNormalize(str) {
     s = s.replace(new RegExp("\\b" + pair[0] + "\\b", "g"), pair[1]);
   });
   s = s.replace(/[^a-z0-9\s']/g, " ");                      // resto da pontuação
-  s = s.replace(/'/g, "");                                  // possessivo, o'clock etc.
+  return s.replace(/\s+/g, " ").trim();
+}
+
+/* Segunda etapa: tira o apóstrofo que sobrou, resolve números e horário. */
+function transFinishNormalize(str) {
+  let s = String(str).replace(/'/g, "");   // posse, o'clock etc.
   s = s.replace(/\b[a-z]+\b/g, w => TRANS_NUMBERS[w] || w);
   /* a pontuação já caiu, então "a.m." virou "a m": junta de volta e garante o
      espaço depois do número, para 7 a.m. == 7 AM == 7am. */
   s = s.replace(/\ba m\b/g, "am").replace(/\bp m\b/g, "pm");
   s = s.replace(/(\d)(am|pm)\b/g, "$1 $2");
   return s.replace(/\s+/g, " ").trim();
+}
+
+/* Reduz a frase à sua forma comparável. */
+function transNormalize(str) {
+  return transFinishNormalize(transNormalizeBase(str));
+}
+
+/* Depois de um substantivo, "'s" pode ser o verbo ("my name's Seaburn" =
+   my name is) ou posse ("my friend's child"). Não dá para saber qual sem
+   analisar a frase, então as duas leituras são geradas dos DOIS lados da
+   comparação e basta uma bater.
+
+   Onde esse "'s" NÃO vale por "is", e por isso fica de fora:
+   - depois de this/these/those — "This's" não existe em inglês;
+   - depois de sibilante (s, x, z, sh, ch) — "Friends's", "boss's" não se
+     contraem assim, é impronunciável.
+   Sem essas guardas o corretor passaria a aceitar inglês errado. */
+/* Pronomes de sujeito também ficam de fora: "you's", "we's", "they's" não
+   existem (usam are/am), e he/she/it/that já saíram na lista de contrações. */
+const TRANS_NO_IS_S = ["this", "these", "those", "i", "you", "we", "they"];
+
+function transSCanBeIs(word) {
+  if (TRANS_NO_IS_S.indexOf(word) !== -1) return false;
+  return !/(s|x|z|sh|ch)$/.test(word);
+}
+
+function transNormalizeVariants(str) {
+  const base = transNormalizeBase(str);
+  const pontos = [];
+  const re = /\b([a-z]+)'s\b/g;
+  let m;
+  while ((m = re.exec(base)) !== null && pontos.length < 4) {
+    if (transSCanBeIs(m[1])) pontos.push({ index: m.index, word: m[1], len: m[0].length });
+  }
+  if (!pontos.length) return [transFinishNormalize(base)];
+
+  const saidas = [];
+  for (let mask = 0; mask < (1 << pontos.length); mask++) {
+    let out = "", cursor = 0;
+    pontos.forEach((ponto, i) => {
+      out += base.slice(cursor, ponto.index);
+      out += (mask & (1 << i)) ? ponto.word + " is" : ponto.word + "s";
+      cursor = ponto.index + ponto.len;
+    });
+    out += base.slice(cursor);
+    saidas.push(transFinishNormalize(out));
+  }
+  return saidas.filter((v, i) => saidas.indexOf(v) === i);
 }
 
 /* Distância de Levenshtein, usada só para separar erro de digitação
@@ -800,12 +855,14 @@ function transExpectedAnswers(card) {
    Retorna também `best`: a resposta esperada mais próxima do que foi
    digitado, que é a que o diff mostra. */
 function gradeTransAnswer(card, typed) {
-  const alvo = transNormalize(typed);
+  const variantes = transNormalizeVariants(typed);
+  const alvo = variantes[0];
   const esperadas = transExpectedAnswers(card);
   if (!alvo) return { level: "vazio", best: card.en, distance: Infinity };
 
   for (let i = 0; i < esperadas.length; i++) {
-    if (transNormalize(esperadas[i]) === alvo) {
+    const daResposta = transNormalizeVariants(esperadas[i]);
+    if (daResposta.some(v => variantes.indexOf(v) !== -1)) {
       return { level: "certo", best: esperadas[i], distance: 0 };
     }
   }
@@ -813,14 +870,18 @@ function gradeTransAnswer(card, typed) {
   let best = card.en;
   let menor = Infinity;
   esperadas.forEach(esp => {
-    const d = transLevenshtein(transNormalize(esp), alvo);
-    if (d < menor) { menor = d; best = esp; }
+    transNormalizeVariants(esp).forEach(v => {
+      const d = transLevenshtein(v, alvo);
+      if (d < menor) { menor = d; best = esp; }
+    });
   });
 
   /* "quase" só quando o número de palavras bate: assim palavra faltando
      ou sobrando continua sendo erro, e não é tratada como deslize de teclado. */
-  const mesmasPalavras = transNormalize(best).split(" ").length === alvo.split(" ").length;
-  const limite = Math.max(1, Math.min(3, Math.round(transNormalize(best).length * 0.1)));
+  const proxima = transNormalizeVariants(best)
+    .reduce((a, v) => (transLevenshtein(v, alvo) < transLevenshtein(a, alvo) ? v : a));
+  const mesmasPalavras = proxima.split(" ").length === alvo.split(" ").length;
+  const limite = Math.max(1, Math.min(3, Math.round(proxima.length * 0.1)));
   if (mesmasPalavras && menor <= limite) return { level: "quase", best: best, distance: menor };
   return { level: "diferente", best: best, distance: menor };
 }
