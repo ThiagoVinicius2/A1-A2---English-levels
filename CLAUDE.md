@@ -182,6 +182,10 @@ unidade → escolha dos decks daquela unidade → rodada.
   histórico do deck — refazer só os erros acertando tudo gravaria um 100% que não
   representa o deck. A porcentagem de um deck só é recalculada quando ele é
   praticado inteiro.
+  **Isso precisa ficar explícito na tela**, senão parece que a gravação quebrou:
+  a tela de resultado da correção mostra a porcentagem que **fica valendo** em
+  cada deck e deixa "Redo the whole deck" como ação principal. Um aviso genérico
+  não basta — foi exatamente assim que a dúvida apareceu na prática.
 - **Cuidado com o campo de digitação:** é o único `<input>` do projeto. Nunca
   chame `render()` enquanto a pessoa digita (o `innerHTML` é reescrito inteiro e
   leva junto o campo, o foco e o cursor) e nunca coloque texto digitado ou frase

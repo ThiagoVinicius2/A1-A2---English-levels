@@ -650,7 +650,7 @@ function renderResults() {
       <div class="score-hero">
         <div class="score-number">${r.overallPct}%</div>
         <div class="score-level">${escapeHtml(r.cefr)}</div>
-        <p style="margin-top:8px;">${r.totalCorrect} de ${r.totalQuestions} questions correct</p>
+        <p style="margin-top:8px;">${r.totalCorrect} of ${r.totalQuestions} questions correct</p>
       </div>
 
       <h2>Performance by category</h2>
@@ -809,7 +809,7 @@ function renderExerciseSummary() {
       <div class="score-hero">
         <div class="score-number">${pct(correct, total)}%</div>
         <div class="score-level">Practice result</div>
-        <p style="margin-top:8px;">${correct} de ${total} exercises correct</p>
+        <p style="margin-top:8px;">${correct} of ${total} exercises correct</p>
       </div>
 
       <h2>By category</h2>
@@ -906,7 +906,7 @@ function renderConvResults() {
       <div class="score-hero">
         <div class="score-number">${r.overallPct}%</div>
         <div class="score-level">${escapeHtml(r.label)}</div>
-        <p style="margin-top:8px;">${r.totalCorrect} de ${r.totalQuestions} questions correct</p>
+        <p style="margin-top:8px;">${r.totalCorrect} of ${r.totalQuestions} questions correct</p>
       </div>
 
       <h2>Performance by pattern</h2>
@@ -1064,7 +1064,7 @@ function renderConvExerciseSummary() {
       <div class="score-hero">
         <div class="score-number">${pct(correct, total)}%</div>
         <div class="score-level">Practice result</div>
-        <p style="margin-top:8px;">${correct} de ${total} exercises correct</p>
+        <p style="margin-top:8px;">${correct} of ${total} exercises correct</p>
       </div>
 
       <h2>By pattern</h2>
@@ -1650,6 +1650,7 @@ function renderTransRound() {
 function renderTransResults() {
   const r = state.transResults;
   const decks = Object.keys(r.categoryPct);
+  const statsAtual = loadTransDeckStats();
   const improvableNames = r.improvableCategories.map(k => TRANS_DECKS[k].label);
 
   app.innerHTML = `
@@ -1657,7 +1658,7 @@ function renderTransResults() {
       <div class="score-hero">
         <div class="score-number">${r.overallPct}%</div>
         <div class="score-level">${escapeHtml(r.label)}</div>
-        <p style="margin-top:8px;">${r.totalCorrect} de ${r.totalQuestions} cards correct</p>
+        <p style="margin-top:8px;">${r.totalCorrect} of ${r.totalQuestions} cards correct</p>
       </div>
 
       <h2>Performance by deck</h2>
@@ -1675,9 +1676,20 @@ function renderTransResults() {
         : `<div class="all-good">Excellent! You wrote every card in this round correctly.</div>`
       }
 
-      ${r.isRetry ? `<p class="trans-note">This was a fix-up round, only with the sentences you had missed.
-      The first-try percentage of a deck does not change here — it is recalculated only when
-      you practise the whole deck.</p>` : ""}
+      ${r.isRetry ? `
+        <div class="info-box">
+          <strong>This was a fix-up round</strong> — only the sentences you had missed. Your deck
+          score measures how much you get right <strong>on the first try across the whole deck</strong>,
+          so it does not change here and stays at:
+          <ul class="conv-pattern-list">
+            ${decks.map(k => {
+              const st = statsAtual[k];
+              return `<li>${escapeHtml(TRANS_DECKS[k].label)}: <strong>${st ? st.pct + "%" : "not scored yet"}</strong></li>`;
+            }).join("")}
+          </ul>
+          Practise the whole deck to update it.
+        </div>
+      ` : ""}
 
       ${renderTransMistakesReview(r.mistakes)}
 
@@ -1686,7 +1698,7 @@ function renderTransResults() {
           ? `<button class="btn block" onclick="startTransRetry()">Redo only the ${r.mistakes.length === 1 ? "sentence I missed" : `${r.mistakes.length} sentences I missed`}</button>`
           : ""
         }
-        <button class="btn secondary block" onclick='startTransRound(${JSON.stringify(decks)})'>Redo ${r.isRetry ? "the whole deck" : "this round"}</button>
+        <button class="btn${r.isRetry ? "" : " secondary"} block" onclick='startTransRound(${JSON.stringify(decks)})'>Redo ${r.isRetry ? "the whole deck (updates the score)" : "this round"}</button>
         <button class="btn secondary block" onclick="openTransDecks()">Choose other decks</button>
         <button class="btn secondary block" onclick="openTransUnits()">Choose another unit</button>
         <button class="btn secondary block" onclick="goLanding()">Back to start</button>
