@@ -121,6 +121,15 @@ unidade → escolha dos decks daquela unidade → rodada.
   (`I (really) appreciate it.`) e com reticências (`I can't thank you enough
   (for) ...`): o `en` vira uma frase completa e o resto vai para `note`.
 - **`note` é interface, então em inglês** ("Also: Thanks a ton!").
+- Fala de filme/série vem **envolta em aspas** no CSV (o diálogo do Pets, na
+  Unit 3). Tire as aspas ao importar: a correção ignora pontuação, mas sem isso
+  elas aparecem na resposta mostrada na tela. Cuidado com o caso em que a aspa
+  fecha antes do ponto final (`"...every day".`).
+- O enunciado em português usa **fala reduzida** (`tô`, `tá`, `pra`) em vários
+  decks. No sentido PT → EN isso não atrapalha: o português é só o enunciado
+  exibido, nunca comparado. **Se algum dia o módulo inverter o sentido** (mostrar
+  o inglês e pedir o português), aí essas formas precisam ser normalizadas antes
+  de comparar — junto de `você`/`vc`, `está`/`tá` e `para`/`pra`.
 - Enunciado em português repetido entre cartões (acontece: `t-74`/`t-75`,
   `t-93`/`t-98`) **precisa de `accept` cruzado** — cada um aceitando a resposta
   do outro, senão uma resposta certa é reprovada. O autoteste detecta e cobra.
