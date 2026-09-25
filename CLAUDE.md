@@ -111,6 +111,14 @@ unidade → escolha dos decks daquela unidade → rodada.
   some sem dar erro.
 - `TRANS_DECKS`: um deck por bloco do curso, com `label` e `tag` (`Deck 1`, …).
   Todo cartão precisa apontar para um deck existente — a rodada filtra por deck.
+  **O conjunto de decks muda de unidade para unidade** (a Unit 4 trouxe "Study
+  Tips", que não existia antes, e chama o segundo Grammar de "Grammar Hacks
+  (part II)"). Use sempre o nome como o app do curso mostra, e numere as `tag`
+  na ordem daquela unidade.
+- **Cartão repetido entre unidades acontece** (`What does it mean?` está em
+  `t-122` e `t-231`, com o mesmo `pt` e o mesmo `en`). Não é problema: o curso
+  repete a frase e o cruzamento é automático quando as respostas são iguais. O
+  autoteste reporta o par para você conferir que é intencional.
 - Cada cartão: `pt`, `en` e, quando couber, `accept` (traduções alternativas
   igualmente corretas) e `note`. **Cadastre `accept` sempre que a frase em
   português admitir mais de um inglês certo** — sobretudo nas despedidas do deck
