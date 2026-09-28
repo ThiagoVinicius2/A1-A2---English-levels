@@ -113,12 +113,15 @@ unidade → escolha dos decks daquela unidade → rodada.
   Todo cartão precisa apontar para um deck existente — a rodada filtra por deck.
   **O conjunto de decks muda de unidade para unidade** (a Unit 4 trouxe "Study
   Tips", que não existia antes, e chama o segundo Grammar de "Grammar Hacks
-  (part II)"). Use sempre o nome como o app do curso mostra, e numere as `tag`
-  na ordem daquela unidade.
+  (part II)"; a Unit 5 numera os dois como "(part I)" e "(part II)"). Use sempre
+  o nome como o app do curso mostra, e numere as `tag` na ordem daquela unidade.
 - **Cartão repetido entre unidades acontece** (`What does it mean?` está em
   `t-122` e `t-231`, com o mesmo `pt` e o mesmo `en`). Não é problema: o curso
   repete a frase e o cruzamento é automático quando as respostas são iguais. O
   autoteste reporta o par para você conferir que é intencional.
+  Repetição **dentro da mesma unidade** também acontece (`What do you do for
+  fun?` está em `t-314`, do Immersion Time, e em `t-347`, do Pronunciation
+  Hacks): são decks diferentes, treinando coisas diferentes, então os dois ficam.
 - Cada cartão: `pt`, `en` e, quando couber, `accept` (traduções alternativas
   igualmente corretas) e `note`. **Cadastre `accept` sempre que a frase em
   português admitir mais de um inglês certo** — sobretudo nas despedidas do deck
@@ -128,11 +131,22 @@ unidade → escolha dos decks daquela unidade → rodada.
   entra em `accept`, e `note` avisa na interface. Mesma coisa com parte opcional
   (`I (really) appreciate it.`) e com reticências (`I can't thank you enough
   (for) ...`): o `en` vira uma frase completa e o resto vai para `note`.
+  Abreviação entre parênteses é o mesmo caso (`XLarge (XL) pants`, no `t-301`):
+  `en` fica com a forma por extenso, a curta entra em `accept` e `note` avisa —
+  os parênteses viram espaço na normalização, então sem isso quem escrever só
+  "XL pants" é reprovado.
 - **`note` é interface, então em inglês** ("Also: Thanks a ton!").
 - Fala de filme/série vem **envolta em aspas** no CSV (o diálogo do Pets, na
   Unit 3). Tire as aspas ao importar: a correção ignora pontuação, mas sem isso
   elas aparecem na resposta mostrada na tela. Cuidado com o caso em que a aspa
   fecha antes do ponto final (`"...every day".`).
+- **Travessão, aspas curvas e reticências (`–`, `—`, `“ ”`, `’`, `…`) já saem na
+  normalização** e podem ficar no cartão como vieram do CSV (o `t-359` traz
+  `Put yourself out there – on or offline.` com travessão). Travessão e hífen
+  viram espaço, os apóstrofos tipográficos viram `'` e o resto cai no filtro de
+  pontuação — quem digita com hífen e teclado sem acento acerta igual. O
+  autoteste confere isso sozinho: para todo cartão, a versão só-ASCII **e** a
+  versão tipográfica da resposta precisam dar `certo`, nos dois sentidos.
 - O enunciado em português usa **fala reduzida** (`tô`, `tá`, `pra`) em vários
   decks. No sentido PT → EN isso não atrapalha: o português é só o enunciado
   exibido, nunca comparado. **Se algum dia o módulo inverter o sentido** (mostrar
@@ -222,6 +236,9 @@ unidade → escolha dos decks daquela unidade → rodada.
 - Contração nos dois sentidos: para toda resposta do banco, a versão contraída e
   a expandida precisam dar `certo` — e `This's`, `Friends's`, `you's`, `its` por
   `it's` e `they're` por `their` precisam continuar sendo reprovadas
+- Tipografia nos dois sentidos: para toda resposta do banco, a versão só-ASCII
+  (`–`/`—` → `-`, `’` → `'`, `”` → `"`, `…` → `...`) e a versão tipográfica
+  precisam dar `certo`
 - Rede das unidades futuras: nenhum apóstrofo dos cartões pode ficar sem
   cobertura, e as frases sintéticas (`he's gone` == `he has gone`, `I'd like` ==
   `I would like`, `I'd been` == `I had been`, `could've`) precisam dar `certo`
