@@ -140,6 +140,26 @@ unidade → escolha dos decks daquela unidade → rodada.
   igualmente corretas) e `note`. **Cadastre `accept` sempre que a frase em
   português admitir mais de um inglês certo** — sobretudo nas despedidas do deck
   Immersion Time; sem isso a rodada reprova resposta boa.
+- **Sinônimo que vale para o banco inteiro vai em `TRANS_SYNONYMS`, não em
+  `accept`.** Palavra que o português não tem como desambiguar (`eu acho que` é
+  `I think` e `I guess`; `loja` é `store` e `shop`; `filhos` é `kids` e
+  `children`) entra na tabela e passa a valer em toda unidade, inclusive nas que
+  ainda vão entrar. `accept` continua sendo para reformulação do cartão
+  ("Let me try." por "Let me have a go at it."), que é específica dele.
+  A prova de que a curadoria manual não escala está no próprio banco: o `t-69`
+  aceitava "bathroom" porque alguém lembrou, e o `t-312` reprovava "children"
+  porque ninguém lembrou.
+  - **Prefira o par de uma palavra ao de duas.** `transDiffWords` normaliza
+    palavra por palavra, então `["i guess", "i think"]` conserta a nota mas
+    deixa `think` riscado em vermelho na tela — a pessoa lê que acertou e vê a
+    palavra marcada como erro. `["guess", "think"]` acerta as duas telas.
+  - Só entram pares **sem diferença de sentido nestes decks**. Verbo com sentido
+    próprio fica de fora: `comprar` é `buy`, e aceitar `get` deixaria passar quem
+    fugiu da palavra que o deck ensina.
+  - **O risco é a tabela apagar uma lição.** Se um deck futuro ensinar justamente
+    a diferença entre duas dessas palavras, tire o par da tabela e resolva aquele
+    cartão com `accept`. Colisão entre cartões o autoteste pega sozinho, na trava
+    de resposta intercambiável.
 - Se uma célula do CSV trouxer mais de uma resposta (`Peace! / Peace out!`,
   `Thanks a bunch / a ton / a million!`), separe: a primeira vira `en`, o resto
   entra em `accept`, e `note` avisa na interface. Mesma coisa com parte opcional
@@ -254,6 +274,11 @@ unidade → escolha dos decks daquela unidade → rodada.
   aceitar a resposta um do outro
 - Nenhuma resposta intercambiável: nenhuma string de `en` ou de `accept` pode
   ser corrigida como `certo` em mais de um cartão
+- Sinônimos nos dois sentidos: para todo cartão, trocar na resposta uma palavra
+  de `TRANS_SYNONYMS` pela equivalente precisa dar `certo` — e os pares
+  documentados têm caso dirigido próprio (`t-306`, `t-312`, `t-36`, `t-21`,
+  `t-16`), porque a rede só percorre o que está na tabela e não acusa a remoção
+  de um par
 - Contração nos dois sentidos: para toda resposta do banco, a versão contraída e
   a expandida precisam dar `certo` — e `This's`, `Friends's`, `you's`, `its` por
   `it's` e `they're` por `their` precisam continuar sendo reprovadas
