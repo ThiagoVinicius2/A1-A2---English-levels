@@ -21,9 +21,50 @@
               cartão "Peace!", que no CSV trazia duas respostas
               na mesma célula: "Peace! / Peace out!").
 
-   Atenção: "Vocês são os melhores!" aparece em DOIS cartões (t-74 e
-   t-75), com respostas diferentes no CSV. Cada um aceita a forma do
-   outro, senão uma resposta certa seria reprovada.
+   O banco NÃO é o CSV inteiro: 32 cartões foram podados de propósito.
+   O comentário logo abaixo lista quais e por quê — confira antes de
+   recolocar tudo numa reimportação.
+   ============================================================ */
+
+/* Cartões que saíram do banco, com o motivo. Existe para que uma
+   reimportação do CSV não os traga de volta sem querer — e para que a
+   decisão fique registrada em vez de virar um buraco inexplicado na
+   numeração dos ids.
+
+   Repetição (a mesma prática, perguntada de novo):
+   - t-30, t-31, t-32  despedidas intercambiáveis: "Later!" e "See you
+                       later!" passavam igual em quatro cartões. Ficaram
+                       t-25 (Bye!) e t-28 (See you later!)
+   - t-98              enunciado idêntico ao t-93 ("Muito obrigada/
+                       obrigado."), que já aceita "Many thanks."
+   - t-231             "O que isso significa?" igual ao t-122, pt e en
+   - t-200             "Of course!", que o t-157 já aceita
+   - t-212             "Thank you.", coberto pelo Immersion Time da Unit 2
+   - t-01              igual ao t-40 menos o "So,"; ficou o t-40, que
+                       trabalha a formação de pergunta no deck de gramática
+   - t-347             "What do you do for fun?" repetido na mesma unidade;
+                       ficou o t-314, que fecha a sequência de conversa
+   - t-75              mesmo enunciado do t-74; "y'all're" é bem mais
+                       regional que "you guys're"
+
+   Sem o que traduzir (o inglês é a própria pergunta, ou é uma palavra só):
+   - t-08 ("Whoo!"), t-05, t-06, t-07 (Number Three/Four/Five),
+     t-142 ("Forever?"), t-202 ("Name?"), t-213 ("Next!"),
+     t-78 ("I'm a dude. Hahahaha!")
+
+   Pedaço de fala, não frase (transcrição cortada no meio):
+   - t-76, t-81, t-82, t-140, t-141
+
+   Vocabulário que não se usa fora da cena:
+   - t-290 (subcamada quadrifônica sensível a pressão), t-289 (esteira
+     omnidirecional), t-80 (Victor Human Services), t-203 (começa em
+     francês), t-09 ("Literal chills"), t-143 (cachorro falando da pata)
+
+   O enunciado não leva à resposta:
+   - t-204  "Todo mundo foi." → "Everyone was." (do português sai "went")
+   - t-34   "Mantenha tudo em ordem!" → "Keep it real!" (impossível de
+            acertar sem já saber a resposta)
+   - t-136  termina em "like...", sem o que vem depois
    ============================================================ */
 
 /* As 15 unidades do curso. O CSV já traz o número da unidade no nome do deck
@@ -91,16 +132,11 @@ const TRANS_DECKS = {
   "u05-study":          { unit: "u05", label: "Study Tips",                  tag: "Deck 7" },
 };
 
-/* ================= OS 359 CARTÕES (Units 1-5) ================= */
+/* ================= OS 327 CARTÕES (Units 1-5) ================= */
 const TRANS_CARDS = [
   /* ==================== UNIT 1 ==================== */
 
-  /* ---- Deck 1: Comprehension Practice (11 cartões) ---- */
-  { id:"t-01",
-    deck:"u01-comprehension",
-    pt:"Então, você reconhece algum desses homens?",
-    en:"So, do you recognize any of these men?",
-    accept:["Do you recognize any of these men?", "So, do you recognise any of these men?", "Do you recognise any of these men?"] },
+  /* ---- Deck 1: Comprehension Practice (5 cartões) ---- */
   { id:"t-02",
     deck:"u01-comprehension",
     pt:"Você lembra o que ele estava cantando?",
@@ -114,29 +150,6 @@ const TRANS_CARDS = [
     pt:"Número Dois, continue.",
     en:"Number Two, keep it going.",
     accept:["Number Two, keep going."] },
-  { id:"t-05",
-    deck:"u01-comprehension",
-    pt:"Número Três.",
-    en:"Number Three." },
-  { id:"t-06",
-    deck:"u01-comprehension",
-    pt:"Número Quatro.",
-    en:"Number Four." },
-  { id:"t-07",
-    deck:"u01-comprehension",
-    pt:"Agora, Número Cinco...",
-    en:"Now Number Five...",
-    accept:["Now, Number Five."] },
-  { id:"t-08",
-    deck:"u01-comprehension",
-    pt:"Whoo!",
-    en:"Whoo!",
-    accept:["Woo!"] },
-  { id:"t-09",
-    deck:"u01-comprehension",
-    pt:"Ah, arrepiei! Me arrepiei literalmente.",
-    en:"Ah, chills! Literal chills.",
-    accept:["Chills! Literal chills.", "Ah, chills! I literally got chills."] },
   { id:"t-10",
     deck:"u01-comprehension",
     pt:"Foi o Número Cinco. O Número Cinco matou meu irmão.",
@@ -210,7 +223,7 @@ const TRANS_CARDS = [
     en:"I need to organize my dresser drawers.",
     accept:["I need to organise my dresser drawers."] },
 
-  /* ---- Deck 4: Immersion Time (10 cartões) ---- */
+  /* ---- Deck 4: Immersion Time (6 cartões) ---- */
   { id:"t-25",
     deck:"u01-immersion",
     pt:"Tchau!",
@@ -236,32 +249,12 @@ const TRANS_CARDS = [
     pt:"\"A gente se vê depois, jacaré!\" (brincadeira infantil)",
     en:"See you later, alligator!",
     accept:["See you later alligator!", "See ya later, alligator!"] },
-  { id:"t-30",
-    deck:"u01-immersion",
-    pt:"Até!",
-    en:"See ya!",
-    accept:["See you!", "Bye!", "Later!", "See you later!"] },
-  { id:"t-31",
-    deck:"u01-immersion",
-    pt:"Até mais!",
-    en:"Later!",
-    accept:["See you later!", "See ya!", "Bye!", "Catch you later!"] },
-  { id:"t-32",
-    deck:"u01-immersion",
-    pt:"Até mais tarde!",
-    en:"Catch ya later!",
-    accept:["Catch you later!", "See you later!", "See ya later!", "Later!"] },
   { id:"t-33",
     deck:"u01-immersion",
     pt:"Paz!",
     en:"Peace!",
     accept:["Peace out!"],
     note:"Also: Peace out!" },
-  { id:"t-34",
-    deck:"u01-immersion",
-    pt:"\"Mantenha tudo em ordem!\"",
-    en:"Keep it real!",
-    accept:["Keep it real."] },
 
   /* ---- Deck 5: Grammar Hacks 01 (12 cartões) ---- */
   { id:"t-35",
@@ -378,7 +371,7 @@ const TRANS_CARDS = [
     pt:"Por que elas/eles gostam tanto desse filme?",
     en:"Why do they like this movie so much?" },
 
-  /* ---- Deck 7: Pronunciation Hacks (17 cartões) ---- */
+  /* ---- Deck 7: Pronunciation Hacks (16 cartões) ---- */
   { id:"t-59",
     deck:"u01-pronunciation",
     pt:"Eu acho que estou apaixonada/apaixonado.",
@@ -447,49 +440,20 @@ const TRANS_CARDS = [
     pt:"Vocês são os melhores!",
     en:"You guys're the best!",
     accept:["Y'all're the best!", "You are the best!", "You guys are the best!"] },
-  { id:"t-75",
-    deck:"u01-pronunciation",
-    pt:"Vocês são os melhores!",
-    en:"Y'all're the best!",
-    accept:["You guys're the best!", "You are the best!", "You all are the best!"] },
 
   /* ==================== UNIT 2 ==================== */
 
-  /* ---- Deck 1: Comprehension Practice (9 cartões) ---- */
-  { id:"t-76",
-    deck:"u02-comprehension",
-    pt:"e eu acho que vou vencer o The Circle.",
-    en:"and I think I'm gonna win The Circle.",
-    accept:["And I think I'm going to win The Circle.", "I think I'm gonna win The Circle."] },
+  /* ---- Deck 1: Comprehension Practice (4 cartões) ---- */
   { id:"t-77",
     deck:"u02-comprehension",
     pt:"eu tenho um segredo guardado pros jogadores.",
     en:"I do have a secret in store for the players.",
     accept:["I have a secret in store for the players."] },
-  { id:"t-78",
-    deck:"u02-comprehension",
-    pt:"Eu sou um cara. Hahahaha!",
-    en:"I'm a dude. Hahahaha!",
-    accept:["I'm a dude. Haha!", "I'm a dude."] },
   { id:"t-79",
     deck:"u02-comprehension",
     pt:"Olá, meu nome é Seaburn, sou de Boston, Massachusetts.",
     en:"Hi, my name is Seaburn, I'm from Boston, Massachusetts.",
     accept:["Hello, my name is Seaburn, I'm from Boston, Massachusetts."] },
-  { id:"t-80",
-    deck:"u02-comprehension",
-    pt:"Eu sou assistente social na Victor Serviços Humanos.",
-    en:"I am a caseworker for Victor Human Services.",
-    accept:["I am a social worker for Victor Human Services."] },
-  { id:"t-81",
-    deck:"u02-comprehension",
-    pt:"Eu trabalho com pessoas com deficiência física,",
-    en:"I work with people with physical disabilities," },
-  { id:"t-82",
-    deck:"u02-comprehension",
-    pt:"mas no The Circle eu vou interpretar a personagem Rebecca",
-    en:"but in The Circle I'll be playing the character Rebecca,",
-    accept:["But in The Circle I'm going to play the character Rebecca."] },
   { id:"t-83",
     deck:"u02-comprehension",
     pt:"Eu sou um designer de realidade virtual.",
@@ -530,7 +494,7 @@ const TRANS_CARDS = [
     en:"I never go to parties on Fridays.",
     accept:["I never go to parties on Friday."] },
 
-  /* ---- Deck 3: Immersion Time (10 cartões) ---- */
+  /* ---- Deck 3: Immersion Time (9 cartões) ---- */
   { id:"t-91",
     deck:"u02-immersion",
     pt:"Obrigada/Obrigado, cara!",
@@ -568,11 +532,6 @@ const TRANS_CARDS = [
     pt:"Sou muito grata/grato pelo que você fez.",
     en:"I am so thankful for what you did.",
     accept:["I'm so thankful for what you did.", "I am very thankful for what you did."] },
-  { id:"t-98",
-    deck:"u02-immersion",
-    pt:"Muito obrigada/obrigado.",
-    en:"Many thanks.",
-    accept:["Thank you very much.", "Thank you so much."] },
   { id:"t-99",
     deck:"u02-immersion",
     pt:"Não consigo te agradecer o suficiente.",
@@ -734,7 +693,7 @@ const TRANS_CARDS = [
 
   /* ==================== UNIT 3 ==================== */
 
-  /* ---- Deck 1: Comprehension Practice (13 cartões) ---- */
+  /* ---- Deck 1: Comprehension Practice (8 cartões) ---- */
   { id:"t-133",
     deck:"u03-comprehension",
     pt:"Chloe! Chloe, Chloe, eu tenho uma situação ruim. A Katie trouxe um cachorro novo do canil!",
@@ -748,10 +707,6 @@ const TRANS_CARDS = [
     deck:"u03-comprehension",
     pt:"Eu estou dormindo no chão, feito um cachorro. Por que a Katie faria isso comigo?",
     en:"I'm sleeping on the floor, like a dog. Why would Katie do this to me?" },
-  { id:"t-136",
-    deck:"u03-comprehension",
-    pt:"Porque ela gosta de cachorros, Max. E pessoas que gostam de cachorros fazem coisas estranhas e inexplicáveis, tipo...",
-    en:"Because she's a dog person, Max. And dog people do weird, inexplicable things, like..." },
   { id:"t-137",
     deck:"u03-comprehension",
     pt:"Elas pegam cachorros em vez de gatos.",
@@ -766,23 +721,6 @@ const TRANS_CARDS = [
     pt:"Max, qual é! Eu sou sua amiga. Tá? E, como sua amiga, eu tenho que ser sincera com você.",
     en:"Max, come on! I'm your friend. Okay? And as your friend, I gotta be honest with you.",
     accept:["Max, come on! I'm your friend. Okay? And as your friend, I have to be honest with you."] },
-  { id:"t-140",
-    deck:"u03-comprehension",
-    pt:"Eu não ligo pra você ou pros seus problemas. Mas se você não fizer algo sobre esse cara, e logo,",
-    en:"I don't care about you or your problems. But if you don't do something about this guy, and soon," },
-  { id:"t-141",
-    deck:"u03-comprehension",
-    pt:"sua vidinha perfeita com a sua humana idiota vai acabar... Pra sempre.",
-    en:"your perfect little life with your dumb, bleh human is gonna be over... Forever." },
-  { id:"t-142",
-    deck:"u03-comprehension",
-    pt:"Pra sempre?",
-    en:"Forever?" },
-  { id:"t-143",
-    deck:"u03-comprehension",
-    pt:"Pra sempre. É, foi o que eu acabei de... Por que esse rato ainda tá na minha pata?",
-    en:"Forever. Yeah, that's what I just... Why is this mouse on my paw still?",
-    accept:["Forever. Yeah, that's what I just... Why is this mouse still on my paw?"] },
   { id:"t-144",
     deck:"u03-comprehension",
     pt:"Olha! Se você realmente quer reconquistar o seu território, você vai ter que começar a agir como o cachorro alfa.",
@@ -1041,7 +979,7 @@ const TRANS_CARDS = [
 
   /* ==================== UNIT 4 ==================== */
 
-  /* ---- Deck 1: Comprehension Practice (16 cartões) ---- */
+  /* ---- Deck 1: Comprehension Practice (10 cartões) ---- */
   { id:"t-198",
     deck:"u04-comprehension",
     pt:"Uau! Que cachorro fofo! Eu amo goldens.",
@@ -1051,26 +989,10 @@ const TRANS_CARDS = [
     deck:"u04-comprehension",
     pt:"Obrigada, meu bem. Você tem uma pro Cashmere?",
     en:"Thank you, my love. Do you have one for Cashmere?" },
-  { id:"t-200",
-    deck:"u04-comprehension",
-    pt:"É claro!",
-    en:"Of course!" },
   { id:"t-201",
     deck:"u04-comprehension",
     pt:"Você sabe que ele fica com inveja.",
     en:"You know he gets jealous." },
-  { id:"t-202",
-    deck:"u04-comprehension",
-    pt:"Nome?",
-    en:"Name?" },
-  { id:"t-203",
-    deck:"u04-comprehension",
-    pt:"Bonjour. Eu sou Emily em Paris e fui convidada pelo Instagram.",
-    en:"Bonjour. I'm Emily in Paris and I was invited on Instagram." },
-  { id:"t-204",
-    deck:"u04-comprehension",
-    pt:"Todo mundo foi.",
-    en:"Everyone was." },
   { id:"t-205",
     deck:"u04-comprehension",
     pt:"Você pode me dar uma grande como a do Cashmere?",
@@ -1102,14 +1024,6 @@ const TRANS_CARDS = [
     deck:"u04-comprehension",
     pt:"Ela está prestes a discursar.",
     en:"She's about to speak." },
-  { id:"t-212",
-    deck:"u04-comprehension",
-    pt:"Obrigado.",
-    en:"Thank you." },
-  { id:"t-213",
-    deck:"u04-comprehension",
-    pt:"Próxima!",
-    en:"Next!" },
 
   /* ---- Deck 2: Vocab Rocket (10 cartões) ---- */
   { id:"t-214",
@@ -1156,7 +1070,7 @@ const TRANS_CARDS = [
     en:"A sweater with an overcoat on top is so stylish.",
     accept:["A sweater with a coat on top is so stylish."] },
 
-  /* ---- Deck 3: Immersion Time (21 cartões) ---- */
+  /* ---- Deck 3: Immersion Time (20 cartões) ---- */
   { id:"t-224",
     deck:"u04-immersion",
     pt:"Você poderia falar um pouco mais devagar, por favor?",
@@ -1191,10 +1105,6 @@ const TRANS_CARDS = [
     deck:"u04-immersion",
     pt:"Eu não sei essa palavra.",
     en:"I don't know that word." },
-  { id:"t-231",
-    deck:"u04-immersion",
-    pt:"O que isso significa?",
-    en:"What does it mean?" },
   { id:"t-232",
     deck:"u04-immersion",
     pt:"Eu esqueci.",
@@ -1436,7 +1346,7 @@ const TRANS_CARDS = [
 
   /* ==================== UNIT 5 ==================== */
 
-  /* ---- Deck 1: Comprehension Practice (11 cartões) ---- */
+  /* ---- Deck 1: Comprehension Practice (9 cartões) ---- */
   { id:"t-286",
     deck:"u05-comprehension",
     pt:"Hoje em dia, a realidade é deprimente. Todos estão procurando um meio de escapar.",
@@ -1450,14 +1360,6 @@ const TRANS_CARDS = [
     pt:"Ele nos mostrou que a gente poderia ir a algum lugar sem ir a lugar algum.",
     en:"He showed us that we could go somewhere without going anywhere at all.",
     accept:["He showed us that we could go somewhere without going anywhere."] },
-  { id:"t-289",
-    deck:"u05-comprehension",
-    pt:"Você não precisa de um destino quando está correndo numa esteira omnidirecional...",
-    en:"You don't need a destination when you're running on an omnidirectional treadmill..." },
-  { id:"t-290",
-    deck:"u05-comprehension",
-    pt:"Com subcamada quadrifônica sensível a pressão.",
-    en:"With quadraphonic pressure-sensitive underlay." },
   { id:"t-291",
     deck:"u05-comprehension",
     pt:"James Halliday enxergou o futuro. E aí, ele o construiu.",
@@ -1686,7 +1588,7 @@ const TRANS_CARDS = [
     pt:"Esse prédio inteiro é delas/deles.",
     en:"This whole building is theirs." },
 
-  /* ---- Deck 6: Pronunciation Hacks (12 cartões) ---- */
+  /* ---- Deck 6: Pronunciation Hacks (11 cartões) ---- */
   { id:"t-342",
     deck:"u05-pronunciation",
     pt:"Você me entende?",
@@ -1707,10 +1609,6 @@ const TRANS_CARDS = [
     deck:"u05-pronunciation",
     pt:"O que você quer dizer?",
     en:"What do you mean?" },
-  { id:"t-347",
-    deck:"u05-pronunciation",
-    pt:"O que você faz para se divertir?",
-    en:"What do you do for fun?" },
   { id:"t-348",
     deck:"u05-pronunciation",
     pt:"Para que você fez aquilo?",
