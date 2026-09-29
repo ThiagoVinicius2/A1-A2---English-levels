@@ -115,13 +115,27 @@ unidade → escolha dos decks daquela unidade → rodada.
   Tips", que não existia antes, e chama o segundo Grammar de "Grammar Hacks
   (part II)"; a Unit 5 numera os dois como "(part I)" e "(part II)"). Use sempre
   o nome como o app do curso mostra, e numere as `tag` na ordem daquela unidade.
-- **Cartão repetido entre unidades acontece** (`What does it mean?` está em
-  `t-122` e `t-231`, com o mesmo `pt` e o mesmo `en`). Não é problema: o curso
-  repete a frase e o cruzamento é automático quando as respostas são iguais. O
-  autoteste reporta o par para você conferir que é intencional.
-  Repetição **dentro da mesma unidade** também acontece (`What do you do for
-  fun?` está em `t-314`, do Immersion Time, e em `t-347`, do Pronunciation
-  Hacks): são decks diferentes, treinando coisas diferentes, então os dois ficam.
+- **O banco não é o CSV inteiro.** 32 cartões foram podados de propósito, e o
+  comentário no topo de `js/data-translate.js` lista todos com o motivo. Ao
+  reimportar uma unidade já carregada, confira essa lista antes de recolocar
+  tudo — senão os cartões voltam sozinhos. Os motivos que valeram corte:
+  - **repetição** — o curso repete a frase entre unidades e às vezes dentro da
+    mesma (`What does it mean?` estava em `t-122` e `t-231`; `What do you do
+    for fun?` em `t-314` e `t-347`). Fica um só;
+  - **não há o que traduzir** — `Whoo!` → `Whoo!`, `Número Três.` →
+    `Number Three.`, ou o cartão é um pedaço de fala cortado no meio
+    (`but in The Circle I'll be playing the character Rebecca,`);
+  - **o enunciado não leva à resposta** — `Mantenha tudo em ordem!` →
+    `Keep it real!` é impossível de acertar sem já saber, e o corretor reprova
+    a tradução que o português pede;
+  - **vocabulário que não se usa fora da cena** (`subcamada quadrifônica
+    sensível a pressão`): o deck é para produzir inglês, não decorar legenda.
+- **Nenhuma resposta pode valer em dois cartões.** Era o caso das despedidas da
+  Unit 1: `Later!` passava em `t-25`, `t-30`, `t-31` e `t-32` ao mesmo tempo, e
+  os `accept` de cada um cobriam os outros — decorar uma frase fechava quatro
+  cartões e a prática virava a mesma pergunta repetida. Ao cadastrar `accept`,
+  cuidado para não invadir o enunciado do vizinho. O autoteste trava isso:
+  indexa variante → cartão e falha nomeando os dois donos.
 - Cada cartão: `pt`, `en` e, quando couber, `accept` (traduções alternativas
   igualmente corretas) e `note`. **Cadastre `accept` sempre que a frase em
   português admitir mais de um inglês certo** — sobretudo nas despedidas do deck
@@ -152,9 +166,13 @@ unidade → escolha dos decks daquela unidade → rodada.
   exibido, nunca comparado. **Se algum dia o módulo inverter o sentido** (mostrar
   o inglês e pedir o português), aí essas formas precisam ser normalizadas antes
   de comparar — junto de `você`/`vc`, `está`/`tá` e `para`/`pra`.
-- Enunciado em português repetido entre cartões (acontece: `t-74`/`t-75`,
-  `t-93`/`t-98`) **precisa de `accept` cruzado** — cada um aceitando a resposta
-  do outro, senão uma resposta certa é reprovada. O autoteste detecta e cobra.
+- Enunciado em português repetido entre cartões **precisa de `accept` cruzado**
+  — cada um aceitando a resposta do outro, senão uma resposta certa é reprovada.
+  Hoje não há nenhum par assim (a poda tirou `t-75`, `t-98`, `t-231` e `t-347`),
+  mas o autoteste continua detectando e cobrando quando aparecer. Atenção: esse
+  cruzamento e a trava de resposta intercambiável puxam para lados opostos — se
+  um enunciado repetido voltar, o certo é **juntar os dois cartões em um**, com
+  as duas respostas em `accept`, não manter dois cartões gêmeos.
 - Se o enunciado em português trouxer duas glosas (`Você não deveria. / Não
   precisava!`), deixe uma frase só no `pt` — o enunciado tem que ser traduzível
   — e mande a outra para `note`.
@@ -218,7 +236,8 @@ unidade → escolha dos decks daquela unidade → rodada.
 - `node --check` nos quatro arquivos de `js/`
 - Validar os bancos: toda categoria com teste e prática, 4 opções e 4 explicações,
   `correct` dentro do intervalo, ids únicos; nos cartões de tradução, todo `deck`
-  existente e a contagem por deck igual à do CSV
+  existente e a contagem por deck igual à do CSV **menos os cartões da lista de
+  poda** (o comentário no topo de `js/data-translate.js`)
 - Autoteste do corretor de tradução: para todo cartão, a própria resposta (`en`) e
   cada string de `accept` precisam ser corrigidas como `certo`
 - Teste da porcentagem por deck: numa rodada com um acerto, um typo, uma resposta
@@ -233,6 +252,8 @@ unidade → escolha dos decks daquela unidade → rodada.
   outra, e o histórico gravado no formato antigo migrando para a chave com prefixo
 - Cruzamento dos enunciados repetidos: dois cartões com o mesmo `pt` precisam
   aceitar a resposta um do outro
+- Nenhuma resposta intercambiável: nenhuma string de `en` ou de `accept` pode
+  ser corrigida como `certo` em mais de um cartão
 - Contração nos dois sentidos: para toda resposta do banco, a versão contraída e
   a expandida precisam dar `certo` — e `This's`, `Friends's`, `you's`, `its` por
   `it's` e `they're` por `their` precisam continuar sendo reprovadas
