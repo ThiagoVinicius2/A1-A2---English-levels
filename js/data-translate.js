@@ -1702,6 +1702,56 @@ const TRANS_CONTRACTIONS = [
   ["gonna", "going to"], ["wanna", "want to"], ["gotta", "got to"],
 ];
 
+/* Sinônimos reduzidos a uma forma só, nos DOIS lados da comparação — a mesma
+   ideia das contrações.
+
+   O motivo: várias palavras do português admitem mais de um inglês igualmente
+   certo, e o enunciado não tem como escolher entre eles. "Eu acho que" é
+   "I think" tanto quanto "I guess"; "loja" é "store" e "shop"; "filhos" é
+   "kids" e "children". Sem isso o cartão reprova inglês correto — foi o que
+   aconteceu no t-306 ("Bom, eu acho que a estampa de animal está de volta"),
+   que só aceitava "I guess".
+
+   Por que uma tabela e não `accept` cartão a cartão: `accept` é curadoria
+   manual, e a prova de que ela não escala está no próprio banco — o t-69
+   aceitava "bathroom" porque alguém lembrou, e o t-312 reprovava "children"
+   porque ninguém lembrou. A tabela vale para o banco inteiro e para as
+   unidades que ainda vão entrar.
+
+   O risco, e como ele é contido: se algum dia um deck ENSINAR justamente a
+   diferença entre duas destas palavras, a tabela apaga a lição. Nesse caso
+   tire o par daqui e resolva aquele cartão com `accept`. Colisão entre
+   cartões (duas frases diferentes virando a mesma) o autoteste pega sozinho,
+   na trava de resposta intercambiável.
+
+   Só entram pares sem diferença de sentido nestes decks — variação de
+   dialeto (mum/mom, flat/apartment) ou de registro (mother/mom). Verbo com
+   sentido diferente NÃO entra: "comprar" é "buy", e aceitar "get" deixaria
+   passar quem fugiu da palavra que o deck ensina.
+
+   Prefira o par de UMA palavra ao de duas. `transDiffWords` normaliza palavra
+   por palavra para montar o "você escreveu × resposta do cartão", então um par
+   de frase ("i guess" → "i think") corrige a nota mas deixa `think` riscado em
+   vermelho na tela — a pessoa lê que acertou e vê a palavra marcada como erro.
+   Com o par de uma palavra o diff também entende, e as duas telas concordam. */
+const TRANS_SYNONYMS = [
+  /* Expressão, sempre antes das palavras soltas para casar a forma longa. */
+  ["movie theater", "movies"], ["movie theatre", "movies"],
+
+  /* "eu acho que" é opinião com hesitação, e as quatro formas servem. */
+  ["guess", "think"], ["suppose", "think"], ["believe", "think"], ["reckon", "think"],
+  /* dialeto e registro */
+  ["mum", "mom"], ["mummy", "mom"], ["mother", "mom"],
+  ["father", "dad"], ["daddy", "dad"],
+  ["flat", "apartment"], ["flats", "apartments"],
+  ["restroom", "bathroom"], ["washroom", "bathroom"],
+  /* sinônimos plenos */
+  ["shop", "store"], ["shops", "stores"],
+  ["children", "kids"], ["child", "kid"],
+  ["photos", "pictures"], ["photo", "picture"],
+  ["cinema", "movies"],
+];
+
 /* "Number Two" e "Number 2" são a mesma resposta. */
 const TRANS_NUMBERS = {
   one: "1", two: "2", three: "3", four: "4", five: "5", six: "6",
@@ -1721,12 +1771,23 @@ function transNormalizeBase(str) {
     s = s.replace(new RegExp("\\b" + pair[0] + "\\b", "g"), pair[1]);
   });
   s = s.replace(/[^a-z0-9\s']/g, " ");                      // resto da pontuação
+  s = s.replace(/\s+/g, " ").trim();
+  /* os sinônimos vêm depois de colapsar o espaço, senão as expressões de mais
+     de uma palavra ("movie theater") não casam quando a pontuação virou
+     espaço duplo. */
+  TRANS_SYNONYMS.forEach(pair => {
+    s = s.replace(new RegExp("\\b" + pair[0] + "\\b", "g"), pair[1]);
+  });
   return s.replace(/\s+/g, " ").trim();
 }
 
 /* Segunda etapa: tira o apóstrofo que sobrou, resolve números e horário. */
 function transFinishNormalize(str) {
   let s = String(str).replace(/'/g, "");   // posse, o'clock etc.
+  /* "a" e "an" são o mesmo artigo — quem escolhe é o som da palavra seguinte,
+     não a gramática que o deck ensina. Sem isso "a flat" não bateria com
+     "an apartment" depois da troca de sinônimo. */
+  s = s.replace(/\ban\b/g, "a");
   s = s.replace(/\b[a-z]+\b/g, w => TRANS_NUMBERS[w] || w);
   /* a pontuação já caiu, então "a.m." virou "a m": junta de volta e garante o
      espaço depois do número, para 7 a.m. == 7 AM == 7am. */
