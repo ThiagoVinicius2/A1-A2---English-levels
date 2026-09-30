@@ -106,9 +106,55 @@ unidade → escolha dos decks daquela unidade → rodada.
 - `transUnitProgress(unitKey)` dá a média de acerto "de primeira" dos decks já
   praticados da unidade — é o que o card da unidade mostra.
 
+### Importar uma unidade nova — procedimento combinado, não precisa perguntar
+
+Quando chegar um CSV de unidade, faça **tudo isto** sem pedir confirmação. O
+critério já está combinado; o dono quer o resultado e a lista do que saiu, para
+vetar alguma coisa se discordar.
+
+1. **Ler com `encoding="utf-8-sig"`** e conferir o total e a contagem por deck
+   contra o que o CSV traz.
+2. **Rodar a checagem de repetição antes de importar** — literal e semântica:
+   - resposta em inglês igual à de um cartão que já existe;
+   - resposta nova que já é aceita por um cartão antigo (`gradeTransAnswer`);
+   - enunciado em português repetido, dentro da unidade e contra o banco;
+   - **enunciados parecidos demais** (Jaccard ≥ 0,5 sobre o português
+     normalizado). É o que a comparação literal não pega: na Unit 6,
+     "Estou dentro!", "Estou dentro com isso!" e "Tô dentro!" eram três
+     cartões com três respostas diferentes e nenhum teste literal acusava.
+3. **Podar**, pelos critérios já firmados (o comentário no topo de
+   `js/data-translate.js` guarda a lista com o motivo de cada cartão):
+   - **repetição** — fica um cartão só. Se o enunciado repetido tem respostas
+     diferentes e todas certas, **junte num cartão** com as outras em `accept`
+     e a `note` mostrando quais são;
+   - **não há o que traduzir** — a resposta é a própria pergunta (`Whoo!`) ou
+     é uma palavra solta (`Number Three.`, `Name?`);
+   - **pedaço de fala, não frase** — começa em minúscula ou termina em
+     vírgula. Os decks de Comprehension Practice são transcrição e costumam
+     perder metade assim: a Unit 6 perdeu 5 de 10;
+   - **o enunciado não leva à resposta** — `Mantenha tudo em ordem!` →
+     `Keep it real!`; `Picasso começou a pintar` → `Picasso could draw`;
+   - **vocabulário que não se usa fora da cena** — `subcamada quadrifônica
+     sensível a pressão`.
+4. **Cadastrar `accept` com generosidade** onde o português admite mais de um
+   inglês certo, e `note` (em inglês) quando o deck estiver treinando uma forma
+   que o enunciado não tem como pedir. Caso típico: deck de modais, em que
+   `poder` é `can` e `may` ao mesmo tempo — aceite os dois e deixe a forma do
+   curso aparecer em **Card answer**, que é onde ela é aprendida. Sinônimo que
+   vale para o banco inteiro vai em `TRANS_SYNONYMS`, não aqui.
+5. **Conferir gíria e fala reduzida nova** e acrescentar em
+   `TRANS_CONTRACTIONS` — a Unit 6 trouxe `lemme`, `gimme` e `Imma`.
+6. Rodar a bateria inteira de "Antes de publicar", subir o cache-busting e
+   publicar pelo fluxo padrão (branch → commit → PR → merge na `main`).
+7. **Relatar o que saiu**, agrupado por motivo, para o dono poder pedir algum
+   cartão de volta.
+
 - **O CSV vem em UTF-8 com BOM.** Ao reimportar, ler com `encoding="utf-8-sig"`:
   com `utf-8` puro o cabeçalho da primeira coluna vira `\ufeffid` e a coluna `id`
   some sem dar erro.
+- **O CSV não é consistente nem dentro da mesma unidade.** A Unit 6 chama um
+  deck de "Grammar Hacks (Part I)" e o outro de "Grammar Hacks 02". Mantenha
+  como veio: é o nome que o app do curso mostra.
 - `TRANS_DECKS`: um deck por bloco do curso, com `label` e `tag` (`Deck 1`, …).
   Todo cartão precisa apontar para um deck existente — a rodada filtra por deck.
   **O conjunto de decks muda de unidade para unidade** (a Unit 4 trouxe "Study
@@ -279,6 +325,11 @@ unidade → escolha dos decks daquela unidade → rodada.
   documentados têm caso dirigido próprio (`t-306`, `t-312`, `t-36`, `t-21`,
   `t-16`), porque a rede só percorre o que está na tabela e não acusa a remoção
   de um par
+- Fala reduzida sem apóstrofo: `lemme`, `gimme`, `Imma`, `gotcha` e companhia
+  não têm apóstrofo, então a rede das contrações não as enxerga — há uma lista
+  própria no autoteste que falha nomeando o cartão quando uma delas aparece sem
+  estar em `TRANS_CONTRACTIONS`. Foi ela que achou o `gotcha` do `t-233`, que
+  reprovava "Got you!" desde a Unit 4
 - Contração nos dois sentidos: para toda resposta do banco, a versão contraída e
   a expandida precisam dar `certo` — e `This's`, `Friends's`, `you's`, `its` por
   `it's` e `they're` por `their` precisam continuar sendo reprovadas
