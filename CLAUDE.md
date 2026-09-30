@@ -220,8 +220,8 @@ vetar alguma coisa se discordar.
 - **Sinônimo que vale para o banco inteiro vai em `TRANS_SYNONYMS`, não em
   `accept`.** Palavra que o português não tem como desambiguar (`eu acho que` é
   `I think` e `I guess`; `loja` é `store` e `shop`; `filhos` é `kids` e
-  `children`) entra na tabela e passa a valer em toda unidade, inclusive nas que
-  ainda vão entrar. `accept` continua sendo para reformulação do cartão
+  `children`; `obrigado` é `thanks` e `thank you`) entra na tabela e passa a
+  valer em toda unidade, inclusive nas que ainda vão entrar. `accept` continua sendo para reformulação do cartão
   ("Let me try." por "Let me have a go at it."), que é específica dele.
   A prova de que a curadoria manual não escala está no próprio banco: o `t-69`
   aceitava "bathroom" porque alguém lembrou, e o `t-312` reprovava "children"
@@ -302,14 +302,28 @@ vetar alguma coisa se discordar.
   nota da última vez. Suba a chave (`_r3` → `_r4` → …) se o formato mudar de novo.
   `loadTransDeckStats()` tem uma migração única do `_r2` (chaves sem prefixo de
   unidade) para o formato atual; pode sair quando não valer mais a pena.
-- **Duas notas por cartão, e elas não podem se misturar:**
-  `state.transGrades` é o placar da rodada (a autoavaliação "minha resposta também
-  está certa" conta ali) e `state.transFirstGrades` guarda só o **primeiro
-  veredito**, que alimenta a porcentagem "de primeira" mostrada em cada deck.
-  `markTransAnswerCorrect()` só pode tocar `transGrades` — se algum dia escrever
-  também em `transFirstGrades`, a porcentagem por deck perde o sentido.
-  Conta como acerto de primeira: `certo` e `quase` (o inglês estava certo, só a
-  digitação escorregou). Não contam: `diferente`, `naoLembro` e `aceitoManual`.
+- **Uma nota só: `state.transGrades`.** Ela serve ao placar da rodada e à
+  porcentagem por deck, e `transIsHit()` é a régua das duas.
+  - **Contam como acerto:** `certo`; `quase` (o inglês produzido estava certo,
+    só a digitação escorregou); e `aceitoManual` — a pessoa apertou "My answer
+    is also correct".
+  - **Não contam:** `diferente` e `naoLembro`.
+  - **Por que a autoavaliação conta.** Ela não é uma segunda tentativa: é a
+    pessoa corrigindo *o corretor* sobre a primeira resposta, quando a tradução
+    dela estava boa e não estava em `accept`. Foi o caso do `t-382`, que
+    aceitava "Sure! Thanks!", "Sure! Thank you!" e "Of course! Thanks!" mas
+    reprovava justamente "Of course! Thank you!". Excluir esse cartão da
+    porcentagem punia a pessoa por uma falha nossa.
+  - **O que garante que continua sendo "de primeira"** é `state.transRevealed`:
+    `submitTransAnswer()` e `skipTransCard()` recusam cartão já revelado, então
+    cada cartão tem exatamente um veredito submetido. Não é preciso um segundo
+    mapa para congelar nada — e é por isso que o antigo `transFirstGrades`,
+    que existia só para excluir o `aceitoManual`, foi removido. **Se algum dia
+    o "Back" passar a permitir responder de novo, aí sim volta a ser preciso
+    congelar o primeiro veredito** — o `transRevealed` é a peça que segura tudo.
+  - Quando a autoavaliação é usada muito num mesmo cartão, o conserto certo não
+    é mexer na régua: é cadastrar a variação em `accept` ou em
+    `TRANS_SYNONYMS`, para a pessoa não precisar do botão.
 - O card da página inicial **não** mostra resultado geral de propósito: com muitos
   decks, uma média só não diz onde o estudo está fraco. O feedback fica na tela de
   escolha de decks, uma porcentagem à direita de cada deck.
@@ -338,9 +352,11 @@ vetar alguma coisa se discordar.
 - Autoteste do corretor de tradução: para todo cartão, a própria resposta (`en`) e
   cada string de `accept` precisam ser corrigidas como `certo`
 - Teste da porcentagem por deck: numa rodada com um acerto, um typo, uma resposta
-  diferente aceita na autoavaliação e um "Não lembro", a tela de resultado mostra
-  75% e o histórico do deck grava 50% — se os dois números baterem, as duas notas
-  se misturaram
+  diferente aceita na autoavaliação e um "Não lembro", **a tela de resultado e o
+  histórico do deck têm de mostrar os mesmos 75% (3/4)** — é uma régua só. Se
+  der 50%, o `aceitoManual` voltou a ser excluído; se der 100%, o "Não lembro"
+  passou a contar. O teste também confere que `transFirstGrades` não voltou ao
+  `state`
 - Teste da rodada de correção: errando 4 de 9 cartões e depois acertando os 4 na
   correção, o histórico do deck precisa continuar em 56% (5/9) — se virar 100%,
   a correção voltou a gravar por cima

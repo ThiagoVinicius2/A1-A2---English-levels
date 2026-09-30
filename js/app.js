@@ -41,7 +41,6 @@ const state = {
   transIndex: 0,
   transAnswers: {},         // { cardId: texto digitado }
   transGrades: {},          // { cardId: "certo" | "quase" | "diferente" | "aceitoManual" | "naoLembro" }
-  transFirstGrades: {},     // idem, mas só o 1º veredito: a autoavaliação NUNCA mexe aqui
   transRevealed: {},        // { cardId: true } assim que a resposta é conferida
   transResults: null,
   transLandingDetailsOpen: false,
@@ -1098,17 +1097,18 @@ function renderConvExerciseSummary() {
       o escapeHtml daqui não escapa aspas, e há frases em português com aspas.
       Tudo vai para nó de texto. */
 
+/* Acerto, tanto no placar da rodada quanto na porcentagem por deck — é uma
+   régua só, e de propósito.
+   - "quase": o inglês produzido estava certo, só a digitação escorregou.
+   - "aceitoManual": a pessoa apertou "My answer is also correct". Isso não é
+     uma segunda tentativa; é ela corrigindo o corretor sobre a PRIMEIRA
+     resposta, quando a tradução era boa e não estava em `accept`. Responder
+     de novo o mesmo cartão é impossível (transRevealed), então o veredito
+     continua sendo o da primeira tentativa. */
 const TRANS_OK_GRADES = ["certo", "quase", "aceitoManual"];
 
 function transIsHit(grade) {
   return TRANS_OK_GRADES.indexOf(grade) !== -1;
-}
-
-/* Acerto "de primeira": o que valeu na primeira resposta, antes de qualquer
-   autoavaliação. "quase" entra porque o inglês produzido estava certo — só a
-   digitação escorregou. É esta a régua da porcentagem por deck. */
-function transIsFirstHit(grade) {
-  return grade === "certo" || grade === "quase";
 }
 
 /* Histórico por deck: { deckKey: { pct, correct, total, date } }.
@@ -1208,7 +1208,6 @@ function startTransRound(deckKeys) {
   state.transIndex = 0;
   state.transAnswers = {};
   state.transGrades = {};
-  state.transFirstGrades = {};
   state.transRevealed = {};
   state.transResults = null;
   state.transEmptyWarn = false;
@@ -1232,7 +1231,6 @@ function startTransRetry() {
   state.transIndex = 0;
   state.transAnswers = {};
   state.transGrades = {};
-  state.transFirstGrades = {};
   state.transRevealed = {};
   state.transResults = null;
   state.transEmptyWarn = false;
@@ -1256,7 +1254,6 @@ function submitTransAnswer() {
   state.transEmptyWarn = false;
   state.transAnswers[card.id] = digitado;
   state.transGrades[card.id] = nota.level;
-  state.transFirstGrades[card.id] = nota.level;   // congelado: é o "de primeira"
   state.transRevealed[card.id] = true;
   render();
 }
@@ -1265,8 +1262,9 @@ function submitTransAnswer() {
 function markTransAnswerCorrect() {
   const card = transCurrentCard();
   if (!card || !state.transRevealed[card.id]) return;
-  /* De propósito só mexe em transGrades: transFirstGrades guarda o primeiro
-     veredito e é o que alimenta a porcentagem "de primeira" de cada deck. */
+  /* Conta como acerto de primeira, e não como segunda tentativa: o que mudou
+     foi o veredito sobre a resposta que já estava lá, não a resposta. Quem
+     impede responder de novo é transRevealed, checado logo acima. */
   state.transGrades[card.id] = "aceitoManual";
   render();
 }
@@ -1277,7 +1275,6 @@ function skipTransCard() {
   state.transEmptyWarn = false;
   state.transAnswers[card.id] = "";
   state.transGrades[card.id] = "naoLembro";
-  state.transFirstGrades[card.id] = "naoLembro";
   state.transRevealed[card.id] = true;
   render();
 }
@@ -1354,9 +1351,8 @@ function finishTransRound() {
     totalQuestions: state.transCards.length,
     isRetry: state.transIsRetry,
   };
-  /* Histórico por deck, com a régua estrita (transFirstGrades): mescla no que
-     já estava gravado, então deck fora desta rodada mantém a nota da última vez
-     em que foi praticado.
+  /* Histórico por deck: mescla no que já estava gravado, então deck fora desta
+     rodada mantém a nota da última vez em que foi praticado.
 
      Rodada de correção fica de fora: ela traz só os cartões errados, então
      gravaria uma porcentagem que não representa o deck. */
@@ -1367,7 +1363,7 @@ function finishTransRound() {
     state.transCards.forEach(card => {
       dePrimeira[card.deck] = dePrimeira[card.deck] || { correct: 0, total: 0 };
       dePrimeira[card.deck].total++;
-      if (transIsFirstHit(state.transFirstGrades[card.id])) dePrimeira[card.deck].correct++;
+      if (transIsHit(state.transGrades[card.id])) dePrimeira[card.deck].correct++;
     });
     Object.keys(dePrimeira).forEach(key => {
       const d = dePrimeira[key];
@@ -1484,7 +1480,8 @@ function renderTransDecks() {
       <p class="lead">Each card shows a Portuguese sentence for you to write in English.
       Pick as many decks as you like — the cards come shuffled.</p>
       <p class="trans-deck-legend">The percentage on the right is how much you got right <strong>on the first try</strong>
-      the last time you practised that deck — not counting cards you marked correct afterwards.</p>
+      the last time you practised that deck. Cards you marked as also correct count as first-try hits —
+      marking one fixes our grading, it is not a second attempt.</p>
 
       <div class="trans-deck-list">
         ${decksDaUnidade.map(key => {

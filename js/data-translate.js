@@ -2121,6 +2121,11 @@ const TRANS_SYNONYMS = [
   ["children", "kids"], ["child", "kid"],
   ["photos", "pictures"], ["photo", "picture"],
   ["cinema", "movies"],
+  /* "obrigado" é "thanks" e "thank you" — e o CSV alterna entre os dois sem
+     critério. Sem isso o t-382 ("Claro! Obrigada!") aceitava "Sure! Thanks!",
+     "Sure! Thank you!" e "Of course! Thanks!", mas reprovava justamente a
+     quarta combinação, "Of course! Thank you!". */
+  ["thanks", "thank you"],
 ];
 
 /* "Number Two" e "Number 2" são a mesma resposta. */
