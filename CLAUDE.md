@@ -136,17 +136,24 @@ vetar alguma coisa se discordar.
      `Keep it real!`; `Picasso começou a pintar` → `Picasso could draw`;
    - **vocabulário que não se usa fora da cena** — `subcamada quadrifônica
      sensível a pressão`.
-4. **Cadastrar `accept` com generosidade** onde o português admite mais de um
+4. **Testar o enunciado contra a tradução literal.** Para cada cartão
+   idiomático, escreva a tradução mais óbvia do português e passe pelo
+   `gradeTransAnswer`: se der `diferente`, o cartão reprova quem acertou. Aí
+   decida pela regra das duas situações — `accept` se as duas frases servem na
+   mesma hora, `ctx` se o enunciado não tem como escolher. O Immersion Time é
+   o deck que mais precisa: na varredura que achou o problema, **17 de 17
+   literais reprovadas estavam nele**.
+5. **Cadastrar `accept` com generosidade** onde o português admite mais de um
    inglês certo, e `note` (em inglês) quando o deck estiver treinando uma forma
    que o enunciado não tem como pedir. Caso típico: deck de modais, em que
    `poder` é `can` e `may` ao mesmo tempo — aceite os dois e deixe a forma do
    curso aparecer em **Card answer**, que é onde ela é aprendida. Sinônimo que
    vale para o banco inteiro vai em `TRANS_SYNONYMS`, não aqui.
-5. **Conferir gíria e fala reduzida nova** e acrescentar em
+6. **Conferir gíria e fala reduzida nova** e acrescentar em
    `TRANS_CONTRACTIONS` — a Unit 6 trouxe `lemme`, `gimme` e `Imma`.
-6. Rodar a bateria inteira de "Antes de publicar", subir o cache-busting e
+7. Rodar a bateria inteira de "Antes de publicar", subir o cache-busting e
    publicar pelo fluxo padrão (branch → commit → PR → merge na `main`).
-7. **Relatar o que saiu**, agrupado por motivo, para o dono poder pedir algum
+8. **Relatar o que saiu**, agrupado por motivo, para o dono poder pedir algum
    cartão de volta.
 
 - **O CSV vem em UTF-8 com BOM.** Ao reimportar, ler com `encoding="utf-8-sig"`:
@@ -186,6 +193,30 @@ vetar alguma coisa se discordar.
   igualmente corretas) e `note`. **Cadastre `accept` sempre que a frase em
   português admitir mais de um inglês certo** — sobretudo nas despedidas do deck
   Immersion Time; sem isso a rodada reprova resposta boa.
+- **Duas respostas certas ou duas situações? A pergunta decide o conserto.**
+  Quando uma resposta boa é reprovada, veja se as duas frases em inglês servem
+  na **mesma** situação ou em situações **diferentes**:
+  - **Mesma situação** → aceite as duas. `eu acho que` é `I think` e
+    `I guess` na mesma hora, e nada no enunciado escolhe. Vai em
+    `TRANS_SYNONYMS` (se vale para o banco) ou em `accept` (se é reformulação
+    daquele cartão).
+  - **Situações diferentes** → o enunciado é que está incompleto, e aceitar as
+    duas não conserta, só apaga o exercício. `Você quer?` é
+    `Do you want some?` oferecendo comida e `Do you want it?` apontando uma
+    coisa. Aí o cartão ganha **`ctx`**.
+- **`ctx` é a situação do cartão**, uma linha curta mostrada abaixo do
+  enunciado **antes** de responder (a `note` só aparece depois, então não serve
+  para isso). É conteúdo pedagógico, então vem **em português**, em minúscula e
+  sem ponto final: `ctx:"oferecendo comida ou bebida a alguém"`.
+  - **Nunca entra na comparação** — quem corrige lê só `en` e `accept`. O
+    autoteste trava isso: digitar a própria situação não pode dar `certo`.
+  - Use com parcimônia, só onde o enunciado realmente não tem como levar à
+    resposta. O deck **Immersion Time** é o freguês: ele ensina expressão
+    idiomática, e a tradução literal do enunciado quase nunca é a resposta
+    (`Como é?` → `What's that?`, `A qualquer momento.` → `Anytime.`).
+  - `ctx` e `accept` não competem: o normal é o cartão ganhar os dois — a
+    situação para a pessoa conseguir acertar, e o `accept` para não reprovar
+    quem respondeu outra coisa defensável.
 - **Sinônimo que vale para o banco inteiro vai em `TRANS_SYNONYMS`, não em
   `accept`.** Palavra que o português não tem como desambiguar (`eu acho que` é
   `I think` e `I guess`; `loja` é `store` e `shop`; `filhos` é `kids` e
@@ -320,6 +351,9 @@ vetar alguma coisa se discordar.
   aceitar a resposta um do outro
 - Nenhuma resposta intercambiável: nenhuma string de `en` ou de `accept` pode
   ser corrigida como `certo` em mais de um cartão
+- Campo `ctx`: só string curta e não vazia, e **nenhuma** delas pode ser
+  corrigida como `certo` nem aparecer em `transExpectedAnswers` — a situação é
+  enunciado, nunca resposta
 - Sinônimos nos dois sentidos: para todo cartão, trocar na resposta uma palavra
   de `TRANS_SYNONYMS` pela equivalente precisa dar `certo` — e os pares
   documentados têm caso dirigido próprio (`t-306`, `t-312`, `t-36`, `t-21`,
