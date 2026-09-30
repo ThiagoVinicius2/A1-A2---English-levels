@@ -1597,6 +1597,7 @@ function renderTransRound() {
 
       <span class="q-level">Write it in English</span>
       <div class="q-prompt">${escapeHtml(card.pt)}</div>
+      ${card.ctx ? `<p class="q-context">${escapeHtml(card.ctx)}</p>` : ""}
 
       ${revealed ? "" : `
         <input type="text" id="trans-input" class="trans-input"
@@ -1719,6 +1720,7 @@ function renderTransMistakesReview(mistakes) {
         return `
           <div class="trans-review-item">
             <div class="trans-review-pt">${escapeHtml(card.pt)}</div>
+            ${card.ctx ? `<p class="q-context">${escapeHtml(card.ctx)}</p>` : ""}
             ${m.grade === "naoLembro"
               ? `<div class="trans-answer-row">
                    <span class="trans-answer-tag">You did not recall</span>

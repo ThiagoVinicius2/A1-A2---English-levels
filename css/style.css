@@ -402,6 +402,21 @@ p { margin: 0 0 16px; color: var(--ink-75); }
 }
 .q-level.accent2 { background: rgba(155, 140, 255, .14); color: var(--acc2); }
 .q-prompt { font-size: 1.3rem; font-weight: 600; letter-spacing: -.02em; margin-bottom: 20px; text-wrap: pretty; }
+/* só encolhe quando vem a situação logo abaixo; os outros dois módulos
+   usam o mesmo .q-prompt e continuam com os 20px de sempre. */
+.q-prompt:has(+ .q-context) { margin-bottom: 6px; }
+
+/* Situação do cartão de tradução. Existe porque um enunciado curto como
+   "Você quer?" não diz se o inglês é "Do you want some?" (oferecendo comida)
+   ou "Do you want it?" (apontando uma coisa): sem a situação não dá para
+   escolher. Fica discreta, abaixo do enunciado, e some quando o cartão não
+   precisa dela. Não entra na comparação — é só o enunciado se completando. */
+.q-context {
+  font-size: .9rem;
+  color: var(--muted);
+  margin: 0 0 20px;
+  font-style: italic;
+}
 
 .options { display: flex; flex-direction: column; gap: 10px; }
 .option {
