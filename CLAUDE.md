@@ -136,6 +136,8 @@ vetar alguma coisa se discordar.
      `Keep it real!`; `Picasso começou a pintar` → `Picasso could draw`;
    - **vocabulário que não se usa fora da cena** — `subcamada quadrifônica
      sensível a pressão`.
+   **Unidade sem nada para podar acontece** — a Unit 7 entrou inteira. Não
+   force corte para cumprir tabela.
 4. **Testar o enunciado contra a tradução literal.** Para cada cartão
    idiomático, escreva a tradução mais óbvia do português e passe pelo
    `gradeTransAnswer`: se der `diferente`, o cartão reprova quem acertou. Aí
@@ -221,7 +223,11 @@ vetar alguma coisa se discordar.
   `accept`.** Palavra que o português não tem como desambiguar (`eu acho que` é
   `I think` e `I guess`; `loja` é `store` e `shop`; `filhos` é `kids` e
   `children`; `obrigado` é `thanks` e `thank you`) entra na tabela e passa a
-  valer em toda unidade, inclusive nas que ainda vão entrar. `accept` continua sendo para reformulação do cartão
+  valer em toda unidade, inclusive nas que ainda vão entrar. **Grafia
+  britânica entra pelo mesmo motivo** (`favourite`, `coloured`, `realise`,
+  `practise`, `theatre`): é variação pura, e o banco só tinha cobertura onde
+  alguém lembrou — o `t-278` aceitava "favourite" e o `t-452` ("colored") não
+  aceitava nada. `accept` continua sendo para reformulação do cartão
   ("Let me try." por "Let me have a go at it."), que é específica dele.
   A prova de que a curadoria manual não escala está no próprio banco: o `t-69`
   aceitava "bathroom" porque alguém lembrou, e o `t-312` reprovava "children"
