@@ -153,6 +153,12 @@ vetar alguma coisa se discordar.
    vale para o banco inteiro vai em `TRANS_SYNONYMS`, não aqui.
 6. **Conferir gíria e fala reduzida nova** e acrescentar em
    `TRANS_CONTRACTIONS` — a Unit 6 trouxe `lemme`, `gimme` e `Imma`.
+   Atenção: a rede automática só enxerga o que **aparece escrito** nos
+   cartões. A Unit 8 tem um deck inteiro sobre `kind of`, `sort of`,
+   `lots of` e `out of`, mas escreve a forma longa — então `kinda`, `sorta`
+   e `outta` não eram acusadas por ninguém e reprovavam quem as escrevesse.
+   Quando um deck **ensinar** uma redução, cadastre-a mesmo que o cartão
+   traga só a forma longa.
 7. Rodar a bateria inteira de "Antes de publicar", subir o cache-busting e
    publicar pelo fluxo padrão (branch → commit → PR → merge na `main`).
 8. **Relatar o que saiu**, agrupado por motivo, para o dono poder pedir algum
@@ -253,6 +259,13 @@ vetar alguma coisa se discordar.
   os parênteses viram espaço na normalização, então sem isso quem escrever só
   "XL pants" é reprovado.
 - **`note` é interface, então em inglês** ("Also: Thanks a ton!").
+- **Número por extenso vale pelo algarismo até 99.** `TRANS_NUMBERS` cobre
+  1-20 e as dezenas, e `transFinishNormalize()` soma a dezena com a unidade
+  depois da troca (`twenty five` → `20 5` → `25`). Isso era meia cobertura
+  antes da Unit 8 e meia cobertura é pior que nenhuma: a tabela parava em
+  doze, então `twenty five` virava `twenty 5`, que não casava nem com o
+  algarismo nem com a forma escrita. Centena não está coberta — se uma
+  unidade trouxer, estenda a soma junto.
 - Fala de filme/série vem **envolta em aspas** no CSV (o diálogo do Pets, na
   Unit 3). Tire as aspas ao importar: a correção ignora pontuação, mas sem isso
   elas aparecem na resposta mostrada na tela. Cuidado com o caso em que a aspa
@@ -381,6 +394,8 @@ vetar alguma coisa se discordar.
   documentados têm caso dirigido próprio (`t-306`, `t-312`, `t-36`, `t-21`,
   `t-16`), porque a rede só percorre o que está na tabela e não acusa a remoção
   de um par
+- Número por extenso: `twenty five`, `thirty one`, `ninety nine` precisam
+  normalizar igual a `25`, `31`, `99`
 - Fala reduzida sem apóstrofo: `lemme`, `gimme`, `Imma`, `gotcha` e companhia
   não têm apóstrofo, então a rede das contrações não as enxerga — há uma lista
   própria no autoteste que falha nomeando o cartão quando uma delas aparece sem
