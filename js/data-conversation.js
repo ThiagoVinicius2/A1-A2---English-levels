@@ -1,572 +1,633 @@
 /* ============================================================
    Módulo separado: "Erros da Conversa Real"
-   Baseado na 6ª rodada de prática: as palavras e expressões que
-   você não conseguiu lembrar durante a aula com a professora.
-
-   Diferente das rodadas anteriores, esta não é uma lista de erros
-   de gramática: é o vocabulário que travou na hora de falar. Cada
-   questão é uma frase da sua aula com a palavra-chave apagada —
-   você precisa reconhecer qual é a peça que faltava.
+   Baseado na 7ª rodada: os erros que mais se repetiram nas TRÊS
+   últimas conversas, não numa aula só. Por isso o banco é de
+   padrões recorrentes, e não de palavras soltas que travaram.
 
    Consolidados nas rodadas anteriores e, por isso, fora deste banco:
-   - artigo "a / an" com contável (o padrão mais teimoso de todos)
-   - preposições de lugar (everywhere / home / at school)
+   - artigo "a / an" com contável, preposições de lugar
    - listen TO, am/is/are + verbo-ing, "audio" incontável
-   - as for / talking about, for now / so far, maiúsculas (iPhone, YouTube)
+   - as for / talking about, for now / so far, maiúsculas
+   - vocabulário que travou na fala (party, attend, useful, deaf...)
 
-   Os seis temas abaixo seguem a ordem da sua própria lista. O tema
-   de tecnologia e celular abre o bloco maior do banco: foi onde mais
-   palavras faltaram na hora de falar.
+   Os cinco padrões abaixo seguem os cinco exercícios montados a
+   partir das conversas. O -s de terceira pessoa abre o banco e
+   ganha mais questões: é o erro que apareceu nas três conversas.
    ============================================================ */
 
+/* `gap: true` marca os padrões em que o enunciado é uma frase com lacuna
+   (`___`) e as opções preenchem o buraco. Os outros três padrões têm outra
+   forma — escolher a frase correta, traduzir, escrever certo — e por isso o
+   enunciado não tem lacuna nenhuma. A marca existe para o validador cobrar a
+   lacuna só de quem precisa dela, em vez de distorcer os exercícios para
+   caberem num formato só. */
 const CONV_CATEGORIES = {
-  plans:   { label: "Plans and events: party, invitation, requests",     tag: "Pattern 1" },
-  tech:    { label: "Tech and phones: devices and their verbs",          tag: "Pattern 2" },
-  useful:  { label: "Useful vs useless: useful, useless, pointless",     tag: "Pattern 3" },
-  rules:   { label: "Daughter, school and rules: bans and habits",       tag: "Pattern 4" },
-  access:  { label: "Accessibility and knowledge: deaf, illiterate",     tag: "Pattern 5" },
-  daily:   { label: "Everyday life and money: cash, taxes, routine",     tag: "Pattern 6" },
+  thirds:  { label: "Third person -s: he, she, it and the team",        tag: "Pattern 1", gap: true },
+  preps:   { label: "Time prepositions: on, in, at, by, until",         tag: "Pattern 2", gap: true },
+  fixit:   { label: "Fix the sentence: the slips that came back",       tag: "Pattern 3" },
+  saying:  { label: "Say it in English: routine, plans and deadlines",  tag: "Pattern 4" },
+  spell:   { label: "Spelling: the words you keep mistyping",           tag: "Pattern 5" },
 };
 
 /* ================= TESTE: ERROS DA CONVERSA REAL ================= */
 const CONV_TEST_QUESTIONS = [
-  // ---- Padrão 1: planos e eventos ----
-  { id:"c-pn-t1", category:"plans", prompt:"On Saturday I ___ with my daughter.",
-    options:["am going to go to a kids' party","am going go to a kids' party","am going to go at a kids' party","going to go to a kids' party"], correct:0,
+  // ---- Pattern 1: terceira pessoa (-s) ----
+  { id:"c-3s-t1", category:"thirds", prompt:"My team always ___ at home. (win)",
+    options:["wins","win","winning","winned"], correct:0,
     explanations:[
-      "Correto! Foi a frase da sua aula: I am going to go to a kids' party. 'am going to' é o plano e 'go to' é o verbo — os dois aparecem, mesmo parecendo repetição. Repare também no apóstrofo: kids' party, a festa das crianças.",
-      "Errado. Falta o 'to' da estrutura do futuro: am going to + verbo.",
-      "Errado. Com 'go' o destino leva 'to', nunca 'at': go to a party.",
-      "Errado. Falta o 'am': sem o verbo to be a frase não se sustenta."
+      "Correto! My team always wins at home. 'My team' é ele/ela (it), e no presente simples a terceira pessoa leva -s. Foi o erro que voltou nas três conversas: o -s some justamente quando você fala do time.",
+      "Errado. 'win' sem -s serve para I, you, we, they — não para 'my team'.",
+      "Errado. '-ing' sozinho não é verbo: precisaria de 'is winning', e aí seria agora, não um hábito.",
+      "Errado. 'winned' não existe; o passado de 'win' é 'won'. E aqui o tempo é presente."
     ]},
-  { id:"c-pn-t2", category:"plans", prompt:"My wife can't come, so I ___ alone.",
-    options:["am going to assist the kids' party","am going to attend to the kids' party","am going to attend the kids' party","am going to participate the kids' party"], correct:2,
+  { id:"c-3s-t2", category:"thirds", prompt:"She ___ up on my health twice a year. (follow)",
+    options:["followes","is follow","follow","follows"], correct:3,
     explanations:[
-      "Errado. 'assist' é falso amigo: significa ajudar, não assistir/comparecer.",
-      "Errado. 'attend' já carrega a ideia de comparecer e não leva 'to' depois.",
-      "Correto! I am going to attend the kids' party — 'attend' é o verbo formal de comparecer a um evento, sem preposição.",
-      "Errado. 'participate' pede 'in': participate in the party. Para comparecer, o natural é attend."
+      "Errado. O -es é para verbos em -s, -sh, -ch, -x e -o (watches, goes). 'follow' leva só -s.",
+      "Errado. 'is follow' não existe. Ou 'follows' (hábito), ou 'is following' (agora).",
+      "Errado. Com 'she' o verbo precisa do -s.",
+      "Correto! She follows up on my health twice a year. Verbo terminado em -ow só ganha -s: follows."
     ]},
-  { id:"c-pn-t3", category:"plans", prompt:"The party is for ___, who is turning seven.",
-    options:["my friend's child","my friend child","my friends' child","the child of my friend"], correct:0,
+  { id:"c-3s-t3", category:"thirds", prompt:"The season ___ next month. (start)",
+    options:["startes","start","starting","starts"], correct:3,
     explanations:[
-      "Correto! my friend's child — com pessoas, o possessivo em inglês é 's, e o apóstrofo é justamente o que costuma sumir.",
-      "Errado. Sem o 's não existe posse: ficaria 'criança amiga'.",
-      "Errado. O apóstrofo depois do 's' indica vários amigos (friends'), e aqui é um só.",
-      "Errado. Entende-se, mas soa traduzido do português; com pessoas o inglês usa o possessivo 's."
+      "Errado. 'start' termina em -t, então leva só -s: starts.",
+      "Errado. 'The season' é it, e it pede -s.",
+      "Errado. Falta o verbo to be, e mesmo com ele a ideia seria outra.",
+      "Correto! The season starts next month. Repare: o presente simples também serve para agenda futura — calendário, horário, temporada."
     ]},
-  { id:"c-pn-t4", category:"plans", prompt:"The teacher asked if I prefer coffee, tea or juice, and I said: ___, I prefer water.",
-    options:["no one of the options","none of the options","any of the options","nothing of the options"], correct:1,
+  { id:"c-3s-t4", category:"thirds", prompt:"My coach ___ me practice every week. (help)",
+    options:["help","helpes","helping","helps"], correct:3,
     explanations:[
-      "Errado. 'no one' é para pessoas (ninguém), não para opções.",
-      "Correto! None of the options — foi exatamente o que você quis dizer na aula: nenhuma das opções.",
-      "Errado. 'any' em frase afirmativa vira 'qualquer uma', o contrário da sua resposta.",
-      "Errado. 'nothing' é 'nada', e não acompanha 'of the options' desse jeito."
+      "Errado. 'My coach' é ele/ela: o verbo leva -s.",
+      "Errado. 'help' não é um dos casos de -es; é só helps.",
+      "Errado. Sem to be, o -ing não forma verbo.",
+      "Correto! My coach helps me practice every week. E note 'helps me practice', sem 'to' — depois de help o infinitivo vem pelado."
     ]},
-  { id:"c-pn-t5", category:"plans", prompt:"My manager ___ to prepare the report before the meeting.",
-    options:["asked to me","asked for me","asked me","asked me for"], correct:2,
+  { id:"c-3s-t5", category:"thirds", prompt:"My wife ___ until 6 pm. (work)",
+    options:["works","work","workes","is work"], correct:0,
     explanations:[
-      "Errado. 'ask' não leva 'to' antes da pessoa: quem recebe o pedido vem direto.",
-      "Errado. 'ask for' é pedir uma coisa (ask for a phone), não pedir que alguém faça algo.",
-      "Correto! asked me to prepare — a pessoa vem logo depois de 'ask', sem preposição nenhuma.",
-      "Errado. O 'for' sobra: ou é 'asked me to prepare', ou 'asked me for the report'."
+      "Correto! My wife works until 6 pm. Foi a sua frase na conversa, e ali o -s tinha sumido.",
+      "Errado. 'my wife' é she: precisa do -s.",
+      "Errado. Verbo em -k leva só -s: works.",
+      "Errado. 'is work' não existe como verbo."
     ]},
-
-  // ---- Padrão 2: tecnologia e celular ----
-  { id:"c-tc-t1", category:"tech", prompt:"I ___ on my phone for twenty minutes before I sleep.",
-    options:["roll","scroll","scrolls","slide"], correct:1,
+  { id:"c-3s-t6", category:"thirds", prompt:"Coritiba ___ against Athletico next Sunday. (play)",
+    options:["play","playes","plays","plaies"], correct:2,
     explanations:[
-      "Errado. 'roll' é rolar no sentido físico, como uma bola.",
-      "Correto! to scroll — é o verbo de deslizar a tela do celular, a palavra que faltou na aula.",
-      "Errado. O '-s' só entra com he / she / it: I scroll, she scrolls.",
-      "Errado. 'slide' é deslizar um objeto; na tela do celular o verbo é scroll."
+      "Errado. Nome de time é singular em inglês americano: pede -s.",
+      "Errado. Não existe 'playes'.",
+      "Correto! Coritiba plays against Athletico next Sunday. Verbo terminado em vogal + y só ganha -s: plays. O -ies é para consoante + y (study → studies).",
+      "Errado. 'plaies' seria a regra do -ies, que aqui não vale: antes do y tem uma vogal."
     ]},
-  { id:"c-tc-t2", category:"tech", prompt:"I use my phone ___, so I never go to the bank.",
-    options:["to pay bills","for pay bills","to pay accounts","for paying the bank"], correct:0,
+  { id:"c-3s-t7", category:"thirds", prompt:"My daughter ___ cartoons every morning. (watch)",
+    options:["watch","watchies","watchs","watches"], correct:3,
     explanations:[
-      "Correto! to pay bills — 'bill' é a conta que chega para pagar (luz, água, cartão).",
-      "Errado. Antes de verbo, a finalidade é 'to': for + verbo no infinitivo não existe.",
-      "Errado. 'account' é conta bancária ou cadastro; conta a pagar é 'bill'.",
-      "Errado. Você não paga o banco, paga as contas: pay bills."
+      "Errado. 'my daughter' é she: o verbo precisa da terminação.",
+      "Errado. O -ies é só para consoante + y.",
+      "Errado. Verbo terminado em -ch não aceita só -s: fica impronunciável.",
+      "Correto! My daughter watches cartoons every morning. Terminou em -s, -sh, -ch, -x ou -o? Entra -es: watches, washes, goes."
     ]},
-  { id:"c-tc-t3", category:"tech", prompt:"I use the GPS ___, because it shows me the traffic.",
-    options:["even I know the way","same when I know the way","even that I know the way","even when I know the way"], correct:3,
+  { id:"c-3s-t8", category:"thirds", prompt:"My friends ___ soccer on Sundays. (play)",
+    options:["playing","is playing","plays","play"], correct:3,
     explanations:[
-      "Errado. Falta o 'when': sozinho, 'even' não liga as duas frases.",
-      "Errado. 'same' é 'mesmo' no sentido de igual; 'mesmo quando' é even when.",
-      "Errado. 'even that' não existe nessa função — as formas são even when, even if e even though.",
-      "Correto! even when I know the way — e repare em 'the way' (o caminho), não 'the road'."
-    ]},
-  { id:"c-tc-t4", category:"tech", prompt:"My friend has a ___ in his kitchen, and he asks it to play music while he cooks.",
-    options:["smart speaker","smart sound","intelligent speaker","speak machine"], correct:0,
-    explanations:[
-      "Correto! smart speaker — é o nome da caixinha com assistente de voz (Alexa, Google Home).",
-      "Errado. 'sound' é o som; o aparelho é o 'speaker'.",
-      "Errado. É gramatical, mas ninguém chama assim: o nome do produto é smart speaker.",
-      "Errado. Não existe 'speak machine' em inglês."
-    ]},
-  { id:"c-tc-t5", category:"tech", prompt:"My old headphones are ___, but my new ones are wireless.",
-    options:["connected with wire","connected through a wire","connect through a wire","connected through the wireless"], correct:1,
-    explanations:[
-      "Errado. Falta o artigo: 'a wire' é contável no singular.",
-      "Correto! connected through a wire — literalmente, ligados por um fio; o contrário é wireless.",
-      "Errado. Depois de 'are' o verbo fica no particípio: connected.",
-      "Errado. 'wireless' é justamente o oposto de ter fio."
-    ]},
-  { id:"c-tc-t6", category:"tech", prompt:"My TV came with ___, but now I control everything with an app.",
-    options:["remote control","the control remote","a control","a remote control"], correct:3,
-    explanations:[
-      "Errado. Falta o artigo 'a' — o mesmo detalhe que aparece em todas as rodadas.",
-      "Errado. A ordem está invertida: em inglês o adjetivo vem antes, remote control.",
-      "Errado. 'a control' sozinho não é o aparelho; o controle remoto é 'a remote control'.",
-      "Correto! a remote control — e, no inglês americano, também se ouve 'a remote'."
-    ]},
-  { id:"c-tc-t7", category:"tech", prompt:"This laptop has ___ screen — the colors are really clear.",
-    options:["top-notch","a top notch of","a top-notch","the most top-notch"], correct:2,
-    explanations:[
-      "Errado. Falta o artigo: 'screen' é contável no singular e pede 'a'.",
-      "Errado. O 'of' sobra: top-notch é adjetivo e vem direto antes do substantivo.",
-      "Correto! a top-notch screen — 'top-notch' é de primeira qualidade, com hífen porque é adjetivo composto.",
-      "Errado. 'top-notch' já é o grau máximo; não leva 'the most'."
-    ]},
-  { id:"c-tc-t8", category:"tech", prompt:"Technology is always ___, so I need to study every week.",
-    options:["develop","developed","developing","development"], correct:2,
-    explanations:[
-      "Errado. Depois de 'is' o verbo precisa do -ing para indicar algo em curso.",
-      "Errado. 'developed' dá ideia de já pronto, terminado.",
-      "Correto! is always developing — está sempre se desenvolvendo, sem parar.",
-      "Errado. 'development' é o substantivo (o desenvolvimento)."
-    ]},
-  { id:"c-tc-t9", category:"tech", prompt:"The data field is ___ fast; five years ago nobody talked about dbt.",
-    options:["evolving","evoluting","evolved","evolution"], correct:0,
-    explanations:[
-      "Correto! is evolving fast — 'evolve' é evoluir, e o -ing marca o processo em andamento.",
-      "Errado. 'evoluting' não existe: o verbo é evolve → evolving.",
-      "Errado. 'evolved' é passado/particípio e não combina com 'is ... fast' aqui.",
-      "Errado. 'evolution' é o substantivo (a evolução)."
-    ]},
-  { id:"c-tc-t10", category:"tech", prompt:"A desktop is usually ___ than a laptop with the same memory.",
-    options:["more cheap","cheapest","more cheaper","cheaper"], correct:3,
-    explanations:[
-      "Errado. Adjetivo curto faz comparativo com -er, não com 'more'.",
-      "Errado. 'cheapest' é superlativo (o mais barato de todos) e não combina com 'than'.",
-      "Errado. É uma comparação dobrada: ou 'more', ou '-er', nunca os dois.",
-      "Correto! cheaper than — adjetivo de uma sílaba vira comparativo com -er."
+      "Errado. Sem to be, o -ing não forma verbo.",
+      "Errado. 'friends' é plural: seria 'are playing' — e aí a ideia seria agora, não um hábito.",
+      "Errado. Esta é a armadilha do padrão: com o plural, o -s NÃO entra. 'My friends' é they.",
+      "Correto! My friends play soccer on Sundays. O -s é só de he, she e it — colocá-lo no plural é o outro lado do mesmo erro."
     ]},
 
-  // ---- Padrão 3: útil × inútil ----
-  { id:"c-us-t1", category:"useful", prompt:"A phone without internet is almost ___ for me.",
-    options:["useless","unuseful","useful","use less"], correct:0,
+  // ---- Pattern 2: preposições de tempo ----
+  { id:"c-pr-t1", category:"preps", prompt:"I work ___ 7 pm every weekday.",
+    options:["until","by","in","on"], correct:0,
     explanations:[
-      "Correto! useless — o sufixo -less é o que tira o valor da palavra: sem utilidade.",
-      "Errado. 'unuseful' não existe; o contrário de useful é useless.",
-      "Errado. Aqui é o contrário do que você quis dizer: useful é útil.",
-      "Errado. Separado, 'use less' significa 'usar menos'."
+      "Correto! I work until 7 pm. 'until' é a ação que continua até aquele ponto — você trabalha o tempo todo até as 7.",
+      "Errado. 'by' é prazo: alguma coisa acontece antes daquele momento, não durante.",
+      "Errado. 'in' com hora não existe; é 'at 7 pm'.",
+      "Errado. 'on' é para dias e datas."
     ]},
-  { id:"c-us-t2", category:"useful", prompt:"It's ___ to buy a new phone every year.",
-    options:["point less","without point","pointless","no point"], correct:2,
+  { id:"c-pr-t2", category:"preps", prompt:"I have an appointment ___ October 24th.",
+    options:["in","at","on","until"], correct:2,
     explanations:[
-      "Errado. Separado perde o sentido: é uma palavra só, com o sufixo -less.",
-      "Errado. Não é assim que se diz em inglês.",
-      "Correto! It's pointless — não faz sentido, não adianta. Mesmo sufixo de useless.",
-      "Errado. 'no point' aparece em outra estrutura: There's no point in buying a new phone."
+      "Errado. 'in' é para mês sem dia (in October), ano e período do dia.",
+      "Errado. 'at' é para hora e para alguns pontos fixos (at midday, at night).",
+      "Correto! on October 24th. Dia e data levam 'on' — foi um dos escorregões das conversas.",
+      "Errado. 'until' marca duração, não a data de um compromisso."
     ]},
-  { id:"c-us-t3", category:"useful", prompt:"My old tablet is ___ now, but my laptop is very ___ for work.",
-    options:["useful / useless","useless / useful","useless / useless","unuseful / useful"], correct:1,
+  { id:"c-pr-t3", category:"preps", prompt:"As I told you ___ the beginning, I play soccer once a week.",
+    options:["on","by","in","at"], correct:3,
     explanations:[
-      "Errado. Os dois estão trocados de lugar.",
-      "Correto! useless × useful — o tablet velho não serve mais; o laptop serve muito. É o par que você quis contrastar.",
-      "Errado. O segundo precisa ser o positivo: o laptop é útil.",
-      "Errado. 'unuseful' não existe em inglês."
+      "Errado. 'on' é para dias e datas.",
+      "Errado. 'by the beginning' marcaria prazo, o que não faz sentido aqui.",
+      "Errado. 'in the beginning' existe, mas significa 'no começo de tudo', numa narrativa longa. Para o começo da conversa, é 'at'.",
+      "Correto! As I told you at the beginning. 'at the beginning' é o ponto de partida de alguma coisa — da conversa, da aula, do filme."
     ]},
-
-  // ---- Padrão 4: filha, escola e regras ----
-  { id:"c-rl-t1", category:"rules", prompt:"My daughter asked me for a phone, but I said no — ___ it is a good idea for her to use a phone that often.",
-    options:["specially because I don't think","especially because I don't think","especially why I don't think","especially because I not think"], correct:1,
+  { id:"c-pr-t4", category:"preps", prompt:"I usually watch the games ___ the evening.",
+    options:["on","at","until","in"], correct:3,
     explanations:[
-      "Errado. 'specially' existe, mas significa 'de propósito, para um fim específico'.",
-      "Correto! especially because I don't think — 'sobretudo porque' é especially because.",
-      "Errado. 'why' não introduz motivo aqui; o motivo vem com 'because'.",
-      "Errado. Na negativa do presente entra o auxiliar: I don't think."
+      "Errado. 'on' entra quando o período vem colado num dia: on Sunday evening.",
+      "Errado. 'at' com período do dia só em 'at night'.",
+      "Errado. 'until' marca duração.",
+      "Correto! in the evening. Períodos do dia levam 'in': in the morning, in the afternoon, in the evening — a exceção é 'at night'."
     ]},
-  { id:"c-rl-t2", category:"rules", prompt:"Phones are ___ in her classroom.",
-    options:["forbid","prohibit","forbade","forbidden"], correct:3,
+  { id:"c-pr-t5", category:"preps", prompt:"Please finish the report ___ Friday. (prazo final)",
+    options:["in","at","until","by"], correct:3,
     explanations:[
-      "Errado. 'forbid' é o infinitivo; depois de 'are' vem o particípio.",
-      "Errado. 'prohibit' também é infinitivo — o particípio seria 'prohibited'.",
-      "Errado. 'forbade' é o passado simples (ele proibiu), não o particípio.",
-      "Correto! are forbidden — proibidos. Forbid → forbade → forbidden."
+      "Errado. 'in' com dia da semana não vai.",
+      "Errado. 'at' é para hora.",
+      "Errado. Aqui está o par que mais confunde: 'until Friday' seria continuar escrevendo até sexta.",
+      "Correto! finish the report by Friday. 'by' é prazo: até sexta, em algum momento antes dela, tem que estar pronto."
     ]},
-  { id:"c-rl-t3", category:"rules", prompt:"She can't use her tablet ___, only at home.",
-    options:["in the school","at the school","at school","on school"], correct:2,
+  { id:"c-pr-t6", category:"preps", prompt:"The store is open ___ 9 pm tonight.",
+    options:["by","on","until","in"], correct:2,
     explanations:[
-      "Errado. Com artigo a frase fala do prédio, não da escola como atividade.",
-      "Errado. Mesmo problema: 'at the school' aponta para um prédio específico.",
-      "Correto! at school — sem artigo, do mesmo jeito que at home e at work.",
-      "Errado. 'on' não é usado com school."
+      "Errado. 'by 9 pm' seria 'antes das 9', e não é isso: a loja fica aberta o tempo todo.",
+      "Errado. 'on' é para dias e datas.",
+      "Correto! open until 9 pm. A loja continua aberta até aquele horário — é duração, então 'until'.",
+      "Errado. Com hora exata a preposição seria 'at', e mesmo assim mudaria o sentido."
     ]},
-  { id:"c-rl-t4", category:"rules", prompt:"She dropped my phone last week. ___, but she was very honest and told me immediately.",
-    options:["She broke it","She broke him","She breaked it","She broke"], correct:0,
+  { id:"c-pr-t7", category:"preps", prompt:"___ Saturday, I'm going to play soccer.",
+    options:["On","In","At","Until"], correct:0,
     explanations:[
-      "Correto! She broke it — o celular é 'it', e o passado de break é broke.",
-      "Errado. 'him' é para pessoas; um objeto é sempre 'it'.",
-      "Errado. 'break' é irregular: break → broke → broken.",
-      "Errado. Falta o objeto: quebrar sempre pede o que foi quebrado (it)."
+      "Correto! On Saturday, I'm going to play soccer. Dia da semana sempre com 'on'.",
+      "Errado. 'in' é para mês, ano, estação e período do dia.",
+      "Errado. 'at' é para hora.",
+      "Errado. 'until Saturday' marcaria duração até sábado."
     ]},
-  { id:"c-rl-t5", category:"rules", prompt:"___ writing everything on paper, even when they have a phone.",
-    options:["Older people have the habit to","Old peoples have the habit of","Older people have the habit of","The older people has the habit of"], correct:2,
+  { id:"c-pr-t8", category:"preps", prompt:"Let's meet ___ midday for lunch.",
+    options:["in","on","until","at"], correct:3,
     explanations:[
-      "Errado. Depois de 'habit' vem 'of' + verbo com -ing.",
-      "Errado. 'people' já é plural — 'peoples' seria 'povos'.",
-      "Correto! Older people have the habit of writing — 'older people' é o jeito respeitoso de dizer pessoas mais velhas, e 'habit of + -ing'.",
-      "Errado. 'people' é plural, então o verbo é 'have'; e aqui não se usa 'the'."
+      "Errado. 'in' não entra com ponto fixo do relógio.",
+      "Errado. 'on' é para dia e data.",
+      "Errado. 'until midday' seria esperar até o meio-dia, não marcar nele.",
+      "Correto! at midday. Hora e ponto fixo do dia levam 'at': at 7 pm, at midday, at midnight, at night."
     ]},
 
-  // ---- Padrão 5: acessibilidade e conhecimento ----
-  { id:"c-ac-t1", category:"access", prompt:"This app has subtitles for people who are ___.",
-    options:["deaf","death","deafs","deft"], correct:0,
+  // ---- Pattern 3: encontre o erro ----
+  { id:"c-fx-t1", category:"fixit", prompt:"Qual é a forma correta? (original: \"I have a free time on Sunday.\")",
+    options:["I have free time on Sunday.","I have a free time on Sunday.","I have a free times on Sunday.","I have the free time on Sunday."], correct:0,
     explanations:[
-      "Correto! deaf — surdo. A escrita engana, mas a palavra termina em -f.",
-      "Errado. 'death' é o substantivo 'morte' — a troca mais comum com deaf.",
-      "Errado. 'deaf' é adjetivo e adjetivo em inglês não vai para o plural.",
-      "Errado. 'deft' significa hábil, destro."
+      "Correto! I have free time on Sunday. 'free time' é incontável: não leva 'a' nem vira plural.",
+      "Errado. Foi exatamente o seu erro na conversa: o 'a' não entra antes de incontável.",
+      "Errado. Além do artigo, 'time' nesse sentido não tem plural.",
+      "Errado. 'the' faria falar de um tempo livre específico, já combinado — não é o caso."
     ]},
-  { id:"c-ac-t2", category:"access", prompt:"My grandfather is almost ___, so he uses voice messages instead of texting.",
-    options:["iliterate","unliterate","illiterated","illiterate"], correct:3,
+  { id:"c-fx-t2", category:"fixit", prompt:"Qual é a forma correta? (original: \"Other weekdays nothing special.\")",
+    options:["Other weekdays nothing special.","On the other weekdays, nothing special happens.","In other weekdays, nothing special.","The other weekdays nothing special happen."], correct:1,
     explanations:[
-      "Errado. Falta um 'l': a palavra dobra o L — illiterate.",
-      "Errado. O prefixo aqui é 'il-', não 'un-'.",
-      "Errado. Não é particípio: o adjetivo é illiterate, sem -d.",
-      "Correto! illiterate — analfabeto. Dois L e terminação -ate."
+      "Errado. Falta o verbo: em inglês a frase não se sustenta sem ele.",
+      "Correto! On the other weekdays, nothing special happens. Entraram as três peças que faltavam: a preposição 'on', o artigo e o verbo 'happens' (com -s, porque 'nothing' é singular).",
+      "Errado. Com dias é 'on', não 'in' — e continua sem verbo.",
+      "Errado. 'nothing' é singular: happens, não happen."
     ]},
-  { id:"c-ac-t3", category:"access", prompt:"I'm a ___ when it comes to design — I only know the technical side.",
-    options:["layman person","layperson","lay","laic"], correct:1,
+  { id:"c-fx-t3", category:"fixit", prompt:"Qual é a forma correta? (original: \"I need to do exams twice a year.\")",
+    options:["I need to make exams twice a year.","I need to do exams twice a year.","I need to take exams twice a year.","I need to realize exams twice a year."], correct:2,
     explanations:[
-      "Errado. 'layman' já é a pessoa; juntar 'person' fica redundante.",
-      "Correto! a layperson — leigo, quem não é da área. Também se usa 'a layman'.",
-      "Errado. 'lay' sozinho é adjetivo: a lay opinion, mas a layperson.",
-      "Errado. 'laic' é termo religioso e praticamente não se usa assim."
+      "Errado. 'make' não combina com exame; make é para o que você cria.",
+      "Errado. 'do an exam' existe no inglês britânico escolar, mas para exame médico — que era o seu caso — o verbo é 'take'.",
+      "Correto! I need to take exams twice a year. Exame, teste e remédio em inglês se 'take': take an exam, take a test, take medicine.",
+      "Errado. 'realize' é perceber, dar-se conta — falso amigo de 'realizar'."
+    ]},
+  { id:"c-fx-t4", category:"fixit", prompt:"Qual é a forma correta? (original: \"As I told in the beginning, I like soccer.\")",
+    options:["As I told at the beginning, I like soccer.","As I told you at the beginning, I like soccer.","As I said you in the beginning, I like soccer.","As I told you in the beginning, I like soccer."], correct:1,
+    explanations:[
+      "Errado. A preposição ficou certa, mas 'tell' sempre pede a quem: tell someone.",
+      "Correto! As I told you at the beginning. Dois consertos numa frase só: 'tell' precisa do objeto ('told you') e o começo da conversa é 'at the beginning'.",
+      "Errado. É o contrário de 'tell': 'say' não leva objeto direto de pessoa — say something TO someone.",
+      "Errado. O 'you' entrou, mas 'in the beginning' é o começo de uma história longa, não o da conversa."
+    ]},
+  { id:"c-fx-t5", category:"fixit", prompt:"Qual é a forma correta? (original: \"There's some sports with only one player.\")",
+    options:["There is some sports with only one player.","There's some sport with only one player.","There are some sports with only one player.","There has some sports with only one player."], correct:2,
+    explanations:[
+      "Errado. 'There's' é 'there is', e 'sports' é plural.",
+      "Errado. Mudar para o singular conserta a concordância, mas muda o que você queria dizer.",
+      "Correto! There are some sports with only one player. O verbo concorda com o que vem depois — plural pede 'there are'.",
+      "Errado. 'there has' não existe; a estrutura é there is / there are."
+    ]},
+  { id:"c-fx-t6", category:"fixit", prompt:"Qual é a forma correta? (original: \"It's almost impossible plays soccer alone.\")",
+    options:["It's almost impossible to play soccer alone.","It's almost impossible plays soccer alone.","It's almost impossible play soccer alone.","It's almost impossible playing soccer alone."], correct:0,
+    explanations:[
+      "Correto! It's almost impossible to play soccer alone. Depois de adjetivo o verbo vem no infinitivo com 'to'.",
+      "Errado. O -s de terceira pessoa não tem o que fazer aqui: o verbo não tem sujeito próprio.",
+      "Errado. Falta o 'to'. Sem ele a frase fica solta.",
+      "Errado. O -ing serviria como sujeito ('Playing soccer alone is almost impossible'), mas não depois do adjetivo."
+    ]},
+  { id:"c-fx-t7", category:"fixit", prompt:"Qual é a forma correta? (original: \"I went a lot of stadiums in Curitiba.\")",
+    options:["I went a lot of stadiums in Curitiba.","I went in a lot of stadiums in Curitiba.","I went to a lot of stadiums in Curitiba.","I went at a lot of stadiums in Curitiba."], correct:2,
+    explanations:[
+      "Errado. 'go' sempre precisa de 'to' antes do destino.",
+      "Errado. 'go in' é entrar em alguma coisa, não ir a um lugar.",
+      "Correto! I went to a lot of stadiums in Curitiba. O 'to' do destino é o que mais some quando a frase sai rápido.",
+      "Errado. 'at' marca onde você está, não para onde vai."
+    ]},
+  { id:"c-fx-t8", category:"fixit", prompt:"Qual é a forma correta? (original: \"People that play volleyball are hard to find here.\")",
+    options:["People which play volleyball are hard to find here.","People who play volleyball are hard to find here.","People what play volleyball are hard to find here.","People who plays volleyball are hard to find here."], correct:1,
+    explanations:[
+      "Errado. 'which' é para coisa, nunca para pessoa.",
+      "Correto! People who play volleyball. Para pessoa o natural é 'who' — 'that' até aparece na fala, mas 'who' é o que soa certo e é o que o seu interlocutor espera.",
+      "Errado. 'what' não funciona como pronome relativo em inglês.",
+      "Errado. O 'who' está certo, mas o verbo concorda com 'people', que é plural: play, sem -s."
     ]},
 
-  // ---- Padrão 6: dia a dia e dinheiro ----
-  { id:"c-dy-t1", category:"daily", prompt:"I check the ___ every morning before I leave home.",
-    options:["weather forecast","time forecast","weather prevision","whether forecast"], correct:0,
+  // ---- Pattern 4: diga em inglês ----
+  { id:"c-sy-t1", category:"saying", prompt:"Amanhã eu vou trabalhar até as 7 da noite.",
+    options:["Tomorrow I'm going to work by 7 pm.","Tomorrow I'm going to work until 7 pm.","Tomorrow I'm going to work at 7 pm.","Tomorrow I go to work until 7 pm."], correct:1,
     explanations:[
-      "Correto! the weather forecast — a previsão do tempo, a expressão que faltou na aula.",
-      "Errado. 'time' é hora ou tempo de duração, nunca o tempo meteorológico.",
-      "Errado. 'prevision' não existe nesse uso; previsão do tempo é forecast.",
-      "Errado. 'whether' é 'se' (dúvida) — mesmo som, palavra completamente diferente."
+      "Errado. 'by 7 pm' seria terminar antes das 7, e não é isso.",
+      "Correto! Tomorrow I'm going to work until 7 pm. Plano com 'going to' e duração com 'until'.",
+      "Errado. 'at 7 pm' seria a hora em que você começa.",
+      "Errado. 'I go to work' é hábito; para amanhã, use o plano: I'm going to work."
     ]},
-  { id:"c-dy-t2", category:"daily", prompt:"I almost never carry ___; I pay everything with my phone.",
-    options:["cashes","money cash","cash","the cash"], correct:2,
+  { id:"c-sy-t2", category:"saying", prompt:"Na quarta à noite eu vou encontrar meus amigos.",
+    options:["In Wednesday night I'm going to meet my friends.","On Wednesday night I'm going to meet my friends.","At Wednesday night I'm going to find my friends.","On Wednesday night I'm going to know my friends."], correct:1,
     explanations:[
-      "Errado. 'cash' é incontável e nunca vai para o plural.",
-      "Errado. 'cash' sozinho já é dinheiro em espécie.",
-      "Correto! carry cash — dinheiro vivo, em papel. Incontável e sem artigo.",
-      "Errado. Com 'the' viraria um dinheiro específico; aqui a ideia é geral."
+      "Errado. Com dia da semana é 'on', mesmo quando vem junto do período.",
+      "Correto! On Wednesday night I'm going to meet my friends. O período colado no dia puxa o 'on', e 'meet' é encontrar alguém combinado.",
+      "Errado. Duas falhas: 'at' com dia, e 'find' é achar algo perdido.",
+      "Errado. 'know' é conhecer de já conhecer; para encontrar com alguém é 'meet'."
     ]},
-  { id:"c-dy-t3", category:"daily", prompt:"In Brazil we pay a lot of ___ on imported electronics.",
-    options:["taxes","taxs","rates","fees"], correct:0,
+  { id:"c-sy-t3", category:"saying", prompt:"Eu tenho uma consulta com a médica no dia 24.",
+    options:["I have an appointment with the doctor in the 24th.","I have a consultation with the doctor on 24.","I have an appointment with the doctor on the 24th.","I have an appointment with the doctor at the 24th."], correct:2,
     explanations:[
-      "Correto! taxes — imposto é 'tax', e o plural de palavras terminadas em -x leva -es.",
-      "Errado. Palavra terminada em -x faz o plural com -es: taxes.",
-      "Errado. 'rate' é taxa no sentido de índice ou percentual (interest rate).",
-      "Errado. 'fee' é taxa de serviço, o que se paga a alguém — imposto é tax."
+      "Errado. Data leva 'on', não 'in'.",
+      "Errado. 'consultation' é consultoria técnica; e a data precisa do artigo: on the 24th.",
+      "Correto! I have an appointment with the doctor on the 24th. Consulta médica é 'appointment', e dia do mês é 'on the 24th'.",
+      "Errado. 'at' é para hora, não para dia do mês."
     ]},
-  { id:"c-dy-t4", category:"daily", prompt:"Notifications ___ me when I'm working, so I turn them off.",
-    options:["disturbs","disturb","disturbe","distract to"], correct:1,
+  { id:"c-sy-t4", category:"saying", prompt:"No fim de semana eu passo bastante tempo com a minha filha.",
+    options:["On the weekend I spend a lot of time with my daughter.","In the weekend I pass a lot of time with my daughter.","On the weekend I pass a lot of time with my daughter.","At the weekend I spend a lot of times with my daughter."], correct:0,
     explanations:[
-      "Errado. O sujeito é plural (notifications), então o verbo não leva -s.",
-      "Correto! Notifications disturb me — atrapalham, incomodam.",
-      "Errado. A grafia é 'disturb', sem o -e final.",
-      "Errado. 'distract' não leva 'to': distract me."
+      "Correto! On the weekend I spend a lot of time with my daughter. Tempo se 'spend', nunca 'pass'.",
+      "Errado. Dois erros: 'in the weekend' e o falso amigo 'pass'.",
+      "Errado. A preposição ficou certa, mas tempo em inglês se gasta: spend time.",
+      "Errado. 'at the weekend' é britânico e passa, mas 'times' no plural não: time aqui é incontável."
     ]},
-  { id:"c-dy-t5", category:"daily", prompt:"The commute is long, but ___, I like my job.",
-    options:["apart of that","a part from that","apart that","apart from that"], correct:3,
+  { id:"c-sy-t5", category:"saying", prompt:"Mês que vem eu vou ter mais tempo livre.",
+    options:["Next month I'm going to have more free times.","In next month I'm going to have more free time.","Next month I'm going to have more free time.","Next month I'm going to have more a free time."], correct:2,
     explanations:[
-      "Errado. A preposição da expressão é 'from', não 'of'.",
-      "Errado. 'a part' separado é 'uma parte'; a expressão é 'apart', tudo junto.",
-      "Errado. Falta o 'from': apart from that.",
-      "Correto! apart from that — 'fora isso', para abrir a exceção. E 'commute' é o trajeto casa-trabalho."
+      "Errado. 'free time' é incontável: não tem plural.",
+      "Errado. 'next month' já é a hora: não leva preposição nenhuma na frente.",
+      "Correto! Next month I'm going to have more free time. Repare que 'next month', 'last week' e 'tomorrow' dispensam preposição.",
+      "Errado. O artigo 'a' não entra antes de incontável."
     ]},
-  { id:"c-dy-t6", category:"daily", prompt:"Working from home is good because ___ as going to the office every day.",
-    options:["it is not as demanding for me","it is not as demanding for me than","it is not more demanding for me","it is not as demand for me"], correct:0,
+  { id:"c-sy-t6", category:"saying", prompt:"Eu preciso terminar meu projeto até sexta.",
+    options:["I need to finish my project until Friday.","I need to finish my project by Friday.","I need finish my project by Friday.","I need to finish my project on Friday."], correct:1,
     explanations:[
-      "Correto! it is not as demanding for me as ... — a comparação de igualdade é 'as + adjetivo + as', e 'demanding' é exigente, cansativo.",
-      "Errado. Com 'as ... as' o segundo termo é 'as', nunca 'than'.",
-      "Errado. 'more' pediria 'than'; aqui a frase continua com 'as'.",
-      "Errado. Falta o -ing: o adjetivo é 'demanding'."
+      "Errado. 'until Friday' seria ficar mexendo no projeto até sexta; o prazo é 'by'.",
+      "Correto! I need to finish my project by Friday. Prazo final é sempre 'by'.",
+      "Errado. Depois de 'need' o verbo vem com 'to': need to finish.",
+      "Errado. 'on Friday' marcaria o dia em que você termina, não o limite."
+    ]},
+
+  // ---- Pattern 5: ortografia ----
+  { id:"c-sp-t1", category:"spell", prompt:"Como se escreve? (você escreveu \"daugther\")",
+    options:["daugther","daughter","doughter","daugter"], correct:1,
+    explanations:[
+      "Errado. É a troca que você faz sempre: o 'gh' vem antes do 't', não depois.",
+      "Correto! daughter. A ordem é d-a-u-g-h-t-e-r — o bloco 'ght' aparece igual em night, light e eight.",
+      "Errado. A vogal é 'au', como em 'daughter' e 'caught'.",
+      "Errado. Faltou o 'h' do bloco 'ght'."
+    ]},
+  { id:"c-sp-t2", category:"spell", prompt:"Como se escreve? (você escreveu \"volleiball\")",
+    options:["voleyball","volleyball","volleiball","voleiboll"], correct:1,
+    explanations:[
+      "Errado. Falta um 'l': são dois.",
+      "Correto! volleyball. Dois L e, no meio, 'ey' — não 'ei'. O português puxa o 'i', mas em inglês é volley, como em 'volley' do tênis.",
+      "Errado. Foi o que você escreveu: o 'ei' aqui é 'ey'.",
+      "Errado. Três problemas: um L só, o 'ei' e o 'o' no fim."
+    ]},
+  { id:"c-sp-t3", category:"spell", prompt:"Como se escreve? (você escreveu \"figthing\")",
+    options:["fighting","figthing","fiting","fightting"], correct:0,
+    explanations:[
+      "Correto! fighting. Mesmo bloco 'ght' de daughter e night — e a ordem também é 'ght', nunca 'gth'.",
+      "Errado. É a mesma inversão do 'daugther': o 'h' vem antes do 't'.",
+      "Errado. Sem o 'gh' a palavra vira outra coisa.",
+      "Errado. O 't' não dobra: fighting."
+    ]},
+  { id:"c-sp-t4", category:"spell", prompt:"Como se escreve? (você escreveu \"even tough\")",
+    options:["even tough","even thought","even though","even trough"], correct:2,
+    explanations:[
+      "Errado. 'tough' existe, mas quer dizer duro, difícil — é outra palavra.",
+      "Errado. 'thought' é pensamento ou o passado de think.",
+      "Correto! even though — 'mesmo que', 'embora'. São quatro palavras parecidíssimas (tough, though, thought, through) e esta é a única que serve aqui.",
+      "Errado. 'trough' é cocho, calha. Nem de perto."
+    ]},
+  { id:"c-sp-t5", category:"spell", prompt:"Como se escreve? (você escreveu \"colective\")",
+    options:["colective","collective","collectve","coletive"], correct:1,
+    explanations:[
+      "Errado. Em inglês o L dobra: collective.",
+      "Correto! collective. O português tem um L só ('coletivo') e é daí que vem o escorregão — em inglês são dois, como em collect e collection.",
+      "Errado. Faltou o 'i' antes do 've'.",
+      "Errado. Um L só e faltando o 'c': é a forma portuguesa."
+    ]},
+  { id:"c-sp-t6", category:"spell", prompt:"Como se escreve? (você escreveu \"dadicated\")",
+    options:["dedicatted","dadicated","dedicated","dedicaded"], correct:2,
+    explanations:[
+      "Errado. O 't' não dobra.",
+      "Errado. A segunda letra é 'e', não 'a': de-di-ca-ted.",
+      "Correto! dedicated. Três 'e' e um 'a': d-e-d-i-c-a-t-e-d.",
+      "Errado. A terminação do particípio é '-ted', com t."
     ]},
 ];
 
 /* ================= PRÁTICA DIRIGIDA: ERROS DA CONVERSA REAL ================= */
 const CONV_PRACTICE_QUESTIONS = [
-  // ---- Padrão 1: planos e eventos ----
-  { id:"c-pn-p1", category:"plans", prompt:"Next Sunday we ___ at the park.",
-    options:["are going to go to a birthday party","are going to a birthday party at","are going to go at a birthday party","are go to a birthday party"], correct:0,
+  // ---- Pattern 1: terceira pessoa (-s) ----
+  { id:"c-3s-p1", category:"thirds", prompt:"He ___ to the gym before work. (go)",
+    options:["go","goies","gos","goes"], correct:3,
     explanations:[
-      "Correto! are going to go to — o plano ('going to') e o verbo ('go to') convivem na mesma frase.",
-      "Errado. A frase já termina com 'at the park'; esta opção repete a preposição.",
-      "Errado. Com 'go', o destino vem com 'to'.",
-      "Errado. Falta o -ing: are going to."
+      "Errado. Com 'he' o verbo precisa da terminação.",
+      "Errado. O -ies é para consoante + y.",
+      "Errado. Verbo terminado em -o leva -es.",
+      "Correto! He goes to the gym before work. Em -s, -sh, -ch, -x e -o entra -es: goes, watches, does."
     ]},
-  { id:"c-pn-p2", category:"plans", prompt:"I can't go out tonight, so I ___ the meeting online.",
-    options:["am going to assist","am going to attend to","am going to attend","am going to assist to"], correct:2,
+  { id:"c-3s-p2", category:"thirds", prompt:"My wife ___ English at night. (study)",
+    options:["study","studys","studyes","studies"], correct:3,
     explanations:[
-      "Errado. 'assist' é ajudar — falso amigo de 'assistir'.",
-      "Errado. 'attend' não leva preposição.",
-      "Correto! I am going to attend the meeting — comparecer, participar de um evento.",
-      "Errado. Dois problemas: o falso amigo e a preposição a mais."
+      "Errado. 'my wife' é she: precisa da terminação.",
+      "Errado. Antes do y tem consoante, então o y cai e entra -ies.",
+      "Errado. Não existe '-yes' como terminação.",
+      "Correto! My wife studies English at night. Consoante + y vira -ies: study → studies, try → tries."
     ]},
-  { id:"c-pn-p3", category:"plans", prompt:"This is ___ tablet, not mine.",
-    options:["my daughter tablet","the tablet of my daughter","my daughters' tablet","my daughter's tablet"], correct:3,
+  { id:"c-3s-p3", category:"thirds", prompt:"The game ___ at 4 pm. (finish)",
+    options:["finishes","finishs","finish","finishies"], correct:0,
     explanations:[
-      "Errado. Sem o 's não há posse.",
-      "Errado. Entende-se, mas com pessoas o inglês prefere o possessivo 's.",
-      "Errado. O apóstrofo depois do 's' indicaria várias filhas.",
-      "Correto! my daughter's tablet — possessivo com apóstrofo + s."
+      "Correto! The game finishes at 4 pm. Terminou em -sh? Entra -es.",
+      "Errado. 'finishs' não se pronuncia; por isso o -es.",
+      "Errado. 'The game' é it e pede a terminação.",
+      "Errado. O -ies é só para consoante + y."
     ]},
-  { id:"c-pn-p4", category:"plans", prompt:"He offered me tea, coffee and soda, but I said ___.",
-    options:["nothing of them","none of them","no one of them","any of them"], correct:1,
+  { id:"c-3s-p4", category:"thirds", prompt:"My daughter and I ___ soccer on Sundays. (watch)",
+    options:["watchs","is watching","watches","watch"], correct:3,
     explanations:[
-      "Errado. 'nothing' não acompanha 'of them' nesse sentido.",
-      "Correto! none of them — nenhum deles, para escolher zero entre opções.",
-      "Errado. 'no one' é para pessoas.",
-      "Errado. Em frase afirmativa 'any' vira 'qualquer um'."
+      "Errado. Além de não caber aqui, 'watchs' nem existe.",
+      "Errado. Com 'we' seria 'are', e a ideia passaria a ser agora, não um hábito.",
+      "Errado. É a armadilha: 'My daughter and I' são duas pessoas, ou seja 'we'.",
+      "Correto! My daughter and I watch soccer on Sundays. Sujeito composto é plural — nada de -s."
     ]},
-  { id:"c-pn-p5", category:"plans", prompt:"The client ___ to send the data by Friday.",
-    options:["asked to us","asked us","asked for us","asked us for"], correct:1,
+  { id:"c-3s-p5", category:"thirds", prompt:"She never ___ the news in the morning. (read)",
+    options:["readies","is read","read","reads"], correct:3,
     explanations:[
-      "Errado. Depois de 'ask' a pessoa vem direto, sem 'to'.",
-      "Correto! asked us to send — ask + pessoa + to + verbo.",
-      "Errado. 'ask for' é pedir uma coisa, não pedir que alguém faça algo.",
-      "Errado. O 'for' sobra antes de 'to send'."
+      "Errado. 'readies' é outra palavra e não é isso.",
+      "Errado. 'is read' não forma presente simples.",
+      "Errado. 'never' não muda nada: com 'she' o verbo leva -s.",
+      "Correto! She never reads the news in the morning. O advérbio de frequência vem antes do verbo, e o verbo continua com -s."
     ]},
-
-  // ---- Padrão 2: tecnologia e celular ----
-  { id:"c-tc-p1", category:"tech", prompt:"She ___ on her phone during lunch.",
-    options:["scroll","scrolls","scrolling","scroll on"], correct:1,
+  { id:"c-3s-p6", category:"thirds", prompt:"My team ___ every Wednesday. (practice)",
+    options:["practicies","practice","practicees","practices"], correct:3,
     explanations:[
-      "Errado. Com 'she' o verbo leva -s.",
-      "Correto! She scrolls on her phone — o verbo de deslizar a tela, com o -s da 3ª pessoa.",
-      "Errado. Sozinho, o -ing precisa do verbo 'to be' antes: she is scrolling.",
-      "Errado. A frase já tem 'on her phone'."
+      "Errado. O -ies vale para consoante + y, e aqui termina em -e.",
+      "Errado. 'My team' é it: precisa da terminação.",
+      "Errado. O -es não se encaixa aqui; 'practice' já termina em -e.",
+      "Correto! My team practices every Wednesday. Verbo terminado em -e só ganha -s."
     ]},
-  { id:"c-tc-p2", category:"tech", prompt:"He uses an app ___ every month.",
-    options:["for pay the bills","to pay the bills","to pay the accounts","for paying bills of the house"], correct:1,
+  { id:"c-3s-p7", category:"thirds", prompt:"The season ___ in December. (end)",
+    options:["ends","end","endes","ending"], correct:0,
     explanations:[
-      "Errado. Finalidade antes de verbo é 'to', não 'for'.",
-      "Correto! to pay the bills — as contas que chegam para pagar.",
-      "Errado. 'accounts' são contas bancárias ou cadastros.",
-      "Errado. Soa traduzido; o natural é 'to pay the bills'."
+      "Correto! The season ends in December. E note a preposição: mês sozinho pede 'in'.",
+      "Errado. 'The season' é it.",
+      "Errado. Verbo em -d leva só -s.",
+      "Errado. Sem to be, o -ing não é verbo."
     ]},
-  { id:"c-tc-p3", category:"tech", prompt:"I take an umbrella ___ the sky is blue.",
-    options:["even when","same when","even that","same that"], correct:0,
+  { id:"c-3s-p8", category:"thirds", prompt:"Those players ___ very hard. (train)",
+    options:["is training","trains","trainies","train"], correct:3,
     explanations:[
-      "Correto! even when — 'mesmo quando', para contrariar a expectativa.",
-      "Errado. 'same' é 'mesmo' no sentido de igual.",
-      "Errado. 'even that' não existe nessa função.",
-      "Errado. Nenhuma das duas palavras funciona aqui."
-    ]},
-  { id:"c-tc-p4", category:"tech", prompt:"She asks her ___ to set a timer while she cooks.",
-    options:["intelligent speaker","speaker machine","smart sound","smart speaker"], correct:3,
-    explanations:[
-      "Errado. É gramatical, mas o nome do aparelho é outro.",
-      "Errado. Não existe essa combinação em inglês.",
-      "Errado. 'sound' é o som, não o aparelho.",
-      "Correto! smart speaker — a caixinha com assistente de voz."
-    ]},
-  { id:"c-tc-p5", category:"tech", prompt:"Escolha a frase correta:",
-    options:["My mouse is connected through wire.","My mouse is connected through a wire.","My mouse is connect through a wire.","My mouse is connected through the wireless."], correct:1,
-    explanations:[
-      "Errado. Falta o artigo antes de 'wire'.",
-      "Correto! connected through a wire — com fio; sem fio é 'wireless'.",
-      "Errado. Depois de 'is' o verbo fica no particípio: connected.",
-      "Errado. 'wireless' é o oposto de ter fio."
-    ]},
-  { id:"c-tc-p6", category:"tech", prompt:"I lost ___ of the TV, so now I use the app.",
-    options:["the control remote","a remote control","the remote control","remote control"], correct:2,
-    explanations:[
-      "Errado. A ordem está invertida: remote control.",
-      "Errado. Depois de 'lost ... of the TV' falamos de um controle específico, então é 'the'.",
-      "Correto! the remote control — o controle remoto daquela TV, já conhecido na conversa.",
-      "Errado. Falta o artigo."
-    ]},
-  { id:"c-tc-p7", category:"tech", prompt:"The restaurant has ___ coffee — the best in the city.",
-    options:["a top-notch","top-notch","the top-notch of","most top-notch"], correct:1,
-    explanations:[
-      "Errado. 'coffee' aqui é incontável e não leva 'a'.",
-      "Correto! top-notch coffee — de primeira qualidade; com incontável, o adjetivo vem sem artigo.",
-      "Errado. O 'of' sobra: top-notch é adjetivo.",
-      "Errado. 'top-notch' já é o grau máximo."
-    ]},
-  { id:"c-tc-p8", category:"tech", prompt:"Artificial intelligence is ___ every month, and the tools change fast.",
-    options:["evolution","evolved","evoluting","evolving"], correct:3,
-    explanations:[
-      "Errado. 'evolution' é o substantivo.",
-      "Errado. 'evolved' dá ideia de processo encerrado.",
-      "Errado. Não existe: o verbo é evolve → evolving.",
-      "Correto! is evolving — está evoluindo, em processo. Mesma ideia de 'is developing'."
+      "Errado. Plural pediria 'are', e mudaria o sentido para agora.",
+      "Errado. 'Those players' é plural: o -s não entra no verbo.",
+      "Errado. Não existe essa forma.",
+      "Correto! Those players train very hard. O outro lado do padrão: pôr o -s no plural é tão erro quanto esquecê-lo no singular."
     ]},
 
-  // ---- Padrão 3: útil × inútil ----
-  { id:"c-us-p1", category:"useful", prompt:"A car without fuel is ___.",
-    options:["unuseful","useless","use less","useful"], correct:1,
+  // ---- Pattern 2: preposições de tempo ----
+  { id:"c-pr-p1", category:"preps", prompt:"My wife works ___ 6 pm, so we have dinner late.",
+    options:["on","in","by","until"], correct:3,
     explanations:[
-      "Errado. 'unuseful' não existe.",
-      "Correto! useless — sem utilidade nenhuma.",
-      "Errado. Separado significa 'usar menos'.",
-      "Errado. É o contrário: useful é útil."
+      "Errado. 'on' é para dia e data.",
+      "Errado. Com hora exata seria 'at', e mudaria o sentido.",
+      "Errado. 'by 6 pm' seria terminar antes das 6.",
+      "Correto! works until 6 pm — ela trabalha o tempo todo até aquele horário."
     ]},
-  { id:"c-us-p2", category:"useful", prompt:"It's ___ to argue with him; he never changes his mind.",
-    options:["pointless","point less","without point","no point"], correct:0,
+  { id:"c-pr-p2", category:"preps", prompt:"The season starts ___ March.",
+    options:["on","in","at","until"], correct:1,
     explanations:[
-      "Correto! It's pointless — não adianta, não faz sentido.",
-      "Errado. É uma palavra só.",
-      "Errado. Não se diz assim em inglês.",
-      "Errado. 'no point' entra em outra estrutura: There's no point in arguing."
+      "Errado. 'on' é para dia e data: on March 3rd.",
+      "Correto! starts in March. Mês sozinho, ano e estação levam 'in'.",
+      "Errado. 'at' é para hora.",
+      "Errado. 'until March' marcaria duração até março."
     ]},
-  { id:"c-us-p3", category:"useful", prompt:"This old cable is ___, but the new one is really ___.",
-    options:["useful / useless","useless / useless","useless / useful","pointless / useful"], correct:2,
+  { id:"c-pr-p3", category:"preps", prompt:"I need the answer ___ tomorrow morning.",
+    options:["by","until","in","on"], correct:0,
     explanations:[
-      "Errado. Os dois estão trocados.",
-      "Errado. O segundo precisa ser o positivo.",
-      "Correto! useless × useful — o velho não serve, o novo serve muito.",
-      "Errado. 'pointless' é para ações sem sentido, não para objetos sem utilidade."
+      "Correto! I need the answer by tomorrow morning. Prazo final é 'by'.",
+      "Errado. 'until' seria precisar da resposta continuamente até amanhã.",
+      "Errado. 'in' sozinho não marca prazo.",
+      "Errado. 'on tomorrow' não existe: 'tomorrow' dispensa preposição."
     ]},
-  { id:"c-us-p4", category:"useful", prompt:"Escolha a frase correta:",
-    options:["My notes are very useful for the exam.","My notes are very useless for the exam.","My notes are very unuseful for the exam.","My notes are very use full for the exam."], correct:0,
+  { id:"c-pr-p4", category:"preps", prompt:"We always play ___ Sunday afternoon.",
+    options:["until","in","at","on"], correct:3,
     explanations:[
-      "Correto! very useful — o sufixo -ful é o que dá o sentido positivo.",
-      "Errado. 'useless' diria que as anotações não servem para nada.",
-      "Errado. 'unuseful' não existe.",
-      "Errado. 'useful' é uma palavra só, e o -ful tem um L só."
+      "Errado. 'until' é duração.",
+      "Errado. 'in the afternoon' sozinho leva 'in', mas colado num dia o 'on' manda.",
+      "Errado. 'at' é para hora.",
+      "Correto! on Sunday afternoon. Quando o período vem junto do dia, a preposição é 'on'."
     ]},
-
-  // ---- Padrão 4: filha, escola e regras ----
-  { id:"c-rl-p1", category:"rules", prompt:"I didn't buy the game, ___ it is too violent for her age.",
-    options:["especially why","specially because","especially because","especially that"], correct:2,
+  { id:"c-pr-p5", category:"preps", prompt:"The kids go to bed ___ night.",
+    options:["at","in","on","by"], correct:0,
     explanations:[
-      "Errado. O motivo vem com 'because'.",
-      "Errado. 'specially' é 'de propósito, para um fim específico'.",
-      "Correto! especially because — sobretudo porque.",
-      "Errado. 'especially that' não introduz motivo."
+      "Correto! at night. É a exceção dos períodos do dia: in the morning, in the afternoon, in the evening — mas at night.",
+      "Errado. 'in the night' aparece, mas o normal e esperado é 'at night'.",
+      "Errado. 'on' é para dia e data.",
+      "Errado. 'by night' seria prazo."
     ]},
-  { id:"c-rl-p2", category:"rules", prompt:"Smoking is ___ inside the building.",
-    options:["forbidden","forbid","forbade","forbidding"], correct:0,
+  { id:"c-pr-p6", category:"preps", prompt:"My appointment is ___ December 3rd.",
+    options:["in","at","until","on"], correct:3,
     explanations:[
-      "Correto! is forbidden — proibido. Forbid → forbade → forbidden.",
-      "Errado. Depois de 'is' vem o particípio.",
-      "Errado. 'forbade' é o passado simples.",
-      "Errado. O -ing daria ideia de quem proíbe, não do que é proibido."
+      "Errado. Com o dia junto, o mês perde o 'in'.",
+      "Errado. 'at' é para hora.",
+      "Errado. 'until' marca duração.",
+      "Correto! on December 3rd. Data completa sempre com 'on'."
     ]},
-  { id:"c-rl-p3", category:"rules", prompt:"My daughter has lunch ___ and dinner at home.",
-    options:["in the school","at school","on the school","at a school"], correct:1,
+  { id:"c-pr-p7", category:"preps", prompt:"I'll be in the office ___ 5 pm, then I go home.",
+    options:["until","by","on","in"], correct:0,
     explanations:[
-      "Errado. Com artigo a frase fala do prédio.",
-      "Correto! at school — sem artigo, como at home e at work.",
-      "Errado. 'on' não se usa com school.",
-      "Errado. 'a school' seria uma escola qualquer."
+      "Correto! in the office until 5 pm. Você fica lá o tempo todo até as 5 — duração.",
+      "Errado. 'by 5 pm' seria estar lá em algum momento antes das 5.",
+      "Errado. 'on' é para dia e data.",
+      "Errado. 'in 5 pm' não existe."
     ]},
-  { id:"c-rl-p4", category:"rules", prompt:"He dropped the glass and ___ in front of everyone.",
-    options:["broke","breaked it","broke it","broke him"], correct:2,
+  { id:"c-pr-p8", category:"preps", prompt:"As I said ___ the beginning of the call, I have a meeting now.",
+    options:["in","on","at","by"], correct:2,
     explanations:[
-      "Errado. Falta o objeto: quebrou o quê?",
-      "Errado. 'break' é irregular: broke.",
-      "Correto! broke it — passado de break, com o objeto 'it'.",
-      "Errado. 'him' é para pessoas."
-    ]},
-  { id:"c-rl-p5", category:"rules", prompt:"Many ___ checking the phone as soon as they wake up.",
-    options:["young people have the habit to","young people has the habit of","young peoples have the habit of","young people have the habit of"], correct:3,
-    explanations:[
-      "Errado. Depois de 'habit' vem 'of' + verbo com -ing.",
-      "Errado. Com 'people' o verbo é 'have'.",
-      "Errado. 'people' já é plural.",
-      "Correto! have the habit of checking — ter o hábito de fazer algo."
+      "Errado. 'in the beginning' é o começo de uma história longa.",
+      "Errado. 'on' é para dia e data.",
+      "Correto! at the beginning of the call. Começo de alguma coisa delimitada pede 'at'.",
+      "Errado. 'by the beginning' marcaria prazo."
     ]},
 
-  // ---- Padrão 5: acessibilidade e conhecimento ----
-  { id:"c-ac-p1", category:"access", prompt:"My neighbor is ___, so we talk using sign language.",
-    options:["death","deafs","deaf","deft"], correct:2,
+  // ---- Pattern 3: encontre o erro ----
+  { id:"c-fx-p1", category:"fixit", prompt:"Qual é a forma correta?",
+    options:["I don't have a free time during the week.","I don't have free time during the week.","I don't have the free times during the week.","I don't have a free times during the week."], correct:1,
     explanations:[
-      "Errado. 'death' é o substantivo 'morte'.",
-      "Errado. Adjetivo em inglês não vai para o plural.",
-      "Correto! deaf — surdo, terminado em -f.",
-      "Errado. 'deft' é hábil, destro."
+      "Errado. 'free time' é incontável e não leva 'a'.",
+      "Correto! I don't have free time during the week. Incontável vai sem artigo e sem plural.",
+      "Errado. 'times' no plural muda o sentido, e o 'the' pede um contexto que não existe aqui.",
+      "Errado. Junta os dois problemas: artigo e plural."
     ]},
-  { id:"c-ac-p2", category:"access", prompt:"In some regions many adults are still ___ and can't read a bill.",
-    options:["illiterate","iliterate","illiterated","unliterate"], correct:0,
+  { id:"c-fx-p2", category:"fixit", prompt:"Qual é a forma correta?",
+    options:["There is many people at the stadium.","There are many people at the stadium.","There has many people at the stadium.","There are many peoples at the stadium."], correct:1,
     explanations:[
-      "Correto! illiterate — analfabeto, com dois L.",
-      "Errado. Falta um L.",
-      "Errado. Não é particípio; o adjetivo não leva -d.",
-      "Errado. O prefixo é 'il-'."
+      "Errado. 'people' já é plural: pede 'there are'.",
+      "Correto! There are many people at the stadium. 'people' é plural de 'person' — o verbo acompanha.",
+      "Errado. 'there has' não existe.",
+      "Errado. 'peoples' só existe no sentido de povos, nações."
     ]},
-  { id:"c-ac-p3", category:"access", prompt:"He explained the diagnosis in simple words, for ___.",
-    options:["a lay","laics","laypeople","layman people"], correct:2,
+  { id:"c-fx-p3", category:"fixit", prompt:"Qual é a forma correta?",
+    options:["I need to do a blood test every year.","I need to take a blood test every year.","I need to make a blood test every year.","I need to realize a blood test every year."], correct:1,
     explanations:[
-      "Errado. 'lay' é adjetivo: a lay audience.",
-      "Errado. 'laic' praticamente não se usa nesse sentido.",
-      "Correto! laypeople — os leigos, quem não é da área. No singular, a layperson.",
-      "Errado. 'layman' já é a pessoa; 'people' fica redundante."
+      "Errado. Para exame, o verbo natural é 'take'.",
+      "Correto! I need to take a blood test every year. Exame, teste e remédio se 'take'.",
+      "Errado. 'make' é para o que você fabrica ou cria.",
+      "Errado. 'realize' é perceber — falso amigo."
     ]},
-  { id:"c-ac-p4", category:"access", prompt:"Escolha a frase correta:",
-    options:["The video has subtitles for death people.","The video has subtitles for deaf people.","The video has subtitles for deafs people.","The video has subtitles for the deft."], correct:1,
+  { id:"c-fx-p4", category:"fixit", prompt:"Qual é a forma correta?",
+    options:["It's difficult find time to practice.","It's difficult finding time to practice.","It's difficult to find time to practice.","It's difficult finds time to practice."], correct:2,
     explanations:[
-      "Errado. 'death' é 'morte' — a troca de escrita mais comum.",
-      "Correto! deaf people — e também vale 'people who are deaf'.",
-      "Errado. Adjetivo não recebe -s no plural.",
-      "Errado. 'deft' significa hábil."
+      "Errado. Falta o 'to'.",
+      "Errado. O -ing serviria como sujeito no começo da frase, não depois do adjetivo.",
+      "Correto! It's difficult to find time to practice. Depois de adjetivo, infinitivo com 'to'.",
+      "Errado. O -s de terceira pessoa não cabe aqui."
+    ]},
+  { id:"c-fx-p5", category:"fixit", prompt:"Qual é a forma correta?",
+    options:["Last year I went to three different cities.","Last year I went three different cities.","Last year I went in three different cities.","Last year I went at three different cities."], correct:0,
+    explanations:[
+      "Correto! I went to three different cities. 'go' sempre leva 'to' antes do destino.",
+      "Errado. É o mesmo 'to' que some quando a frase sai rápido.",
+      "Errado. 'go in' é entrar.",
+      "Errado. 'at' diz onde você está, não para onde foi."
+    ]},
+  { id:"c-fx-p6", category:"fixit", prompt:"Qual é a forma correta?",
+    options:["The coach which trains us is very patient.","The coach what trains us is very patient.","The coach who trains us is very patient.","The coach who train us is very patient."], correct:2,
+    explanations:[
+      "Errado. 'which' é para coisa.",
+      "Errado. 'what' não serve como pronome relativo.",
+      "Correto! The coach who trains us. Pessoa pede 'who' — e repare no -s de 'trains', porque 'the coach' é ele/ela.",
+      "Errado. O 'who' está certo, mas faltou o -s em 'trains'."
+    ]},
+  { id:"c-fx-p7", category:"fixit", prompt:"Qual é a forma correta?",
+    options:["As I told her at the beginning, I can't go.","As I told at the beginning to her, I can't go.","As I said her at the beginning, I can't go.","As I told her in the beginning, I can't go."], correct:0,
+    explanations:[
+      "Correto! As I told her at the beginning. 'tell' pede a quem logo depois, e o começo da conversa é 'at'.",
+      "Errado. Com 'tell', a pessoa vem logo depois do verbo.",
+      "Errado. 'say' não leva pessoa direto: say something to someone.",
+      "Errado. 'in the beginning' é o começo de uma narrativa longa."
+    ]},
+  { id:"c-fx-p8", category:"fixit", prompt:"Qual é a forma correta?",
+    options:["On weekends nothing special.","On weekends, nothing special happen.","On weekends, nothing special happens.","In weekends, nothing special happens."], correct:2,
+    explanations:[
+      "Errado. Falta o verbo.",
+      "Errado. 'nothing' é singular: happens.",
+      "Correto! On weekends, nothing special happens. Preposição certa, verbo presente e concordância no singular.",
+      "Errado. Com dia é 'on', não 'in'."
     ]},
 
-  // ---- Padrão 6: dia a dia e dinheiro ----
-  { id:"c-dy-p1", category:"daily", prompt:"The ___ says it's going to rain tomorrow.",
-    options:["time forecast","weather prevision","weather forecast","whether forecast"], correct:2,
+  // ---- Pattern 4: diga em inglês ----
+  { id:"c-sy-p1", category:"saying", prompt:"Hoje à noite eu vou treinar até as 9.",
+    options:["Tonight I'm going to train by 9.","Tonight I'm going to train until 9.","In tonight I'm going to train until 9.","Tonight I go to train until 9."], correct:1,
     explanations:[
-      "Errado. 'time' é hora, não o tempo meteorológico.",
-      "Errado. 'prevision' não existe nesse uso.",
-      "Correto! the weather forecast — a previsão do tempo.",
-      "Errado. 'whether' é 'se', de dúvida."
+      "Errado. 'by 9' seria terminar antes das 9.",
+      "Correto! Tonight I'm going to train until 9. Duração com 'until', e 'tonight' dispensa preposição.",
+      "Errado. 'tonight' não leva preposição na frente.",
+      "Errado. 'I go' é hábito; para hoje à noite, o plano é 'I'm going to'."
     ]},
-  { id:"c-dy-p2", category:"daily", prompt:"The small shop only accepts ___, so bring some money.",
-    options:["cash","cashes","the cash","money cash"], correct:0,
+  { id:"c-sy-p2", category:"saying", prompt:"No sábado de manhã eu levo minha filha na escola.",
+    options:["In Saturday morning I take my daughter to school.","On Saturday morning I take my daughter to school.","On Saturday morning I bring my daughter to school.","On Saturday morning I take my daughter at school."], correct:1,
     explanations:[
-      "Correto! accepts cash — dinheiro em espécie, incontável e sem artigo.",
-      "Errado. 'cash' não tem plural.",
-      "Errado. Aqui a ideia é geral, sem artigo.",
-      "Errado. 'cash' sozinho já diz tudo."
+      "Errado. Período colado no dia pede 'on'.",
+      "Correto! On Saturday morning I take my daughter to school. E 'take' é levar para longe de quem fala.",
+      "Errado. 'bring' é trazer para perto de quem fala.",
+      "Errado. Com destino é 'to school', não 'at school'."
     ]},
-  { id:"c-dy-p3", category:"daily", prompt:"Companies pay high ___ when they import equipment.",
-    options:["taxs","rates","taxes","fees"], correct:2,
+  { id:"c-sy-p3", category:"saying", prompt:"Eu tenho que entregar o relatório até quinta.",
+    options:["I have to deliver the report until Thursday.","I have to deliver the report on Thursday.","I have to deliver the report by Thursday.","I have to deliver the report in Thursday."], correct:2,
     explanations:[
-      "Errado. Palavra terminada em -x faz plural com -es.",
-      "Errado. 'rate' é taxa no sentido de índice (exchange rate).",
-      "Correto! taxes — impostos.",
-      "Errado. 'fee' é taxa de serviço, não imposto."
+      "Errado. 'until' seria entregar continuamente até quinta.",
+      "Errado. 'on Thursday' marca o dia da entrega, não o prazo.",
+      "Correto! I have to deliver the report by Thursday. Prazo final é sempre 'by'.",
+      "Errado. 'in' não vai com dia da semana."
     ]},
-  { id:"c-dy-p4", category:"daily", prompt:"The noise from the street ___ me while I study.",
-    options:["disturbs","disturb","disturbe","disturbs to"], correct:0,
+  { id:"c-sy-p4", category:"saying", prompt:"Meu time joga fora de casa no domingo.",
+    options:["My team play away on Sunday.","My team plays away in Sunday.","My team plays away on Sunday.","My team is play away on Sunday."], correct:2,
     explanations:[
-      "Correto! The noise disturbs me — sujeito no singular, verbo com -s.",
-      "Errado. 'noise' é singular, então o verbo leva -s.",
-      "Errado. A grafia é 'disturb', sem -e.",
-      "Errado. 'disturb' não leva preposição antes do objeto."
+      "Errado. 'My team' é it: o verbo leva -s.",
+      "Errado. O -s está certo, mas dia da semana é 'on'.",
+      "Correto! My team plays away on Sunday. Os dois padrões na mesma frase: o -s e o 'on'.",
+      "Errado. 'is play' não existe."
     ]},
-  { id:"c-dy-p5", category:"daily", prompt:"The salary is low, but ___, the company is great.",
-    options:["apart that","a part from that","apart of that","apart from that"], correct:3,
+  { id:"c-sy-p5", category:"saying", prompt:"Semana que vem eu vou ter menos tempo livre.",
+    options:["In next week I'm going to have less free time.","Next week I'm going to have less free time.","Next week I'm going to have less free times.","Next week I'm going to have fewer free time."], correct:1,
     explanations:[
-      "Errado. Falta o 'from'.",
-      "Errado. 'apart' é uma palavra só.",
-      "Errado. A preposição é 'from', não 'of'.",
-      "Correto! apart from that — fora isso, tirando isso."
+      "Errado. 'next week' não leva preposição.",
+      "Correto! Next week I'm going to have less free time. 'less' é para incontável, e 'free time' é incontável.",
+      "Errado. 'free time' não tem plural.",
+      "Errado. 'fewer' é para contável: fewer games, less time."
     ]},
-  { id:"c-dy-p6", category:"daily", prompt:"This project is ___ as the last one, so I sleep well.",
-    options:["not as demanding","not as demanding than","not more demanding","not as demand"], correct:0,
+  { id:"c-sy-p6", category:"saying", prompt:"A médica me acompanha duas vezes por ano.",
+    options:["The doctor follow up on me twice a year.","The doctor follows up on me two times per year.","The doctor follows up on me twice a year.","The doctor follows up me twice a year."], correct:2,
     explanations:[
-      "Correto! not as demanding as — comparação de igualdade na negativa: não é tão exigente quanto.",
-      "Errado. Com 'as ... as' não entra 'than'.",
-      "Errado. 'more' pediria 'than', e a frase continua com 'as'.",
-      "Errado. Falta o -ing: demanding."
+      "Errado. 'The doctor' é ela: follows, com -s.",
+      "Errado. Entende-se, mas o natural é 'twice a year'.",
+      "Correto! The doctor follows up on me twice a year. O -s da terceira pessoa e a expressão de frequência: once a week, twice a year.",
+      "Errado. A expressão é 'follow up ON someone'."
+    ]},
+
+  // ---- Pattern 5: ortografia ----
+  { id:"c-sp-p1", category:"spell", prompt:"Como se escreve?",
+    options:["nigth","night","niht","nigt"], correct:1,
+    explanations:[
+      "Errado. É a mesma inversão do 'daugther': 'ght', não 'gth'.",
+      "Correto! night. O bloco 'ght' se repete em night, light, right, fight e daughter.",
+      "Errado. Faltou o 'g'.",
+      "Errado. Faltou o 'h'."
+    ]},
+  { id:"c-sp-p2", category:"spell", prompt:"Como se escreve?",
+    options:["bought","bougth","boght","bouht"], correct:0,
+    explanations:[
+      "Correto! bought — passado de 'buy'. Mais um do bloco 'ght'.",
+      "Errado. Inverteu o 'ght'.",
+      "Errado. Faltou o 'u'.",
+      "Errado. Faltou o 'g'."
+    ]},
+  { id:"c-sp-p3", category:"spell", prompt:"Como se escreve?",
+    options:["succesful","successfull","successful","sucessful"], correct:2,
+    explanations:[
+      "Errado. São dois 's' no meio: success.",
+      "Errado. 'full' vira '-ful' com um L só quando é sufixo.",
+      "Correto! successful. Dois 'c', dois 's' no meio e um L só no fim.",
+      "Errado. Faltou um 'c'."
+    ]},
+  { id:"c-sp-p4", category:"spell", prompt:"Como se escreve?",
+    options:["recomend","reccommend","recommend","recomendd"], correct:2,
+    explanations:[
+      "Errado. O 'm' dobra: recommend.",
+      "Errado. O 'c' não dobra.",
+      "Correto! recommend. Um 'c' e dois 'm' — o contrário do que o português sugere.",
+      "Errado. O que dobra é o 'm', não o 'd'."
+    ]},
+  { id:"c-sp-p5", category:"spell", prompt:"Como se escreve?",
+    options:["dedicated","dedicatted","dadicated","dedicaded"], correct:0,
+    explanations:[
+      "Correto! dedicated. Três 'e' e um 'a': d-e-d-i-c-a-t-e-d.",
+      "Errado. O 't' não dobra.",
+      "Errado. A segunda letra é 'e', não 'a'.",
+      "Errado. A terminação é '-ted'."
+    ]},
+  { id:"c-sp-p6", category:"spell", prompt:"Como se escreve?",
+    options:["allways","alwais","always","alaways"], correct:2,
+    explanations:[
+      "Errado. 'always' tem um L só.",
+      "Errado. A terminação é '-ays', como em days.",
+      "Correto! always. Um L e '-ways' no fim.",
+      "Errado. Sobrou um 'a'."
     ]},
 ];
 
