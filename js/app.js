@@ -1,6 +1,6 @@
 /* ===================== Estado da aplicação ===================== */
 const STORAGE_KEY = "enCheckLastResults";
-const CONV_STORAGE_KEY = "enCheckConvResults_r6";   // r6: banco refeito na 6ª rodada (vocabulário que travou na aula)
+const CONV_STORAGE_KEY = "enCheckConvResults_r7";   // r7: banco refeito com os erros que se repetiram nas três conversas
 const TRANS_STORAGE_KEY = "enCheckTransResults_r3"; // r3: chaves de deck prefixadas pela unidade (u01-...)
 const TRANS_STORAGE_KEY_R2 = "enCheckTransResults_r2";  // só para migrar o histórico antigo uma vez
 const WEAK_THRESHOLD = 75;   // usado só para colorir a barra de desempenho (verde/amarelo/vermelho)
@@ -517,8 +517,8 @@ function renderConvLandingCard() {
 
   const details = detailsOpen ? `
     <div class="info-box">
-      Each question is a sentence from your own conversation class with the key word removed,
-      grouped by theme:
+      Each question comes from a slip that repeated across your conversations. Some ask you to fill
+      a gap, others to pick the correct sentence, to say it in English or to spell it right:
       <ul class="conv-pattern-list">
         ${Object.values(CONV_CATEGORIES).map(c => `<li><strong>${escapeHtml(c.tag)}:</strong> ${escapeHtml(c.label)}</li>`).join("")}
       </ul>
@@ -539,8 +539,8 @@ function renderConvLandingCard() {
     num: "02",
     kind: "Class feedback",
     title: "Conversation mistakes",
-    text: `Exercises built from the words you could not recall in your last class —
-    ${Object.keys(CONV_CATEGORIES).length} themes, ${CONV_TEST_QUESTIONS.length} questions.`,
+    text: `Exercises built from the mistakes that came back across your last three conversations —
+    ${Object.keys(CONV_CATEGORIES).length} patterns, ${CONV_TEST_QUESTIONS.length} questions.`,
     accent2: true,
     details,
     links,

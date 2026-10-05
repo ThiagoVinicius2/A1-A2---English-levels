@@ -69,12 +69,24 @@ Cada nova rodada de feedback **substitui** o banco anterior — os padrões já
 consolidados saem e ficam registrados no comentário do topo do arquivo.
 
 - `CONV_CATEGORIES`: um padrão por erro real da conversa, com `label` (aparece na
-  interface) e `tag` (`Padrão 1`, `Padrão 2`, …). O padrão mais persistente abre o
-  módulo e ganha mais questões.
+  interface) e `tag` (`Pattern 1`, `Pattern 2`, …; a `tag` é interface, então em
+  inglês). O padrão mais persistente abre o módulo e ganha mais questões.
 - Toda categoria precisa existir nos **dois** bancos: `CONV_TEST_QUESTIONS` e
   `CONV_PRACTICE_QUESTIONS` (a prática dirigida filtra por categoria).
 - Cada questão: 4 opções e 4 explicações alinhadas por índice. A explicação da
   resposta certa começa com `Correto!`; as demais com `Errado.`.
+- **O módulo tem mais de uma forma de questão.** `gap: true` na categoria marca
+  as que são frase com lacuna (`___`) — e só dessas o validador cobra o `___`.
+  As outras pedem para escolher a frase correta, dizer em inglês ou soletrar, e
+  aí o enunciado é uma frase inteira. **Não force um exercício a virar lacuna
+  só para caber num formato só**: foi por isso que a marca existe.
+- **Ao mexer na ordem das opções, gire `options` e `explanations` juntas**, pelo
+  mesmo deslocamento, e recalcule o `correct`. Girar só uma delas descola
+  explicação de opção, e nenhum teste pega isso — as duas continuariam com o
+  `Correto!`/`Errado.` no lugar certo.
+- **Equilibre o índice da resposta certa.** Com 36 questões, se a última posição
+  quase nunca é a certa, dá para chutar por eliminação. O `validar.js` imprime a
+  distribuição; mire em algo perto de um quarto para cada índice.
 - As opções **não** são embaralhadas em tempo de execução — varie o índice de
   `correct` entre as questões.
 - Quando o erro veio da conversa, diga isso na explicação ("Foi o seu erro...")
