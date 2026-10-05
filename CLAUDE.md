@@ -73,20 +73,36 @@ consolidados saem e ficam registrados no comentário do topo do arquivo.
   inglês). O padrão mais persistente abre o módulo e ganha mais questões.
 - Toda categoria precisa existir nos **dois** bancos: `CONV_TEST_QUESTIONS` e
   `CONV_PRACTICE_QUESTIONS` (a prática dirigida filtra por categoria).
-- Cada questão: 4 opções e 4 explicações alinhadas por índice. A explicação da
-  resposta certa começa com `Correto!`; as demais com `Errado.`.
-- **O módulo tem mais de uma forma de questão.** `gap: true` na categoria marca
-  as que são frase com lacuna (`___`) — e só dessas o validador cobra o `___`.
-  As outras pedem para escolher a frase correta, dizer em inglês ou soletrar, e
-  aí o enunciado é uma frase inteira. **Não force um exercício a virar lacuna
-  só para caber num formato só**: foi por isso que a marca existe.
+- **Toda questão declara o seu `kind`, e a forma segue a tarefa.** Não force um
+  exercício a virar múltipla escolha só para caber num formato só.
+  - `kind:"choice"` — 4 opções e 4 explicações alinhadas por índice. A
+    explicação da resposta certa começa com `Correto!`; as demais com `Errado.`.
+    Use quando a tarefa é mesmo **escolher** (qual palavra cabe aqui).
+  - `kind:"write"` — resposta **digitada**, com `task` (a instrução, em
+    português), `answer`, `accept` opcional, `explain` (a regra, mostrada tanto
+    no acerto quanto no erro) e `placeholder` opcional. Use para reescrever,
+    completar e traduzir.
+- **Quem corrige o texto digitado é o `gradeTransAnswer()` do módulo de
+  tradução**, chamado por `convGradeWritten()` em `js/app.js`. Reusar foi
+  decisão deliberada: contração, sinônimo, grafia britânica, número por extenso
+  e erro de digitação já estão resolvidos lá, e um segundo corretor duplicaria
+  a parte mais delicada do site. Os scripts são carregados antes do `app.js`,
+  então a chamada só acontece em tempo de execução, nunca na carga.
+- **Resposta curta não aceita `quase`.** `convRespostaCurta()` trata resposta de
+  até duas palavras como exata, porque a tolerância de digitação do corretor
+  engoliria justamente o erro que a questão testa: `follow` por `follows` e
+  `in` por `on` têm distância 1 e passariam como typo. Em frase inteira a
+  tolerância continua valendo, que é onde ela serve.
+- O validador confere, nas questões digitadas, que **a própria `answer` e cada
+  string de `accept` são corrigidas como `certo`** — a mesma rede do módulo de
+  tradução, para nenhuma questão nascer reprovando a própria resposta.
 - **Ao mexer na ordem das opções, gire `options` e `explanations` juntas**, pelo
   mesmo deslocamento, e recalcule o `correct`. Girar só uma delas descola
   explicação de opção, e nenhum teste pega isso — as duas continuariam com o
   `Correto!`/`Errado.` no lugar certo.
-- **Equilibre o índice da resposta certa.** Com 36 questões, se a última posição
-  quase nunca é a certa, dá para chutar por eliminação. O `validar.js` imprime a
-  distribuição; mire em algo perto de um quarto para cada índice.
+- **Equilibre o índice da resposta certa** nas questões de escolher. Se a última
+  posição quase nunca é a certa, dá para chutar por eliminação. O `validar.js`
+  imprime a distribuição; mire em algo perto de um quarto para cada índice.
 - As opções **não** são embaralhadas em tempo de execução — varie o índice de
   `correct` entre as questões.
 - Quando o erro veio da conversa, diga isso na explicação ("Foi o seu erro...")
@@ -368,7 +384,9 @@ vetar alguma coisa se discordar.
   a tela de resultado da correção mostra a porcentagem que **fica valendo** em
   cada deck e deixa "Redo the whole deck" como ação principal. Um aviso genérico
   não basta — foi exatamente assim que a dúvida apareceu na prática.
-- **Cuidado com o campo de digitação:** é o único `<input>` do projeto. Nunca
+- **Cuidado com o campo de digitação:** são os dois `<input>` do projeto
+  (`#trans-input` aqui e `#conv-input` no módulo da conversa), e a regra vale
+  para os dois. Nunca
   chame `render()` enquanto a pessoa digita (o `innerHTML` é reescrito inteiro e
   leva junto o campo, o foco e o cursor) e nunca coloque texto digitado ou frase
   de cartão dentro de atributo HTML — o `escapeHtml` do projeto não escapa aspas.

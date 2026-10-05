@@ -1,634 +1,483 @@
 /* ============================================================
    Módulo separado: "Erros da Conversa Real"
-   Baseado na 7ª rodada: os erros que mais se repetiram nas TRÊS
-   últimas conversas, não numa aula só. Por isso o banco é de
-   padrões recorrentes, e não de palavras soltas que travaram.
+   Baseado na 8ª rodada: a conversa "Making Plans" de hoje, e só ela.
+   Não é um apanhado de várias aulas — são os erros daquela conversa.
+
+   NOVIDADE DESTA RODADA: o módulo deixou de ser só múltipla escolha.
+   Cada questão declara o seu `kind`, e a forma segue a tarefa:
+   - `write`  → campo de digitação. Reescrever, completar, traduzir.
+   - `choice` → as 4 opções de sempre, para quando a tarefa é ESCOLHER.
+   Quem corrige o texto digitado é o gradeTransAnswer() do módulo de
+   tradução, reusado em js/app.js — contração, sinônimo, grafia britânica
+   e erro de digitação já estão resolvidos lá.
 
    Consolidados nas rodadas anteriores e, por isso, fora deste banco:
-   - artigo "a / an" com contável, preposições de lugar
-   - listen TO, am/is/are + verbo-ing, "audio" incontável
-   - as for / talking about, for now / so far, maiúsculas
+   - artigo "a / an" com contável, preposições de lugar, listen TO
+   - as for / talking about, maiúsculas (iPhone, YouTube)
    - vocabulário que travou na fala (party, attend, useful, deaf...)
+   - ortografia (daughter, volleyball, fighting, even though)
 
-   Os cinco padrões abaixo seguem os cinco exercícios montados a
-   partir das conversas. O -s de terceira pessoa abre o banco e
-   ganha mais questões: é o erro que apareceu nas três conversas.
+   O par "dia + parte do dia" abre o banco: foi o erro que mais apareceu
+   na conversa de hoje, em quatro frases seguidas.
    ============================================================ */
 
-/* `gap: true` marca os padrões em que o enunciado é uma frase com lacuna
-   (`___`) e as opções preenchem o buraco. Os outros três padrões têm outra
-   forma — escolher a frase correta, traduzir, escrever certo — e por isso o
-   enunciado não tem lacuna nenhuma. A marca existe para o validador cobrar a
-   lacuna só de quem precisa dela, em vez de distorcer os exercícios para
-   caberem num formato só. */
 const CONV_CATEGORIES = {
-  thirds:  { label: "Third person -s: he, she, it and the team",        tag: "Pattern 1", gap: true },
-  preps:   { label: "Time prepositions: on, in, at, by, until",         tag: "Pattern 2", gap: true },
-  fixit:   { label: "Fix the sentence: the slips that came back",       tag: "Pattern 3" },
-  saying:  { label: "Say it in English: routine, plans and deadlines",  tag: "Pattern 4" },
-  spell:   { label: "Spelling: the words you keep mistyping",           tag: "Pattern 5" },
+  dayparts: { label: "Day + part of the day: Wednesday evening",      tag: "Pattern 1" },
+  onday:    { label: "The preposition on with days",                  tag: "Pattern 2" },
+  thirds:   { label: "Third person -s: he, she, my wife, my doctor",  tag: "Pattern 3" },
+  noverb:   { label: "Sentences with no verb",                        tag: "Pattern 4" },
+  wordpick: { label: "Pick the right word: exam, test, free time",    tag: "Pattern 5" },
+  saying:   { label: "Say it in English: the sentences from today",   tag: "Pattern 6" },
 };
 
 /* ================= TESTE: ERROS DA CONVERSA REAL ================= */
 const CONV_TEST_QUESTIONS = [
-  // ---- Pattern 1: terceira pessoa (-s) ----
-  { id:"c-3s-t1", category:"thirds", prompt:"My team always ___ at home. (win)",
-    options:["wins","win","winning","winned"], correct:0,
+  // ---- Pattern 1: dia da semana + parte do dia (reescrever) ----
+  { id:"c-dp-t1", category:"dayparts", kind:"write",
+    prompt:"On Wednesday in the evening I'm going to meet my friends.",
+    task:"Reescreva corrigindo.",
+    placeholder:"Write the corrected sentence",
+    answer:"On Wednesday evening I'm going to meet my friends.",
+    accept:["On Wednesday evening I am going to meet my friends."],
+    explain:"O dia leva 'on', mas a parte do dia colada nele NÃO leva preposição nenhuma: on Wednesday evening. Foi o seu erro de hoje — o 'in the' sobra quando já existe o dia na frente." },
+  { id:"c-dp-t2", category:"dayparts", kind:"write",
+    prompt:"On Friday in the night I have free time with my wife.",
+    task:"Reescreva corrigindo.",
+    placeholder:"Write the corrected sentence",
+    answer:"On Friday night I have free time with my wife.",
+    accept:["On Friday night I have free time with my wife"],
+    explain:"On Friday night. Repare que 'night' é a exceção quando está sozinho ('at night'), mas colado no dia ele entra igual aos outros: on Friday night, on Sunday morning." },
+  { id:"c-dp-t3", category:"dayparts", kind:"write",
+    prompt:"On Sunday in the morning I visit my parents.",
+    task:"Reescreva corrigindo.",
+    placeholder:"Write the corrected sentence",
+    answer:"On Sunday morning I visit my parents.",
+    accept:["On Sunday mornings I visit my parents."],
+    explain:"On Sunday morning I visit my parents. Sozinha, a parte do dia pede 'in the morning'; com o dia na frente, some a preposição e o artigo." },
+  { id:"c-dp-t4", category:"dayparts", kind:"write",
+    prompt:"On Saturday in the afternoon I play soccer.",
+    task:"Reescreva corrigindo.",
+    placeholder:"Write the corrected sentence",
+    answer:"On Saturday afternoon I play soccer.",
+    accept:["On Saturday afternoons I play soccer."],
+    explain:"On Saturday afternoon I play soccer. É a mesma regra das três anteriores — e foi ela que apareceu quatro vezes na conversa de hoje." },
+
+  // ---- Pattern 2: a preposição on com os dias (completar) ----
+  { id:"c-on-t1", category:"onday", kind:"write",
+    prompt:"___ Saturday I'm going to play soccer.",
+    task:"Escreva só a preposição que falta. Se não precisar de nenhuma, escreva: nothing",
+    placeholder:"on, in, at... or nothing",
+    answer:"on", accept:["On"],
+    explain:"Dia da semana sempre com 'on': On Saturday I'm going to play soccer." },
+  { id:"c-on-t2", category:"onday", kind:"write",
+    prompt:"___ Sunday I'm going to visit my parents.",
+    task:"Escreva só a preposição que falta. Se não precisar de nenhuma, escreva: nothing",
+    placeholder:"on, in, at... or nothing",
+    answer:"on", accept:["On"],
+    explain:"Mesma regra: On Sunday I'm going to visit my parents." },
+  { id:"c-on-t3", category:"onday", kind:"write",
+    prompt:"I work until 7 pm ___ every weekday.",
+    task:"Escreva só a preposição que falta. Se não precisar de nenhuma, escreva: nothing",
+    placeholder:"on, in, at... or nothing",
+    answer:"nothing", accept:["none","no preposition","zero","nenhuma"],
+    explain:"Aqui não entra preposição nenhuma: I work until 7 pm every weekday. Palavras como 'every day', 'every weekend', 'next month', 'last week' e 'tomorrow' já carregam o tempo sozinhas." },
+  { id:"c-on-t4", category:"onday", kind:"write",
+    prompt:"I have an appointment ___ October 24th.",
+    task:"Escreva só a preposição que falta. Se não precisar de nenhuma, escreva: nothing",
+    placeholder:"on, in, at... or nothing",
+    answer:"on", accept:["On"],
+    explain:"Data completa leva 'on': on October 24th. Só o mês sozinho é que pede 'in' — in October." },
+  { id:"c-on-t5", category:"onday", kind:"write",
+    prompt:"___ weekends I spend time with my daughter.",
+    task:"Escreva só a preposição que falta. Se não precisar de nenhuma, escreva: nothing",
+    placeholder:"on, in, at... or nothing",
+    answer:"on", accept:["On"],
+    explain:"On weekends I spend time with my daughter. No plural e sem artigo, é o hábito — e continua com 'on'." },
+
+  // ---- Pattern 3: terceira pessoa (-s) ----
+  { id:"c-3s-t1", category:"thirds", kind:"write",
+    prompt:"She ___ up on my health. (follow)",
+    task:"Escreva só o verbo na forma certa.",
+    placeholder:"Type the verb",
+    answer:"follows",
+    explain:"She follows up on my health. Com 'she' o verbo leva -s, e verbo terminado em -ow ganha só o -s: follows." },
+  { id:"c-3s-t2", category:"thirds", kind:"write",
+    prompt:"My doctor ___ for tests twice a year. (ask)",
+    task:"Escreva só o verbo na forma certa.",
+    placeholder:"Type the verb",
+    answer:"asks",
+    explain:"My doctor asks for tests twice a year. 'My doctor' é ele/ela — o -s entra." },
+  { id:"c-3s-t3", category:"thirds", kind:"write",
+    prompt:"My wife ___ until 6 pm. (work)",
+    task:"Escreva só o verbo na forma certa.",
+    placeholder:"Type the verb",
+    answer:"works",
+    explain:"My wife works until 6 pm. Foi a sua frase de hoje, e o -s tinha sumido." },
+  { id:"c-3s-t4", category:"thirds", kind:"write",
+    prompt:"The appointment ___ at midday. (start)",
+    task:"Escreva só o verbo na forma certa.",
+    placeholder:"Type the verb",
+    answer:"starts",
+    explain:"The appointment starts at midday. 'The appointment' é it, e o presente simples também serve para agenda marcada." },
+  { id:"c-3s-t5", category:"thirds", kind:"write",
+    prompt:"He ___ the bus home every day. (take)",
+    task:"Escreva só o verbo na forma certa.",
+    placeholder:"Type the verb",
+    answer:"takes",
+    explain:"He takes the bus home every day. E repare na expressão inteira: 'take the bus home', sem 'to'." },
+
+  // ---- Pattern 4: frases sem verbo (reescrever) ----
+  { id:"c-nv-t1", category:"noverb", kind:"write",
+    prompt:"Other weekdays nothing special.",
+    task:"Reescreva com o verbo que falta.",
+    placeholder:"Write the full sentence",
+    answer:"On the other weekdays, nothing special happens.",
+    accept:["On other weekdays, nothing special happens.",
+            "On the other weekdays nothing special happens.",
+            "The other weekdays are nothing special."],
+    explain:"Em inglês a frase não existe sem verbo. Entraram três peças: a preposição 'on', o artigo e o verbo — e 'happens' leva -s porque 'nothing' é singular." },
+  { id:"c-nv-t2", category:"noverb", kind:"write",
+    prompt:"On Tuesday nothing on my schedule.",
+    task:"Reescreva com o verbo que falta.",
+    placeholder:"Write the full sentence",
+    answer:"On Tuesday there is nothing on my schedule.",
+    accept:["On Tuesday there's nothing on my schedule.",
+            "On Tuesday I have nothing on my schedule.",
+            "There is nothing on my schedule on Tuesday."],
+    explain:"Para dizer que algo não existe, o inglês usa 'there is': On Tuesday there is nothing on my schedule. 'I have nothing' também serve." },
+  { id:"c-nv-t3", category:"noverb", kind:"write",
+    prompt:"Next month a lot of appointments.",
+    task:"Reescreva com o verbo que falta.",
+    placeholder:"Write the full sentence",
+    answer:"Next month I have a lot of appointments.",
+    accept:["Next month I'm going to have a lot of appointments.",
+            "Next month there are a lot of appointments.",
+            "I have a lot of appointments next month."],
+    explain:"Next month I have a lot of appointments. E note que 'next month' não leva preposição nenhuma na frente." },
+
+  // ---- Pattern 5: escolha a palavra certa ----
+  { id:"c-wp-t1", category:"wordpick", kind:"choice",
+    prompt:"I need to do ___ twice a year at the lab.",
+    options:["exams","tests","examinations","proofs"], correct:1,
     explanations:[
-      "Correto! My team always wins at home. 'My team' é ele/ela (it), e no presente simples a terceira pessoa leva -s. Foi o erro que voltou nas três conversas: o -s some justamente quando você fala do time.",
-      "Errado. 'win' sem -s serve para I, you, we, they — não para 'my team'.",
-      "Errado. '-ing' sozinho não é verbo: precisaria de 'is winning', e aí seria agora, não um hábito.",
-      "Errado. 'winned' não existe; o passado de 'win' é 'won'. E aqui o tempo é presente."
+      "Errado. 'exam' é a prova da escola ou do concurso, não o exame de laboratório.",
+      "Correto! I need to do tests twice a year at the lab. Exame de sangue, de imagem, de rotina — em inglês é 'test'.",
+      "Errado. 'examination' existe no sentido médico, mas é o exame FÍSICO feito pelo médico, não o de laboratório.",
+      "Errado. 'proof' é prova no sentido de evidência — falso amigo."
     ]},
-  { id:"c-3s-t2", category:"thirds", prompt:"She ___ up on my health twice a year. (follow)",
-    options:["followes","is follow","follow","follows"], correct:3,
+  { id:"c-wp-t2", category:"wordpick", kind:"choice",
+    prompt:"My daughter has an English ___ at school next week.",
+    options:["proof","exam","essay","lab test"], correct:1,
     explanations:[
-      "Errado. O -es é para verbos em -s, -sh, -ch, -x e -o (watches, goes). 'follow' leva só -s.",
-      "Errado. 'is follow' não existe. Ou 'follows' (hábito), ou 'is following' (agora).",
-      "Errado. Com 'she' o verbo precisa do -s.",
-      "Correto! She follows up on my health twice a year. Verbo terminado em -ow só ganha -s: follows."
+      "Errado. 'proof' é evidência.",
+      "Correto! an English exam at school. Na escola é 'exam' (ou 'test' para a provinha menor) — o contrário do exame de laboratório.",
+      "Errado. 'essay' é redação.",
+      "Errado. 'lab test' é justamente o exame de laboratório da frase anterior."
     ]},
-  { id:"c-3s-t3", category:"thirds", prompt:"The season ___ next month. (start)",
-    options:["startes","start","starting","starts"], correct:3,
+  { id:"c-wp-t3", category:"wordpick", kind:"choice",
+    prompt:"She follows up on my ___.",
+    options:["health life","life health","health","healthy"], correct:2,
     explanations:[
-      "Errado. 'start' termina em -t, então leva só -s: starts.",
-      "Errado. 'The season' é it, e it pede -s.",
-      "Errado. Falta o verbo to be, e mesmo com ele a ideia seria outra.",
-      "Correto! The season starts next month. Repare: o presente simples também serve para agenda futura — calendário, horário, temporada."
+      "Errado. 'health life' não existe. Foi o seu erro de hoje: em inglês 'health' sozinho já é a saúde.",
+      "Errado. Inverter as palavras não resolve: a expressão não existe.",
+      "Correto! She follows up on my health. 'Health' basta — e, se quiser falar do estilo de vida, aí sim seria 'lifestyle'.",
+      "Errado. 'healthy' é o adjetivo: saudável."
     ]},
-  { id:"c-3s-t4", category:"thirds", prompt:"My coach ___ me practice every week. (help)",
-    options:["help","helpes","helping","helps"], correct:3,
+  { id:"c-wp-t4", category:"wordpick", kind:"choice",
+    prompt:"Every Friday I have ___ with my wife.",
+    options:["a free time","free times","a free times","free time"], correct:3,
     explanations:[
-      "Errado. 'My coach' é ele/ela: o verbo leva -s.",
-      "Errado. 'help' não é um dos casos de -es; é só helps.",
-      "Errado. Sem to be, o -ing não forma verbo.",
-      "Correto! My coach helps me practice every week. E note 'helps me practice', sem 'to' — depois de help o infinitivo vem pelado."
+      "Errado. 'free time' é incontável: não leva 'a'.",
+      "Errado. E também não vira plural.",
+      "Errado. Junta os dois problemas de uma vez.",
+      "Correto! Every Friday I have free time with my wife. Incontável vai sem artigo e sem plural."
     ]},
-  { id:"c-3s-t5", category:"thirds", prompt:"My wife ___ until 6 pm. (work)",
-    options:["works","work","workes","is work"], correct:0,
+  { id:"c-wp-t5", category:"wordpick", kind:"choice",
+    prompt:"As I told ___ at the beginning, I play soccer once a week.",
+    options:["you","to you","for you","(nada)"], correct:0,
     explanations:[
-      "Correto! My wife works until 6 pm. Foi a sua frase na conversa, e ali o -s tinha sumido.",
-      "Errado. 'my wife' é she: precisa do -s.",
-      "Errado. Verbo em -k leva só -s: works.",
-      "Errado. 'is work' não existe como verbo."
+      "Correto! As I told you at the beginning. 'Tell' sempre pede a quem, logo depois do verbo e sem preposição.",
+      "Errado. O 'to' é do 'say': say something TO someone. Com 'tell', a pessoa vem direto.",
+      "Errado. 'for you' mudaria o sentido para 'em seu lugar'.",
+      "Errado. Sem o objeto a frase fica incompleta — foi exatamente o seu escorregão."
     ]},
-  { id:"c-3s-t6", category:"thirds", prompt:"Coritiba ___ against Athletico next Sunday. (play)",
-    options:["play","playes","plays","plaies"], correct:2,
+  { id:"c-wp-t6", category:"wordpick", kind:"choice",
+    prompt:"___ after work.",
+    options:["I go home by bus","I take the bus home","I go to home by bus","I take bus to home"], correct:1,
     explanations:[
-      "Errado. Nome de time é singular em inglês americano: pede -s.",
-      "Errado. Não existe 'playes'.",
-      "Correto! Coritiba plays against Athletico next Sunday. Verbo terminado em vogal + y só ganha -s: plays. O -ies é para consoante + y (study → studies).",
-      "Errado. 'plaies' seria a regra do -ies, que aqui não vale: antes do y tem uma vogal."
-    ]},
-  { id:"c-3s-t7", category:"thirds", prompt:"My daughter ___ cartoons every morning. (watch)",
-    options:["watch","watchies","watchs","watches"], correct:3,
-    explanations:[
-      "Errado. 'my daughter' é she: o verbo precisa da terminação.",
-      "Errado. O -ies é só para consoante + y.",
-      "Errado. Verbo terminado em -ch não aceita só -s: fica impronunciável.",
-      "Correto! My daughter watches cartoons every morning. Terminou em -s, -sh, -ch, -x ou -o? Entra -es: watches, washes, goes."
-    ]},
-  { id:"c-3s-t8", category:"thirds", prompt:"My friends ___ soccer on Sundays. (play)",
-    options:["playing","is playing","plays","play"], correct:3,
-    explanations:[
-      "Errado. Sem to be, o -ing não forma verbo.",
-      "Errado. 'friends' é plural: seria 'are playing' — e aí a ideia seria agora, não um hábito.",
-      "Errado. Esta é a armadilha do padrão: com o plural, o -s NÃO entra. 'My friends' é they.",
-      "Correto! My friends play soccer on Sundays. O -s é só de he, she e it — colocá-lo no plural é o outro lado do mesmo erro."
+      "Errado. Não está errado em inglês, mas o natural, e o que a professora corrigiu, é 'take the bus home'.",
+      "Correto! I take the bus home after work. 'Take the bus' para o transporte e 'home' sem preposição — nunca 'to home'.",
+      "Errado. 'home' não leva 'to' depois de go: go home.",
+      "Errado. Faltou o artigo ('the bus') e sobrou o 'to' antes de home."
     ]},
 
-  // ---- Pattern 2: preposições de tempo ----
-  { id:"c-pr-t1", category:"preps", prompt:"I work ___ 7 pm every weekday.",
-    options:["until","by","in","on"], correct:0,
-    explanations:[
-      "Correto! I work until 7 pm. 'until' é a ação que continua até aquele ponto — você trabalha o tempo todo até as 7.",
-      "Errado. 'by' é prazo: alguma coisa acontece antes daquele momento, não durante.",
-      "Errado. 'in' com hora não existe; é 'at 7 pm'.",
-      "Errado. 'on' é para dias e datas."
-    ]},
-  { id:"c-pr-t2", category:"preps", prompt:"I have an appointment ___ October 24th.",
-    options:["in","at","on","until"], correct:2,
-    explanations:[
-      "Errado. 'in' é para mês sem dia (in October), ano e período do dia.",
-      "Errado. 'at' é para hora e para alguns pontos fixos (at midday, at night).",
-      "Correto! on October 24th. Dia e data levam 'on' — foi um dos escorregões das conversas.",
-      "Errado. 'until' marca duração, não a data de um compromisso."
-    ]},
-  { id:"c-pr-t3", category:"preps", prompt:"As I told you ___ the beginning, I play soccer once a week.",
-    options:["on","by","in","at"], correct:3,
-    explanations:[
-      "Errado. 'on' é para dias e datas.",
-      "Errado. 'by the beginning' marcaria prazo, o que não faz sentido aqui.",
-      "Errado. 'in the beginning' existe, mas significa 'no começo de tudo', numa narrativa longa. Para o começo da conversa, é 'at'.",
-      "Correto! As I told you at the beginning. 'at the beginning' é o ponto de partida de alguma coisa — da conversa, da aula, do filme."
-    ]},
-  { id:"c-pr-t4", category:"preps", prompt:"I usually watch the games ___ the evening.",
-    options:["on","at","until","in"], correct:3,
-    explanations:[
-      "Errado. 'on' entra quando o período vem colado num dia: on Sunday evening.",
-      "Errado. 'at' com período do dia só em 'at night'.",
-      "Errado. 'until' marca duração.",
-      "Correto! in the evening. Períodos do dia levam 'in': in the morning, in the afternoon, in the evening — a exceção é 'at night'."
-    ]},
-  { id:"c-pr-t5", category:"preps", prompt:"Please finish the report ___ Friday. (prazo final)",
-    options:["in","at","until","by"], correct:3,
-    explanations:[
-      "Errado. 'in' com dia da semana não vai.",
-      "Errado. 'at' é para hora.",
-      "Errado. Aqui está o par que mais confunde: 'until Friday' seria continuar escrevendo até sexta.",
-      "Correto! finish the report by Friday. 'by' é prazo: até sexta, em algum momento antes dela, tem que estar pronto."
-    ]},
-  { id:"c-pr-t6", category:"preps", prompt:"The store is open ___ 9 pm tonight.",
-    options:["by","on","until","in"], correct:2,
-    explanations:[
-      "Errado. 'by 9 pm' seria 'antes das 9', e não é isso: a loja fica aberta o tempo todo.",
-      "Errado. 'on' é para dias e datas.",
-      "Correto! open until 9 pm. A loja continua aberta até aquele horário — é duração, então 'until'.",
-      "Errado. Com hora exata a preposição seria 'at', e mesmo assim mudaria o sentido."
-    ]},
-  { id:"c-pr-t7", category:"preps", prompt:"___ Saturday, I'm going to play soccer.",
-    options:["On","In","At","Until"], correct:0,
-    explanations:[
-      "Correto! On Saturday, I'm going to play soccer. Dia da semana sempre com 'on'.",
-      "Errado. 'in' é para mês, ano, estação e período do dia.",
-      "Errado. 'at' é para hora.",
-      "Errado. 'until Saturday' marcaria duração até sábado."
-    ]},
-  { id:"c-pr-t8", category:"preps", prompt:"Let's meet ___ midday for lunch.",
-    options:["in","on","until","at"], correct:3,
-    explanations:[
-      "Errado. 'in' não entra com ponto fixo do relógio.",
-      "Errado. 'on' é para dia e data.",
-      "Errado. 'until midday' seria esperar até o meio-dia, não marcar nele.",
-      "Correto! at midday. Hora e ponto fixo do dia levam 'at': at 7 pm, at midday, at midnight, at night."
-    ]},
-
-  // ---- Pattern 3: encontre o erro ----
-  { id:"c-fx-t1", category:"fixit", prompt:"Qual é a forma correta? (original: \"I have a free time on Sunday.\")",
-    options:["I have free time on Sunday.","I have a free time on Sunday.","I have a free times on Sunday.","I have the free time on Sunday."], correct:0,
-    explanations:[
-      "Correto! I have free time on Sunday. 'free time' é incontável: não leva 'a' nem vira plural.",
-      "Errado. Foi exatamente o seu erro na conversa: o 'a' não entra antes de incontável.",
-      "Errado. Além do artigo, 'time' nesse sentido não tem plural.",
-      "Errado. 'the' faria falar de um tempo livre específico, já combinado — não é o caso."
-    ]},
-  { id:"c-fx-t2", category:"fixit", prompt:"Qual é a forma correta? (original: \"Other weekdays nothing special.\")",
-    options:["Other weekdays nothing special.","On the other weekdays, nothing special happens.","In other weekdays, nothing special.","The other weekdays nothing special happen."], correct:1,
-    explanations:[
-      "Errado. Falta o verbo: em inglês a frase não se sustenta sem ele.",
-      "Correto! On the other weekdays, nothing special happens. Entraram as três peças que faltavam: a preposição 'on', o artigo e o verbo 'happens' (com -s, porque 'nothing' é singular).",
-      "Errado. Com dias é 'on', não 'in' — e continua sem verbo.",
-      "Errado. 'nothing' é singular: happens, não happen."
-    ]},
-  { id:"c-fx-t3", category:"fixit", prompt:"Qual é a forma correta? (original: \"I need to do exams twice a year.\")",
-    options:["I need to make exams twice a year.","I need to do exams twice a year.","I need to take exams twice a year.","I need to realize exams twice a year."], correct:2,
-    explanations:[
-      "Errado. 'make' não combina com exame; make é para o que você cria.",
-      "Errado. 'do an exam' existe no inglês britânico escolar, mas para exame médico — que era o seu caso — o verbo é 'take'.",
-      "Correto! I need to take exams twice a year. Exame, teste e remédio em inglês se 'take': take an exam, take a test, take medicine.",
-      "Errado. 'realize' é perceber, dar-se conta — falso amigo de 'realizar'."
-    ]},
-  { id:"c-fx-t4", category:"fixit", prompt:"Qual é a forma correta? (original: \"As I told in the beginning, I like soccer.\")",
-    options:["As I told at the beginning, I like soccer.","As I told you at the beginning, I like soccer.","As I said you in the beginning, I like soccer.","As I told you in the beginning, I like soccer."], correct:1,
-    explanations:[
-      "Errado. A preposição ficou certa, mas 'tell' sempre pede a quem: tell someone.",
-      "Correto! As I told you at the beginning. Dois consertos numa frase só: 'tell' precisa do objeto ('told you') e o começo da conversa é 'at the beginning'.",
-      "Errado. É o contrário de 'tell': 'say' não leva objeto direto de pessoa — say something TO someone.",
-      "Errado. O 'you' entrou, mas 'in the beginning' é o começo de uma história longa, não o da conversa."
-    ]},
-  { id:"c-fx-t5", category:"fixit", prompt:"Qual é a forma correta? (original: \"There's some sports with only one player.\")",
-    options:["There is some sports with only one player.","There's some sport with only one player.","There are some sports with only one player.","There has some sports with only one player."], correct:2,
-    explanations:[
-      "Errado. 'There's' é 'there is', e 'sports' é plural.",
-      "Errado. Mudar para o singular conserta a concordância, mas muda o que você queria dizer.",
-      "Correto! There are some sports with only one player. O verbo concorda com o que vem depois — plural pede 'there are'.",
-      "Errado. 'there has' não existe; a estrutura é there is / there are."
-    ]},
-  { id:"c-fx-t6", category:"fixit", prompt:"Qual é a forma correta? (original: \"It's almost impossible plays soccer alone.\")",
-    options:["It's almost impossible to play soccer alone.","It's almost impossible plays soccer alone.","It's almost impossible play soccer alone.","It's almost impossible playing soccer alone."], correct:0,
-    explanations:[
-      "Correto! It's almost impossible to play soccer alone. Depois de adjetivo o verbo vem no infinitivo com 'to'.",
-      "Errado. O -s de terceira pessoa não tem o que fazer aqui: o verbo não tem sujeito próprio.",
-      "Errado. Falta o 'to'. Sem ele a frase fica solta.",
-      "Errado. O -ing serviria como sujeito ('Playing soccer alone is almost impossible'), mas não depois do adjetivo."
-    ]},
-  { id:"c-fx-t7", category:"fixit", prompt:"Qual é a forma correta? (original: \"I went a lot of stadiums in Curitiba.\")",
-    options:["I went a lot of stadiums in Curitiba.","I went in a lot of stadiums in Curitiba.","I went to a lot of stadiums in Curitiba.","I went at a lot of stadiums in Curitiba."], correct:2,
-    explanations:[
-      "Errado. 'go' sempre precisa de 'to' antes do destino.",
-      "Errado. 'go in' é entrar em alguma coisa, não ir a um lugar.",
-      "Correto! I went to a lot of stadiums in Curitiba. O 'to' do destino é o que mais some quando a frase sai rápido.",
-      "Errado. 'at' marca onde você está, não para onde vai."
-    ]},
-  { id:"c-fx-t8", category:"fixit", prompt:"Qual é a forma correta? (original: \"People that play volleyball are hard to find here.\")",
-    options:["People which play volleyball are hard to find here.","People who play volleyball are hard to find here.","People what play volleyball are hard to find here.","People who plays volleyball are hard to find here."], correct:1,
-    explanations:[
-      "Errado. 'which' é para coisa, nunca para pessoa.",
-      "Correto! People who play volleyball. Para pessoa o natural é 'who' — 'that' até aparece na fala, mas 'who' é o que soa certo e é o que o seu interlocutor espera.",
-      "Errado. 'what' não funciona como pronome relativo em inglês.",
-      "Errado. O 'who' está certo, mas o verbo concorda com 'people', que é plural: play, sem -s."
-    ]},
-
-  // ---- Pattern 4: diga em inglês ----
-  { id:"c-sy-t1", category:"saying", prompt:"Amanhã eu vou trabalhar até as 7 da noite.",
-    options:["Tomorrow I'm going to work by 7 pm.","Tomorrow I'm going to work until 7 pm.","Tomorrow I'm going to work at 7 pm.","Tomorrow I go to work until 7 pm."], correct:1,
-    explanations:[
-      "Errado. 'by 7 pm' seria terminar antes das 7, e não é isso.",
-      "Correto! Tomorrow I'm going to work until 7 pm. Plano com 'going to' e duração com 'until'.",
-      "Errado. 'at 7 pm' seria a hora em que você começa.",
-      "Errado. 'I go to work' é hábito; para amanhã, use o plano: I'm going to work."
-    ]},
-  { id:"c-sy-t2", category:"saying", prompt:"Na quarta à noite eu vou encontrar meus amigos.",
-    options:["In Wednesday night I'm going to meet my friends.","On Wednesday night I'm going to meet my friends.","At Wednesday night I'm going to find my friends.","On Wednesday night I'm going to know my friends."], correct:1,
-    explanations:[
-      "Errado. Com dia da semana é 'on', mesmo quando vem junto do período.",
-      "Correto! On Wednesday night I'm going to meet my friends. O período colado no dia puxa o 'on', e 'meet' é encontrar alguém combinado.",
-      "Errado. Duas falhas: 'at' com dia, e 'find' é achar algo perdido.",
-      "Errado. 'know' é conhecer de já conhecer; para encontrar com alguém é 'meet'."
-    ]},
-  { id:"c-sy-t3", category:"saying", prompt:"Eu tenho uma consulta com a médica no dia 24.",
-    options:["I have an appointment with the doctor in the 24th.","I have a consultation with the doctor on 24.","I have an appointment with the doctor on the 24th.","I have an appointment with the doctor at the 24th."], correct:2,
-    explanations:[
-      "Errado. Data leva 'on', não 'in'.",
-      "Errado. 'consultation' é consultoria técnica; e a data precisa do artigo: on the 24th.",
-      "Correto! I have an appointment with the doctor on the 24th. Consulta médica é 'appointment', e dia do mês é 'on the 24th'.",
-      "Errado. 'at' é para hora, não para dia do mês."
-    ]},
-  { id:"c-sy-t4", category:"saying", prompt:"No fim de semana eu passo bastante tempo com a minha filha.",
-    options:["On the weekend I spend a lot of time with my daughter.","In the weekend I pass a lot of time with my daughter.","On the weekend I pass a lot of time with my daughter.","At the weekend I spend a lot of times with my daughter."], correct:0,
-    explanations:[
-      "Correto! On the weekend I spend a lot of time with my daughter. Tempo se 'spend', nunca 'pass'.",
-      "Errado. Dois erros: 'in the weekend' e o falso amigo 'pass'.",
-      "Errado. A preposição ficou certa, mas tempo em inglês se gasta: spend time.",
-      "Errado. 'at the weekend' é britânico e passa, mas 'times' no plural não: time aqui é incontável."
-    ]},
-  { id:"c-sy-t5", category:"saying", prompt:"Mês que vem eu vou ter mais tempo livre.",
-    options:["Next month I'm going to have more free times.","In next month I'm going to have more free time.","Next month I'm going to have more free time.","Next month I'm going to have more a free time."], correct:2,
-    explanations:[
-      "Errado. 'free time' é incontável: não tem plural.",
-      "Errado. 'next month' já é a hora: não leva preposição nenhuma na frente.",
-      "Correto! Next month I'm going to have more free time. Repare que 'next month', 'last week' e 'tomorrow' dispensam preposição.",
-      "Errado. O artigo 'a' não entra antes de incontável."
-    ]},
-  { id:"c-sy-t6", category:"saying", prompt:"Eu preciso terminar meu projeto até sexta.",
-    options:["I need to finish my project until Friday.","I need to finish my project by Friday.","I need finish my project by Friday.","I need to finish my project on Friday."], correct:1,
-    explanations:[
-      "Errado. 'until Friday' seria ficar mexendo no projeto até sexta; o prazo é 'by'.",
-      "Correto! I need to finish my project by Friday. Prazo final é sempre 'by'.",
-      "Errado. Depois de 'need' o verbo vem com 'to': need to finish.",
-      "Errado. 'on Friday' marcaria o dia em que você termina, não o limite."
-    ]},
-
-  // ---- Pattern 5: ortografia ----
-  { id:"c-sp-t1", category:"spell", prompt:"Como se escreve? (você escreveu \"daugther\")",
-    options:["daugther","daughter","doughter","daugter"], correct:1,
-    explanations:[
-      "Errado. É a troca que você faz sempre: o 'gh' vem antes do 't', não depois.",
-      "Correto! daughter. A ordem é d-a-u-g-h-t-e-r — o bloco 'ght' aparece igual em night, light e eight.",
-      "Errado. A vogal é 'au', como em 'daughter' e 'caught'.",
-      "Errado. Faltou o 'h' do bloco 'ght'."
-    ]},
-  { id:"c-sp-t2", category:"spell", prompt:"Como se escreve? (você escreveu \"volleiball\")",
-    options:["voleyball","volleyball","volleiball","voleiboll"], correct:1,
-    explanations:[
-      "Errado. Falta um 'l': são dois.",
-      "Correto! volleyball. Dois L e, no meio, 'ey' — não 'ei'. O português puxa o 'i', mas em inglês é volley, como em 'volley' do tênis.",
-      "Errado. Foi o que você escreveu: o 'ei' aqui é 'ey'.",
-      "Errado. Três problemas: um L só, o 'ei' e o 'o' no fim."
-    ]},
-  { id:"c-sp-t3", category:"spell", prompt:"Como se escreve? (você escreveu \"figthing\")",
-    options:["fighting","figthing","fiting","fightting"], correct:0,
-    explanations:[
-      "Correto! fighting. Mesmo bloco 'ght' de daughter e night — e a ordem também é 'ght', nunca 'gth'.",
-      "Errado. É a mesma inversão do 'daugther': o 'h' vem antes do 't'.",
-      "Errado. Sem o 'gh' a palavra vira outra coisa.",
-      "Errado. O 't' não dobra: fighting."
-    ]},
-  { id:"c-sp-t4", category:"spell", prompt:"Como se escreve? (você escreveu \"even tough\")",
-    options:["even tough","even thought","even though","even trough"], correct:2,
-    explanations:[
-      "Errado. 'tough' existe, mas quer dizer duro, difícil — é outra palavra.",
-      "Errado. 'thought' é pensamento ou o passado de think.",
-      "Correto! even though — 'mesmo que', 'embora'. São quatro palavras parecidíssimas (tough, though, thought, through) e esta é a única que serve aqui.",
-      "Errado. 'trough' é cocho, calha. Nem de perto."
-    ]},
-  { id:"c-sp-t5", category:"spell", prompt:"Como se escreve? (você escreveu \"colective\")",
-    options:["colective","collective","collectve","coletive"], correct:1,
-    explanations:[
-      "Errado. Em inglês o L dobra: collective.",
-      "Correto! collective. O português tem um L só ('coletivo') e é daí que vem o escorregão — em inglês são dois, como em collect e collection.",
-      "Errado. Faltou o 'i' antes do 've'.",
-      "Errado. Um L só e faltando o 'c': é a forma portuguesa."
-    ]},
-  { id:"c-sp-t6", category:"spell", prompt:"Como se escreve? (você escreveu \"dadicated\")",
-    options:["dedicatted","dadicated","dedicated","dedicaded"], correct:2,
-    explanations:[
-      "Errado. O 't' não dobra.",
-      "Errado. A segunda letra é 'e', não 'a': de-di-ca-ted.",
-      "Correto! dedicated. Três 'e' e um 'a': d-e-d-i-c-a-t-e-d.",
-      "Errado. A terminação do particípio é '-ted', com t."
-    ]},
+  // ---- Pattern 6: traduza ----
+  { id:"c-tr-t1", category:"saying", kind:"write",
+    prompt:"Eu trabalho até as 7 da noite todos os dias de semana.",
+    task:"Traduza para o inglês.",
+    placeholder:"Write it in English",
+    answer:"I work until 7 pm every weekday.",
+    accept:["I work until 7 pm on weekdays.","I work until 7 pm every weekday"],
+    explain:"I work until 7 pm every weekday. Duração com 'until', e 'every weekday' sem preposição nenhuma." },
+  { id:"c-tr-t2", category:"saying", kind:"write",
+    prompt:"Na quarta à noite eu encontro meus amigos.",
+    task:"Traduza para o inglês.",
+    placeholder:"Write it in English",
+    answer:"On Wednesday night I meet my friends.",
+    accept:["On Wednesday evening I meet my friends.","I meet my friends on Wednesday night."],
+    explain:"On Wednesday night I meet my friends. O dia com 'on' e a parte do dia colada, sem o 'in the'." },
+  { id:"c-tr-t3", category:"saying", kind:"write",
+    prompt:"Ela acompanha a minha saúde.",
+    task:"Traduza para o inglês.",
+    placeholder:"Write it in English",
+    answer:"She follows up on my health.",
+    accept:["She follows my health.","She keeps up with my health."],
+    explain:"She follows up on my health. Os dois erros de hoje numa frase só: o -s de 'follows' e 'health' sem o 'life'." },
+  { id:"c-tr-t4", category:"saying", kind:"write",
+    prompt:"Nos outros dias da semana não tem nada de especial.",
+    task:"Traduza para o inglês.",
+    placeholder:"Write it in English",
+    answer:"On the other weekdays nothing special happens.",
+    accept:["On the other weekdays there is nothing special.",
+            "On other weekdays nothing special happens.",
+            "On the other weekdays, nothing special happens."],
+    explain:"On the other weekdays nothing special happens. A frase precisa de verbo — 'happens' ou 'there is'." },
+  { id:"c-tr-t5", category:"saying", kind:"write",
+    prompt:"Como eu te disse no começo, eu jogo bola uma vez por semana.",
+    task:"Traduza para o inglês.",
+    placeholder:"Write it in English",
+    answer:"As I told you at the beginning, I play soccer once a week.",
+    accept:["As I told you in the beginning, I play soccer once a week.",
+            "Like I told you at the beginning, I play soccer once a week."],
+    explain:"As I told you at the beginning, I play soccer once a week. 'Tell' pede o 'you', e a frequência é 'once a week'." },
+  { id:"c-tr-t6", category:"saying", kind:"write",
+    prompt:"Eu pego o ônibus para casa depois do trabalho.",
+    task:"Traduza para o inglês.",
+    placeholder:"Write it in English",
+    answer:"I take the bus home after work.",
+    accept:["I take the bus home after work","I catch the bus home after work."],
+    explain:"I take the bus home after work. 'Take the bus' e 'home' sem preposição — nada de 'to home'." },
 ];
 
 /* ================= PRÁTICA DIRIGIDA: ERROS DA CONVERSA REAL ================= */
 const CONV_PRACTICE_QUESTIONS = [
-  // ---- Pattern 1: terceira pessoa (-s) ----
-  { id:"c-3s-p1", category:"thirds", prompt:"He ___ to the gym before work. (go)",
-    options:["go","goies","gos","goes"], correct:3,
+  // ---- Pattern 1: dia da semana + parte do dia ----
+  { id:"c-dp-p1", category:"dayparts", kind:"write",
+    prompt:"On Monday in the morning I have a meeting.",
+    task:"Reescreva corrigindo.",
+    placeholder:"Write the corrected sentence",
+    answer:"On Monday morning I have a meeting.",
+    explain:"On Monday morning. Com o dia na frente, a parte do dia perde a preposição e o artigo." },
+  { id:"c-dp-p2", category:"dayparts", kind:"write",
+    prompt:"On Thursday in the night my daughter studies English.",
+    task:"Reescreva corrigindo.",
+    placeholder:"Write the corrected sentence",
+    answer:"On Thursday night my daughter studies English.",
+    explain:"On Thursday night. E repare no -s de 'studies': 'my daughter' é she." },
+  { id:"c-dp-p3", category:"dayparts", kind:"write",
+    prompt:"In the evening on Tuesday I watch the game.",
+    task:"Reescreva corrigindo.",
+    placeholder:"Write the corrected sentence",
+    answer:"On Tuesday evening I watch the game.",
+    accept:["I watch the game on Tuesday evening."],
+    explain:"On Tuesday evening I watch the game. Quando os dois aparecem, o dia vem primeiro e a parte do dia cola nele." },
+  { id:"c-dp-p4", category:"dayparts", kind:"write",
+    prompt:"I rest in the afternoon on Sunday.",
+    task:"Reescreva corrigindo.",
+    placeholder:"Write the corrected sentence",
+    answer:"I rest on Sunday afternoon.",
+    accept:["On Sunday afternoon I rest."],
+    explain:"I rest on Sunday afternoon. Mesma arrumação: dia primeiro, período colado." },
+
+  // ---- Pattern 2: a preposição on com os dias ----
+  { id:"c-on-p1", category:"onday", kind:"write",
+    prompt:"___ Monday I have a meeting with my team.",
+    task:"Escreva só a preposição que falta. Se não precisar de nenhuma, escreva: nothing",
+    placeholder:"on, in, at... or nothing",
+    answer:"on", accept:["On"],
+    explain:"Dia da semana sempre com 'on'." },
+  { id:"c-on-p2", category:"onday", kind:"write",
+    prompt:"I go to the gym ___ every morning.",
+    task:"Escreva só a preposição que falta. Se não precisar de nenhuma, escreva: nothing",
+    placeholder:"on, in, at... or nothing",
+    answer:"nothing", accept:["none","no preposition","zero","nenhuma"],
+    explain:"'every morning' já carrega o tempo: I go to the gym every morning, sem preposição." },
+  { id:"c-on-p3", category:"onday", kind:"write",
+    prompt:"My vacation starts ___ December.",
+    task:"Escreva só a preposição que falta. Se não precisar de nenhuma, escreva: nothing",
+    placeholder:"on, in, at... or nothing",
+    answer:"in", accept:["In"],
+    explain:"Mês sozinho leva 'in': in December. Com o dia junto viraria 'on December 3rd'." },
+  { id:"c-on-p4", category:"onday", kind:"write",
+    prompt:"The game is ___ November 5th.",
+    task:"Escreva só a preposição que falta. Se não precisar de nenhuma, escreva: nothing",
+    placeholder:"on, in, at... or nothing",
+    answer:"on", accept:["On"],
+    explain:"Data completa leva 'on': on November 5th." },
+  { id:"c-on-p5", category:"onday", kind:"write",
+    prompt:"I'm going to call you ___ tomorrow.",
+    task:"Escreva só a preposição que falta. Se não precisar de nenhuma, escreva: nothing",
+    placeholder:"on, in, at... or nothing",
+    answer:"nothing", accept:["none","no preposition","zero","nenhuma"],
+    explain:"'tomorrow' não leva preposição: I'm going to call you tomorrow. Vale também para 'yesterday' e 'tonight'." },
+
+  // ---- Pattern 3: terceira pessoa (-s) ----
+  { id:"c-3s-p1", category:"thirds", kind:"write",
+    prompt:"My team ___ every Wednesday. (practice)",
+    task:"Escreva só o verbo na forma certa.",
+    placeholder:"Type the verb",
+    answer:"practices", accept:["practises"],
+    explain:"My team practices every Wednesday. Verbo terminado em -e ganha só o -s." },
+  { id:"c-3s-p2", category:"thirds", kind:"write",
+    prompt:"She ___ the news every morning. (watch)",
+    task:"Escreva só o verbo na forma certa.",
+    placeholder:"Type the verb",
+    answer:"watches",
+    explain:"She watches the news. Terminou em -ch? Entra -es: watches, washes, goes." },
+  { id:"c-3s-p3", category:"thirds", kind:"write",
+    prompt:"My friends ___ soccer on Sundays. (play)",
+    task:"Escreva só o verbo na forma certa.",
+    placeholder:"Type the verb",
+    answer:"play",
+    explain:"My friends play soccer. Esta é a armadilha: no plural o -s NÃO entra. Ele é só de he, she e it." },
+  { id:"c-3s-p4", category:"thirds", kind:"write",
+    prompt:"He ___ to work by car. (go)",
+    task:"Escreva só o verbo na forma certa.",
+    placeholder:"Type the verb",
+    answer:"goes",
+    explain:"He goes to work by car. Verbo terminado em -o leva -es." },
+  { id:"c-3s-p5", category:"thirds", kind:"write",
+    prompt:"My wife ___ English at night. (study)",
+    task:"Escreva só o verbo na forma certa.",
+    placeholder:"Type the verb",
+    answer:"studies",
+    explain:"My wife studies English. Consoante + y vira -ies: study → studies, try → tries." },
+
+  // ---- Pattern 4: frases sem verbo ----
+  { id:"c-nv-p1", category:"noverb", kind:"write",
+    prompt:"On Saturday nothing to do.",
+    task:"Reescreva com o verbo que falta.",
+    placeholder:"Write the full sentence",
+    answer:"On Saturday I have nothing to do.",
+    accept:["On Saturday there is nothing to do.","On Saturday there's nothing to do."],
+    explain:"On Saturday I have nothing to do. Sem verbo a frase não se sustenta em inglês." },
+  { id:"c-nv-p2", category:"noverb", kind:"write",
+    prompt:"Last week a lot of meetings.",
+    task:"Reescreva com o verbo que falta.",
+    placeholder:"Write the full sentence",
+    answer:"Last week I had a lot of meetings.",
+    accept:["Last week there were a lot of meetings.","I had a lot of meetings last week."],
+    explain:"Last week I had a lot of meetings. Como é passado, o verbo vai para 'had' — e 'last week' não leva preposição." },
+  { id:"c-nv-p3", category:"noverb", kind:"write",
+    prompt:"My weekend very busy.",
+    task:"Reescreva com o verbo que falta.",
+    placeholder:"Write the full sentence",
+    answer:"My weekend was very busy.",
+    accept:["My weekend is very busy."],
+    explain:"My weekend was very busy. O português dispensa o verbo 'ser' aqui, o inglês nunca." },
+
+  // ---- Pattern 5: escolha a palavra certa ----
+  { id:"c-wp-p1", category:"wordpick", kind:"choice",
+    prompt:"The doctor asked for a blood ___.",
+    options:["exam","proof","test","essay"], correct:2,
     explanations:[
-      "Errado. Com 'he' o verbo precisa da terminação.",
-      "Errado. O -ies é para consoante + y.",
-      "Errado. Verbo terminado em -o leva -es.",
-      "Correto! He goes to the gym before work. Em -s, -sh, -ch, -x e -o entra -es: goes, watches, does."
+      "Errado. 'exam' é a prova da escola.",
+      "Errado. 'proof' é evidência.",
+      "Correto! a blood test. Exame de laboratório é sempre 'test'.",
+      "Errado. 'essay' é redação."
     ]},
-  { id:"c-3s-p2", category:"thirds", prompt:"My wife ___ English at night. (study)",
-    options:["study","studys","studyes","studies"], correct:3,
+  { id:"c-wp-p2", category:"wordpick", kind:"choice",
+    prompt:"I have ___ on Saturday morning, so I can rest.",
+    options:["free time","a free time","free times","the free time"], correct:0,
     explanations:[
-      "Errado. 'my wife' é she: precisa da terminação.",
-      "Errado. Antes do y tem consoante, então o y cai e entra -ies.",
-      "Errado. Não existe '-yes' como terminação.",
-      "Correto! My wife studies English at night. Consoante + y vira -ies: study → studies, try → tries."
+      "Correto! I have free time on Saturday morning. Incontável: sem artigo e sem plural.",
+      "Errado. O 'a' não entra antes de incontável.",
+      "Errado. 'time' nesse sentido não tem plural.",
+      "Errado. 'the' pediria um tempo livre específico, já combinado."
     ]},
-  { id:"c-3s-p3", category:"thirds", prompt:"The game ___ at 4 pm. (finish)",
-    options:["finishes","finishs","finish","finishies"], correct:0,
+  { id:"c-wp-p3", category:"wordpick", kind:"choice",
+    prompt:"She asked me about my ___.",
+    options:["health life","healthy","life health","health"], correct:3,
     explanations:[
-      "Correto! The game finishes at 4 pm. Terminou em -sh? Entra -es.",
-      "Errado. 'finishs' não se pronuncia; por isso o -es.",
-      "Errado. 'The game' é it e pede a terminação.",
-      "Errado. O -ies é só para consoante + y."
+      "Errado. 'health life' não existe em inglês.",
+      "Errado. 'healthy' é o adjetivo.",
+      "Errado. Inverter não resolve.",
+      "Correto! about my health. 'Health' sozinho já é a saúde."
     ]},
-  { id:"c-3s-p4", category:"thirds", prompt:"My daughter and I ___ soccer on Sundays. (watch)",
-    options:["watchs","is watching","watches","watch"], correct:3,
+  { id:"c-wp-p4", category:"wordpick", kind:"choice",
+    prompt:"___ that the meeting was cancelled.",
+    options:["I told to him","I said him","I told him","I told"], correct:2,
     explanations:[
-      "Errado. Além de não caber aqui, 'watchs' nem existe.",
-      "Errado. Com 'we' seria 'are', e a ideia passaria a ser agora, não um hábito.",
-      "Errado. É a armadilha: 'My daughter and I' são duas pessoas, ou seja 'we'.",
-      "Correto! My daughter and I watch soccer on Sundays. Sujeito composto é plural — nada de -s."
+      "Errado. Com 'tell' a pessoa vem direto, sem 'to'.",
+      "Errado. É o contrário: 'say' precisa do 'to' — I said to him.",
+      "Correto! I told him that the meeting was cancelled. 'Tell someone', sem preposição.",
+      "Errado. 'tell' nunca fica sem a quem."
     ]},
-  { id:"c-3s-p5", category:"thirds", prompt:"She never ___ the news in the morning. (read)",
-    options:["readies","is read","read","reads"], correct:3,
+  { id:"c-wp-p5", category:"wordpick", kind:"choice",
+    prompt:"After the game ___.",
+    options:["I go to home","I take the bus home","I go home by bus","I take bus home"], correct:1,
     explanations:[
-      "Errado. 'readies' é outra palavra e não é isso.",
-      "Errado. 'is read' não forma presente simples.",
-      "Errado. 'never' não muda nada: com 'she' o verbo leva -s.",
-      "Correto! She never reads the news in the morning. O advérbio de frequência vem antes do verbo, e o verbo continua com -s."
+      "Errado. 'home' não leva 'to' depois de go.",
+      "Correto! I take the bus home. É a forma que a professora corrigiu: 'take the bus' e 'home' sem preposição.",
+      "Errado. Não é incorreto, mas o natural em inglês é 'take the bus home'.",
+      "Errado. Faltou o artigo: take THE bus."
     ]},
-  { id:"c-3s-p6", category:"thirds", prompt:"My team ___ every Wednesday. (practice)",
-    options:["practicies","practice","practicees","practices"], correct:3,
+  { id:"c-wp-p6", category:"wordpick", kind:"choice",
+    prompt:"My son has a math ___ at school tomorrow.",
+    options:["lab test","proof","exam","examination"], correct:2,
     explanations:[
-      "Errado. O -ies vale para consoante + y, e aqui termina em -e.",
-      "Errado. 'My team' é it: precisa da terminação.",
-      "Errado. O -es não se encaixa aqui; 'practice' já termina em -e.",
-      "Correto! My team practices every Wednesday. Verbo terminado em -e só ganha -s."
-    ]},
-  { id:"c-3s-p7", category:"thirds", prompt:"The season ___ in December. (end)",
-    options:["ends","end","endes","ending"], correct:0,
-    explanations:[
-      "Correto! The season ends in December. E note a preposição: mês sozinho pede 'in'.",
-      "Errado. 'The season' é it.",
-      "Errado. Verbo em -d leva só -s.",
-      "Errado. Sem to be, o -ing não é verbo."
-    ]},
-  { id:"c-3s-p8", category:"thirds", prompt:"Those players ___ very hard. (train)",
-    options:["is training","trains","trainies","train"], correct:3,
-    explanations:[
-      "Errado. Plural pediria 'are', e mudaria o sentido para agora.",
-      "Errado. 'Those players' é plural: o -s não entra no verbo.",
-      "Errado. Não existe essa forma.",
-      "Correto! Those players train very hard. O outro lado do padrão: pôr o -s no plural é tão erro quanto esquecê-lo no singular."
+      "Errado. 'lab test' é o exame de laboratório.",
+      "Errado. 'proof' é evidência.",
+      "Correto! a math exam at school. Na escola é 'exam' ou 'test'; no laboratório, só 'test'.",
+      "Errado. 'examination' no sentido médico é o exame físico feito pelo médico."
     ]},
 
-  // ---- Pattern 2: preposições de tempo ----
-  { id:"c-pr-p1", category:"preps", prompt:"My wife works ___ 6 pm, so we have dinner late.",
-    options:["on","in","by","until"], correct:3,
-    explanations:[
-      "Errado. 'on' é para dia e data.",
-      "Errado. Com hora exata seria 'at', e mudaria o sentido.",
-      "Errado. 'by 6 pm' seria terminar antes das 6.",
-      "Correto! works until 6 pm — ela trabalha o tempo todo até aquele horário."
-    ]},
-  { id:"c-pr-p2", category:"preps", prompt:"The season starts ___ March.",
-    options:["on","in","at","until"], correct:1,
-    explanations:[
-      "Errado. 'on' é para dia e data: on March 3rd.",
-      "Correto! starts in March. Mês sozinho, ano e estação levam 'in'.",
-      "Errado. 'at' é para hora.",
-      "Errado. 'until March' marcaria duração até março."
-    ]},
-  { id:"c-pr-p3", category:"preps", prompt:"I need the answer ___ tomorrow morning.",
-    options:["by","until","in","on"], correct:0,
-    explanations:[
-      "Correto! I need the answer by tomorrow morning. Prazo final é 'by'.",
-      "Errado. 'until' seria precisar da resposta continuamente até amanhã.",
-      "Errado. 'in' sozinho não marca prazo.",
-      "Errado. 'on tomorrow' não existe: 'tomorrow' dispensa preposição."
-    ]},
-  { id:"c-pr-p4", category:"preps", prompt:"We always play ___ Sunday afternoon.",
-    options:["until","in","at","on"], correct:3,
-    explanations:[
-      "Errado. 'until' é duração.",
-      "Errado. 'in the afternoon' sozinho leva 'in', mas colado num dia o 'on' manda.",
-      "Errado. 'at' é para hora.",
-      "Correto! on Sunday afternoon. Quando o período vem junto do dia, a preposição é 'on'."
-    ]},
-  { id:"c-pr-p5", category:"preps", prompt:"The kids go to bed ___ night.",
-    options:["at","in","on","by"], correct:0,
-    explanations:[
-      "Correto! at night. É a exceção dos períodos do dia: in the morning, in the afternoon, in the evening — mas at night.",
-      "Errado. 'in the night' aparece, mas o normal e esperado é 'at night'.",
-      "Errado. 'on' é para dia e data.",
-      "Errado. 'by night' seria prazo."
-    ]},
-  { id:"c-pr-p6", category:"preps", prompt:"My appointment is ___ December 3rd.",
-    options:["in","at","until","on"], correct:3,
-    explanations:[
-      "Errado. Com o dia junto, o mês perde o 'in'.",
-      "Errado. 'at' é para hora.",
-      "Errado. 'until' marca duração.",
-      "Correto! on December 3rd. Data completa sempre com 'on'."
-    ]},
-  { id:"c-pr-p7", category:"preps", prompt:"I'll be in the office ___ 5 pm, then I go home.",
-    options:["until","by","on","in"], correct:0,
-    explanations:[
-      "Correto! in the office until 5 pm. Você fica lá o tempo todo até as 5 — duração.",
-      "Errado. 'by 5 pm' seria estar lá em algum momento antes das 5.",
-      "Errado. 'on' é para dia e data.",
-      "Errado. 'in 5 pm' não existe."
-    ]},
-  { id:"c-pr-p8", category:"preps", prompt:"As I said ___ the beginning of the call, I have a meeting now.",
-    options:["in","on","at","by"], correct:2,
-    explanations:[
-      "Errado. 'in the beginning' é o começo de uma história longa.",
-      "Errado. 'on' é para dia e data.",
-      "Correto! at the beginning of the call. Começo de alguma coisa delimitada pede 'at'.",
-      "Errado. 'by the beginning' marcaria prazo."
-    ]},
-
-  // ---- Pattern 3: encontre o erro ----
-  { id:"c-fx-p1", category:"fixit", prompt:"Qual é a forma correta?",
-    options:["I don't have a free time during the week.","I don't have free time during the week.","I don't have the free times during the week.","I don't have a free times during the week."], correct:1,
-    explanations:[
-      "Errado. 'free time' é incontável e não leva 'a'.",
-      "Correto! I don't have free time during the week. Incontável vai sem artigo e sem plural.",
-      "Errado. 'times' no plural muda o sentido, e o 'the' pede um contexto que não existe aqui.",
-      "Errado. Junta os dois problemas: artigo e plural."
-    ]},
-  { id:"c-fx-p2", category:"fixit", prompt:"Qual é a forma correta?",
-    options:["There is many people at the stadium.","There are many people at the stadium.","There has many people at the stadium.","There are many peoples at the stadium."], correct:1,
-    explanations:[
-      "Errado. 'people' já é plural: pede 'there are'.",
-      "Correto! There are many people at the stadium. 'people' é plural de 'person' — o verbo acompanha.",
-      "Errado. 'there has' não existe.",
-      "Errado. 'peoples' só existe no sentido de povos, nações."
-    ]},
-  { id:"c-fx-p3", category:"fixit", prompt:"Qual é a forma correta?",
-    options:["I need to do a blood test every year.","I need to take a blood test every year.","I need to make a blood test every year.","I need to realize a blood test every year."], correct:1,
-    explanations:[
-      "Errado. Para exame, o verbo natural é 'take'.",
-      "Correto! I need to take a blood test every year. Exame, teste e remédio se 'take'.",
-      "Errado. 'make' é para o que você fabrica ou cria.",
-      "Errado. 'realize' é perceber — falso amigo."
-    ]},
-  { id:"c-fx-p4", category:"fixit", prompt:"Qual é a forma correta?",
-    options:["It's difficult find time to practice.","It's difficult finding time to practice.","It's difficult to find time to practice.","It's difficult finds time to practice."], correct:2,
-    explanations:[
-      "Errado. Falta o 'to'.",
-      "Errado. O -ing serviria como sujeito no começo da frase, não depois do adjetivo.",
-      "Correto! It's difficult to find time to practice. Depois de adjetivo, infinitivo com 'to'.",
-      "Errado. O -s de terceira pessoa não cabe aqui."
-    ]},
-  { id:"c-fx-p5", category:"fixit", prompt:"Qual é a forma correta?",
-    options:["Last year I went to three different cities.","Last year I went three different cities.","Last year I went in three different cities.","Last year I went at three different cities."], correct:0,
-    explanations:[
-      "Correto! I went to three different cities. 'go' sempre leva 'to' antes do destino.",
-      "Errado. É o mesmo 'to' que some quando a frase sai rápido.",
-      "Errado. 'go in' é entrar.",
-      "Errado. 'at' diz onde você está, não para onde foi."
-    ]},
-  { id:"c-fx-p6", category:"fixit", prompt:"Qual é a forma correta?",
-    options:["The coach which trains us is very patient.","The coach what trains us is very patient.","The coach who trains us is very patient.","The coach who train us is very patient."], correct:2,
-    explanations:[
-      "Errado. 'which' é para coisa.",
-      "Errado. 'what' não serve como pronome relativo.",
-      "Correto! The coach who trains us. Pessoa pede 'who' — e repare no -s de 'trains', porque 'the coach' é ele/ela.",
-      "Errado. O 'who' está certo, mas faltou o -s em 'trains'."
-    ]},
-  { id:"c-fx-p7", category:"fixit", prompt:"Qual é a forma correta?",
-    options:["As I told her at the beginning, I can't go.","As I told at the beginning to her, I can't go.","As I said her at the beginning, I can't go.","As I told her in the beginning, I can't go."], correct:0,
-    explanations:[
-      "Correto! As I told her at the beginning. 'tell' pede a quem logo depois, e o começo da conversa é 'at'.",
-      "Errado. Com 'tell', a pessoa vem logo depois do verbo.",
-      "Errado. 'say' não leva pessoa direto: say something to someone.",
-      "Errado. 'in the beginning' é o começo de uma narrativa longa."
-    ]},
-  { id:"c-fx-p8", category:"fixit", prompt:"Qual é a forma correta?",
-    options:["On weekends nothing special.","On weekends, nothing special happen.","On weekends, nothing special happens.","In weekends, nothing special happens."], correct:2,
-    explanations:[
-      "Errado. Falta o verbo.",
-      "Errado. 'nothing' é singular: happens.",
-      "Correto! On weekends, nothing special happens. Preposição certa, verbo presente e concordância no singular.",
-      "Errado. Com dia é 'on', não 'in'."
-    ]},
-
-  // ---- Pattern 4: diga em inglês ----
-  { id:"c-sy-p1", category:"saying", prompt:"Hoje à noite eu vou treinar até as 9.",
-    options:["Tonight I'm going to train by 9.","Tonight I'm going to train until 9.","In tonight I'm going to train until 9.","Tonight I go to train until 9."], correct:1,
-    explanations:[
-      "Errado. 'by 9' seria terminar antes das 9.",
-      "Correto! Tonight I'm going to train until 9. Duração com 'until', e 'tonight' dispensa preposição.",
-      "Errado. 'tonight' não leva preposição na frente.",
-      "Errado. 'I go' é hábito; para hoje à noite, o plano é 'I'm going to'."
-    ]},
-  { id:"c-sy-p2", category:"saying", prompt:"No sábado de manhã eu levo minha filha na escola.",
-    options:["In Saturday morning I take my daughter to school.","On Saturday morning I take my daughter to school.","On Saturday morning I bring my daughter to school.","On Saturday morning I take my daughter at school."], correct:1,
-    explanations:[
-      "Errado. Período colado no dia pede 'on'.",
-      "Correto! On Saturday morning I take my daughter to school. E 'take' é levar para longe de quem fala.",
-      "Errado. 'bring' é trazer para perto de quem fala.",
-      "Errado. Com destino é 'to school', não 'at school'."
-    ]},
-  { id:"c-sy-p3", category:"saying", prompt:"Eu tenho que entregar o relatório até quinta.",
-    options:["I have to deliver the report until Thursday.","I have to deliver the report on Thursday.","I have to deliver the report by Thursday.","I have to deliver the report in Thursday."], correct:2,
-    explanations:[
-      "Errado. 'until' seria entregar continuamente até quinta.",
-      "Errado. 'on Thursday' marca o dia da entrega, não o prazo.",
-      "Correto! I have to deliver the report by Thursday. Prazo final é sempre 'by'.",
-      "Errado. 'in' não vai com dia da semana."
-    ]},
-  { id:"c-sy-p4", category:"saying", prompt:"Meu time joga fora de casa no domingo.",
-    options:["My team play away on Sunday.","My team plays away in Sunday.","My team plays away on Sunday.","My team is play away on Sunday."], correct:2,
-    explanations:[
-      "Errado. 'My team' é it: o verbo leva -s.",
-      "Errado. O -s está certo, mas dia da semana é 'on'.",
-      "Correto! My team plays away on Sunday. Os dois padrões na mesma frase: o -s e o 'on'.",
-      "Errado. 'is play' não existe."
-    ]},
-  { id:"c-sy-p5", category:"saying", prompt:"Semana que vem eu vou ter menos tempo livre.",
-    options:["In next week I'm going to have less free time.","Next week I'm going to have less free time.","Next week I'm going to have less free times.","Next week I'm going to have fewer free time."], correct:1,
-    explanations:[
-      "Errado. 'next week' não leva preposição.",
-      "Correto! Next week I'm going to have less free time. 'less' é para incontável, e 'free time' é incontável.",
-      "Errado. 'free time' não tem plural.",
-      "Errado. 'fewer' é para contável: fewer games, less time."
-    ]},
-  { id:"c-sy-p6", category:"saying", prompt:"A médica me acompanha duas vezes por ano.",
-    options:["The doctor follow up on me twice a year.","The doctor follows up on me two times per year.","The doctor follows up on me twice a year.","The doctor follows up me twice a year."], correct:2,
-    explanations:[
-      "Errado. 'The doctor' é ela: follows, com -s.",
-      "Errado. Entende-se, mas o natural é 'twice a year'.",
-      "Correto! The doctor follows up on me twice a year. O -s da terceira pessoa e a expressão de frequência: once a week, twice a year.",
-      "Errado. A expressão é 'follow up ON someone'."
-    ]},
-
-  // ---- Pattern 5: ortografia ----
-  { id:"c-sp-p1", category:"spell", prompt:"Como se escreve?",
-    options:["nigth","night","niht","nigt"], correct:1,
-    explanations:[
-      "Errado. É a mesma inversão do 'daugther': 'ght', não 'gth'.",
-      "Correto! night. O bloco 'ght' se repete em night, light, right, fight e daughter.",
-      "Errado. Faltou o 'g'.",
-      "Errado. Faltou o 'h'."
-    ]},
-  { id:"c-sp-p2", category:"spell", prompt:"Como se escreve?",
-    options:["bought","bougth","boght","bouht"], correct:0,
-    explanations:[
-      "Correto! bought — passado de 'buy'. Mais um do bloco 'ght'.",
-      "Errado. Inverteu o 'ght'.",
-      "Errado. Faltou o 'u'.",
-      "Errado. Faltou o 'g'."
-    ]},
-  { id:"c-sp-p3", category:"spell", prompt:"Como se escreve?",
-    options:["succesful","successfull","successful","sucessful"], correct:2,
-    explanations:[
-      "Errado. São dois 's' no meio: success.",
-      "Errado. 'full' vira '-ful' com um L só quando é sufixo.",
-      "Correto! successful. Dois 'c', dois 's' no meio e um L só no fim.",
-      "Errado. Faltou um 'c'."
-    ]},
-  { id:"c-sp-p4", category:"spell", prompt:"Como se escreve?",
-    options:["recomend","reccommend","recommend","recomendd"], correct:2,
-    explanations:[
-      "Errado. O 'm' dobra: recommend.",
-      "Errado. O 'c' não dobra.",
-      "Correto! recommend. Um 'c' e dois 'm' — o contrário do que o português sugere.",
-      "Errado. O que dobra é o 'm', não o 'd'."
-    ]},
-  { id:"c-sp-p5", category:"spell", prompt:"Como se escreve?",
-    options:["dedicated","dedicatted","dadicated","dedicaded"], correct:0,
-    explanations:[
-      "Correto! dedicated. Três 'e' e um 'a': d-e-d-i-c-a-t-e-d.",
-      "Errado. O 't' não dobra.",
-      "Errado. A segunda letra é 'e', não 'a'.",
-      "Errado. A terminação é '-ted'."
-    ]},
-  { id:"c-sp-p6", category:"spell", prompt:"Como se escreve?",
-    options:["allways","alwais","always","alaways"], correct:2,
-    explanations:[
-      "Errado. 'always' tem um L só.",
-      "Errado. A terminação é '-ays', como em days.",
-      "Correto! always. Um L e '-ways' no fim.",
-      "Errado. Sobrou um 'a'."
-    ]},
+  // ---- Pattern 6: traduza ----
+  { id:"c-tr-p1", category:"saying", kind:"write",
+    prompt:"No sábado de manhã eu jogo futebol com meus amigos.",
+    task:"Traduza para o inglês.",
+    placeholder:"Write it in English",
+    answer:"On Saturday morning I play soccer with my friends.",
+    accept:["I play soccer with my friends on Saturday morning.",
+            "On Saturday morning I play football with my friends."],
+    explain:"On Saturday morning I play soccer with my friends. Dia com 'on' e período colado." },
+  { id:"c-tr-p2", category:"saying", kind:"write",
+    prompt:"Minha esposa trabalha até as 6 da tarde.",
+    task:"Traduza para o inglês.",
+    placeholder:"Write it in English",
+    answer:"My wife works until 6 pm.",
+    accept:["My wife works until six pm."],
+    explain:"My wife works until 6 pm. O -s de 'works' e a duração com 'until'." },
+  { id:"c-tr-p3", category:"saying", kind:"write",
+    prompt:"Eu tenho uma consulta no dia 24 de outubro.",
+    task:"Traduza para o inglês.",
+    placeholder:"Write it in English",
+    answer:"I have an appointment on October 24th.",
+    accept:["I have an appointment on the 24th of October."],
+    explain:"I have an appointment on October 24th. Consulta é 'appointment', e data completa leva 'on'." },
+  { id:"c-tr-p4", category:"saying", kind:"write",
+    prompt:"Na terça não tem nada na minha agenda.",
+    task:"Traduza para o inglês.",
+    placeholder:"Write it in English",
+    answer:"On Tuesday there is nothing on my schedule.",
+    accept:["On Tuesday there's nothing on my schedule.",
+            "On Tuesday I have nothing on my schedule."],
+    explain:"On Tuesday there is nothing on my schedule. 'Não tem' nesse sentido é 'there is'." },
+  { id:"c-tr-p5", category:"saying", kind:"write",
+    prompt:"Meu médico pede exames duas vezes por ano.",
+    task:"Traduza para o inglês.",
+    placeholder:"Write it in English",
+    answer:"My doctor asks for tests twice a year.",
+    accept:["My doctor asks for tests two times a year."],
+    explain:"My doctor asks for tests twice a year. O -s de 'asks', 'tests' para exame de laboratório e 'twice a year'." },
+  { id:"c-tr-p6", category:"saying", kind:"write",
+    prompt:"Nos fins de semana eu passo bastante tempo com a minha filha.",
+    task:"Traduza para o inglês.",
+    placeholder:"Write it in English",
+    answer:"On weekends I spend a lot of time with my daughter.",
+    accept:["On the weekends I spend a lot of time with my daughter.",
+            "I spend a lot of time with my daughter on weekends."],
+    explain:"On weekends I spend a lot of time with my daughter. Tempo em inglês se 'spend', nunca 'pass'." },
 ];
 
 /* Retorna a lista de exercícios de prática de uma categoria específica do módulo de conversa real */
