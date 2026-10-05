@@ -406,6 +406,19 @@ p { margin: 0 0 16px; color: var(--ink-75); }
    usam o mesmo .q-prompt e continuam com os 20px de sempre. */
 .q-prompt:has(+ .q-context) { margin-bottom: 6px; }
 
+/* Explicação da regra numa questão de escrever do módulo da conversa.
+   A múltipla escolha tem uma explicação por opção; a digitada tem uma só,
+   que serve tanto para quem acertou quanto para quem errou. */
+.conv-explain {
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border-left: 2px solid var(--acc2);
+  background: rgba(155, 140, 255, .07);
+  border-radius: 0 8px 8px 0;
+  font-size: .92rem;
+  line-height: 1.55;
+}
+
 /* Situação do cartão de tradução. Existe porque um enunciado curto como
    "Você quer?" não diz se o inglês é "Do you want some?" (oferecendo comida)
    ou "Do you want it?" (apontando uma coisa): sem a situação não dá para

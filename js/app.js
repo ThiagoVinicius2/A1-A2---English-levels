@@ -1,6 +1,6 @@
 /* ===================== Estado da aplicação ===================== */
 const STORAGE_KEY = "enCheckLastResults";
-const CONV_STORAGE_KEY = "enCheckConvResults_r7";   // r7: banco refeito com os erros que se repetiram nas três conversas
+const CONV_STORAGE_KEY = "enCheckConvResults_r8";   // r8: só a conversa "Making Plans", e com questão digitada
 const TRANS_STORAGE_KEY = "enCheckTransResults_r3"; // r3: chaves de deck prefixadas pela unidade (u01-...)
 const TRANS_STORAGE_KEY_R2 = "enCheckTransResults_r2";  // só para migrar o histórico antigo uma vez
 const WEAK_THRESHOLD = 75;   // usado só para colorir a barra de desempenho (verde/amarelo/vermelho)
@@ -27,8 +27,12 @@ const state = {
   convTestIndex: 0,
   convTestAnswers: {},
   convTestRevealed: {},
+  convTestGrades: {},      // só das questões de escrever: "certo" | "quase" | "diferente" | "aceitoManual"
+  convTestEmptyWarn: false,
   convResults: null,
   convExerciseQuestions: [],
+  convExerciseGrades: {},
+  convExerciseEmptyWarn: false,
   convExerciseIndex: 0,
   convExerciseAnswers: {},
   convExerciseRevealed: {},
@@ -303,11 +307,48 @@ function confirmExitConvTest() {
   goLanding();
 }
 
+/* ---------- Conversa: as duas formas de questão ----------
+   `choice` é a de sempre: 4 opções, e a resposta guardada é o índice.
+   `write` é digitada, e a resposta guardada é o texto. A correção reusa
+   gradeTransAnswer() do módulo de tradução — são funções puras sobre
+   strings, e manter um segundo corretor duplicaria justamente a parte mais
+   delicada do site (contração, sinônimo, grafia britânica, typo). */
+function convIsWrite(q) {
+  return q.kind === "write";
+}
+
+/* Resposta de uma ou duas palavras não aceita "quase".
+   O corretor tolera erro de digitação por distância de letras, e numa resposta
+   curta isso engole justamente o erro que a questão testa: "follow" por
+   "follows" e "in" por "on" têm distância 1 e passariam como typo. Numa frase
+   inteira a tolerância continua valendo, que é onde ela serve. */
+function convRespostaCurta(q) {
+  return String(q.answer).trim().split(/\s+/).length <= 2;
+}
+
+function convGradeWritten(q, digitado) {
+  const nota = gradeTransAnswer({ id: q.id, en: q.answer, accept: q.accept || [] }, digitado);
+  if (nota.level === "quase" && convRespostaCurta(q)) {
+    return { level: "diferente", best: nota.best, distance: nota.distance };
+  }
+  return nota;
+}
+
+/* Acerto: na múltipla escolha é o índice; na digitada vale a mesma régua do
+   módulo de tradução — certo, quase (só a digitação escorregou) e
+   aceitoManual (a pessoa corrigiu o corretor) contam. */
+function convIsRight(q, resposta, nota) {
+  if (!convIsWrite(q)) return resposta === q.correct;
+  return nota === "certo" || nota === "quase" || nota === "aceitoManual";
+}
+
 function startConvTest() {
   state.convTestQuestions = shuffle(CONV_TEST_QUESTIONS);
   state.convTestIndex = 0;
   state.convTestAnswers = {};
   state.convTestRevealed = {};
+  state.convTestGrades = {};
+  state.convTestEmptyWarn = false;
   state.convResults = null;
   state.view = "convTest";
   render();
@@ -317,6 +358,33 @@ function selectConvTestOption(qId, optIndex) {
   if (state.convTestRevealed[qId]) return; // resposta já confirmada: não permite trocar depois do feedback
   state.convTestAnswers[qId] = optIndex;
   state.convTestRevealed[qId] = true;
+  render();
+}
+
+/* Questão digitada do teste. Mesmo cuidado do módulo de tradução: o campo é
+   lido só aqui, no submit — nunca durante a digitação, senão o render()
+   levaria embora o campo, o foco e o cursor. */
+function submitConvTestAnswer(qId) {
+  const q = state.convTestQuestions.find(x => x.id === qId);
+  if (!q || state.convTestRevealed[qId]) return;
+  const campo = document.getElementById("conv-input");
+  const digitado = campo ? campo.value : "";
+  const nota = convGradeWritten(q, digitado);
+  if (nota.level === "vazio") {
+    state.convTestEmptyWarn = true;
+    render();
+    return;
+  }
+  state.convTestEmptyWarn = false;
+  state.convTestAnswers[qId] = digitado;
+  state.convTestGrades[qId] = nota.level;
+  state.convTestRevealed[qId] = true;
+  render();
+}
+
+function markConvTestAnswerCorrect(qId) {
+  if (!state.convTestRevealed[qId]) return;
+  state.convTestGrades[qId] = "aceitoManual";
   render();
 }
 
@@ -344,12 +412,13 @@ function finishConvTest() {
   const mistakes = [];
   state.convTestQuestions.forEach(q => {
     const sel = state.convTestAnswers[q.id];
+    const nota = state.convTestGrades[q.id];
     byCategory[q.category].total++;
-    if (sel === q.correct) {
+    if (convIsRight(q, sel, nota)) {
       byCategory[q.category].correct++;
       totalCorrect++;
     } else {
-      mistakes.push({ question: q, selected: sel });
+      mistakes.push({ question: q, selected: sel, grade: nota });
     }
   });
 
@@ -369,7 +438,7 @@ function finishConvTest() {
     label: convResultLabel(overallPct),
     categoryPct,
     improvableCategories,
-    mistakes: mistakes.map(m => ({ questionId: m.question.id, selected: m.selected })),
+    mistakes: mistakes.map(m => ({ questionId: m.question.id, selected: m.selected, grade: m.grade })),
     totalCorrect,
     totalQuestions: state.convTestQuestions.length,
   };
@@ -386,6 +455,8 @@ function startConvExercises(categoryKeys) {
   state.convExerciseIndex = 0;
   state.convExerciseAnswers = {};
   state.convExerciseRevealed = {};
+  state.convExerciseGrades = {};
+  state.convExerciseEmptyWarn = false;
   state.view = "convExercise";
   render();
 }
@@ -394,6 +465,30 @@ function selectConvExerciseOption(qId, optIndex) {
   if (state.convExerciseRevealed[qId]) return; // já respondida
   state.convExerciseAnswers[qId] = optIndex;
   state.convExerciseRevealed[qId] = true;
+  render();
+}
+
+function submitConvExerciseAnswer(qId) {
+  const q = state.convExerciseQuestions.find(x => x.id === qId);
+  if (!q || state.convExerciseRevealed[qId]) return;
+  const campo = document.getElementById("conv-input");
+  const digitado = campo ? campo.value : "";
+  const nota = convGradeWritten(q, digitado);
+  if (nota.level === "vazio") {
+    state.convExerciseEmptyWarn = true;
+    render();
+    return;
+  }
+  state.convExerciseEmptyWarn = false;
+  state.convExerciseAnswers[qId] = digitado;
+  state.convExerciseGrades[qId] = nota.level;
+  state.convExerciseRevealed[qId] = true;
+  render();
+}
+
+function markConvExerciseAnswerCorrect(qId) {
+  if (!state.convExerciseRevealed[qId]) return;
+  state.convExerciseGrades[qId] = "aceitoManual";
   render();
 }
 
@@ -517,8 +612,8 @@ function renderConvLandingCard() {
 
   const details = detailsOpen ? `
     <div class="info-box">
-      Each question comes from a slip that repeated across your conversations. Some ask you to fill
-      a gap, others to pick the correct sentence, to say it in English or to spell it right:
+      Every question comes from today's conversation. Most ask you to <strong>write</strong> — rewrite the
+      sentence, complete it or translate it — and only the vocabulary pattern is multiple choice:
       <ul class="conv-pattern-list">
         ${Object.values(CONV_CATEGORIES).map(c => `<li><strong>${escapeHtml(c.tag)}:</strong> ${escapeHtml(c.label)}</li>`).join("")}
       </ul>
@@ -539,8 +634,8 @@ function renderConvLandingCard() {
     num: "02",
     kind: "Class feedback",
     title: "Conversation mistakes",
-    text: `Exercises built from the mistakes that came back across your last three conversations —
-    ${Object.keys(CONV_CATEGORIES).length} patterns, ${CONV_TEST_QUESTIONS.length} questions.`,
+    text: `Exercises from your "Making Plans" conversation — ${Object.keys(CONV_CATEGORIES).length} patterns,
+    ${CONV_TEST_QUESTIONS.length} questions, most of them typed rather than multiple choice.`,
     accent2: true,
     details,
     links,
@@ -852,7 +947,18 @@ function renderConvTest() {
 
       <span class="q-level accent2">${escapeHtml(CONV_CATEGORIES[q.category].tag)} &middot; ${escapeHtml(CONV_CATEGORIES[q.category].label)}</span>
       <div class="q-prompt">${escapeHtml(q.prompt)}</div>
+      ${q.task ? `<p class="q-context">${escapeHtml(q.task)}</p>` : ""}
 
+      ${convIsWrite(q)
+        ? renderConvWriteBody(q, {
+            typed: selected,
+            grade: state.convTestGrades[q.id],
+            revealed,
+            warn: state.convTestEmptyWarn,
+            onSubmit: `submitConvTestAnswer('${q.id}')`,
+            onMark: `markConvTestAnswerCorrect('${q.id}')`,
+          })
+        : `
       <div class="options">
         ${q.options.map((opt, i) => {
           let cls = "option";
@@ -873,10 +979,11 @@ function renderConvTest() {
       ${revealed
         ? renderAnswerFeedback(q, selected)
         : `<p style="margin-top:16px; font-size:0.85rem;">Pick an option to see right away whether you got it and why each choice is what it is.</p>`}
+      `}
 
       <div class="actions">
         ${state.convTestIndex > 0 ? `<button class="btn secondary" onclick="prevConvTestQuestion()">Back</button>` : ""}
-        <button class="btn" ${revealed ? "" : "disabled"} onclick="nextConvTestQuestion()">
+        <button class="btn" id="conv-next" ${revealed ? "" : "disabled"} onclick="nextConvTestQuestion()">
           ${isLast ? "See results" : "Next"}
         </button>
       </div>
@@ -892,6 +999,57 @@ function renderConvTest() {
       onConfirm: "confirmExitConvTest()",
       onCancel: "cancelExitConvTest()",
     }) : ""}
+  `;
+
+  /* Mesmo fluxo de teclado do módulo de tradução: digita, Enter confere,
+     Enter de novo avança. innerHTML é síncrono, então já dá para focar. */
+  if (!state.convTestExitConfirmOpen) focarCampoOuAvancar();
+}
+
+/* Põe o foco no campo quando há o que digitar; senão, no botão de avançar. */
+function focarCampoOuAvancar() {
+  const campo = document.getElementById("conv-input");
+  if (campo) return campo.focus();
+  const proximo = document.getElementById("conv-next");
+  if (proximo && !proximo.disabled) proximo.focus();
+}
+
+/* Corpo de uma questão de escrever, usado pelo teste e pela prática dirigida.
+   O campo tem id fixo ("conv-input") porque só existe um por tela. É o segundo
+   <input> do projeto, então vale o mesmo cuidado do módulo de tradução: ele é
+   lido só no submit, nunca durante a digitação. */
+function renderConvWriteBody(q, o) {
+  if (!o.revealed) {
+    return `
+      <input type="text" id="conv-input" class="trans-input"
+        autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
+        placeholder="${escapeHtml(q.placeholder || "Type your answer and press Enter")}"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();${o.onSubmit};}">
+      ${o.warn ? `<p class="trans-warn">Type something before checking.</p>` : ""}
+      <div class="actions">
+        <button class="btn" onclick="${o.onSubmit}">Check</button>
+      </div>
+    `;
+  }
+  const caixa =
+    o.grade === "certo"        ? { cls: "good", texto: "✅ Correct!" } :
+    o.grade === "aceitoManual" ? { cls: "good", texto: "✅ Marked as correct by you." } :
+    o.grade === "quase"        ? { cls: "warn", texto: "🟡 So close — the sentence is right, only the typing slipped." } :
+                                 { cls: "bad",  texto: "❌ Not this time — compare below." };
+  const certo = o.grade === "certo" || o.grade === "aceitoManual";
+  return `
+    <div class="explain-box ${caixa.cls}">${caixa.texto}</div>
+    ${certo
+      ? `<div class="trans-answer-row">
+           <span class="trans-answer-tag">Answer</span>
+           <span class="trans-answer-text">${escapeHtml(q.answer)}</span>
+         </div>`
+      : renderTransDiff(q.answer, o.typed || "", "Answer")}
+    <p class="conv-explain">${escapeHtml(q.explain)}</p>
+    ${o.grade === "diferente" ? `
+      <button class="btn secondary block" style="margin-top:14px;" onclick="${o.onMark}">
+        My answer is also correct
+      </button>` : ""}
   `;
 }
 
@@ -958,6 +1116,16 @@ function renderConvMistakesReview(mistakes) {
       <div class="card" style="box-shadow:none; border-color:var(--border); margin-bottom:14px; padding:18px;">
         <span class="q-level accent2">${escapeHtml(CONV_CATEGORIES[q.category].tag)} &middot; ${escapeHtml(CONV_CATEGORIES[q.category].label)}</span>
         <div class="q-prompt" style="font-size:1.05rem;">${escapeHtml(q.prompt)}</div>
+        ${q.task ? `<p class="q-context">${escapeHtml(q.task)}</p>` : ""}
+        ${convIsWrite(q) ? `
+          ${m.selected
+            ? renderTransDiff(q.answer, m.selected, "Answer")
+            : `<div class="trans-answer-row">
+                 <span class="trans-answer-tag">Answer</span>
+                 <span class="trans-answer-text">${escapeHtml(q.answer)}</span>
+               </div>`}
+          <p class="conv-explain">${escapeHtml(q.explain)}</p>
+        ` : `
         <div class="explain-list">
           ${q.options.map((opt, i) => {
             let cls = "explain-item";
@@ -967,6 +1135,7 @@ function renderConvMistakesReview(mistakes) {
             return `<div class="${cls}"><strong>${explainLabel(opt, tag)}</strong> ${escapeHtml(q.explanations[i])}</div>`;
           }).join("")}
         </div>
+        `}
       </div>
     `;
   }).join("");
@@ -1003,7 +1172,22 @@ function renderConvExercise() {
       </div>
 
       <div class="q-prompt">${escapeHtml(q.prompt)}</div>
+      ${q.task ? `<p class="q-context">${escapeHtml(q.task)}</p>` : ""}
 
+      ${convIsWrite(q) ? `
+        ${renderConvWriteBody(q, {
+          typed: selected,
+          grade: state.convExerciseGrades[q.id],
+          revealed,
+          warn: state.convExerciseEmptyWarn,
+          onSubmit: `submitConvExerciseAnswer('${q.id}')`,
+          onMark: `markConvExerciseAnswerCorrect('${q.id}')`,
+        })}
+        ${revealed ? `
+          <div class="actions">
+            <button class="btn block" id="conv-next" onclick="nextConvExercise()">${isLast ? "See summary" : "Next exercise"}</button>
+          </div>` : ""}
+      ` : `
       <div class="options">
         ${q.options.map((opt, i) => {
           let cls = "option";
@@ -1033,13 +1217,16 @@ function renderConvExercise() {
           `).join("")}
         </div>
         <div class="actions">
-          <button class="btn block" onclick="nextConvExercise()">${isLast ? "See summary" : "Next exercise"}</button>
+          <button class="btn block" id="conv-next" onclick="nextConvExercise()">${isLast ? "See summary" : "Next exercise"}</button>
         </div>
       ` : `
         <p style="margin-top:16px; font-size:0.85rem;">Pick an option to see the explanation.</p>
       `}
+      `}
     </div>
   `;
+
+  focarCampoOuAvancar();
 }
 
 function renderConvExerciseSummary() {
@@ -1524,7 +1711,7 @@ function renderTransDecks() {
 }
 
 /* Diff palavra a palavra: verde o que faltou na sua resposta, vermelho o que sobrou. */
-function renderTransDiff(expected, typed) {
+function renderTransDiff(expected, typed, rotulo) {
   const d = transDiffWords(expected, typed);
   const linha = (tokens, cls) => tokens.map(w =>
     w.state === "same" ? escapeHtml(w.text) : `<span class="${cls}">${escapeHtml(w.text)}</span>`
@@ -1535,7 +1722,7 @@ function renderTransDiff(expected, typed) {
       <span class="trans-answer-text">${typed.trim() ? linha(d.typed, "diff-extra") : "<em>(blank)</em>"}</span>
     </div>
     <div class="trans-answer-row">
-      <span class="trans-answer-tag">Card answer</span>
+      <span class="trans-answer-tag">${escapeHtml(rotulo || "Card answer")}</span>
       <span class="trans-answer-text">${linha(d.expected, "diff-miss")}</span>
     </div>
   `;
