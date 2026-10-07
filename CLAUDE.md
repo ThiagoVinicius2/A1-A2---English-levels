@@ -93,6 +93,17 @@ consolidados saem e ficam registrados no comentário do topo do arquivo.
   engoliria justamente o erro que a questão testa: `follow` por `follows` e
   `in` por `on` têm distância 1 e passariam como typo. Em frase inteira a
   tolerância continua valendo, que é onde ela serve.
+- **Exercício de maiúscula NÃO pode ser `write`.** O corretor ignora caixa de
+  propósito, então `Gym` passa como `gym` e o exercício morre. Item que gira só
+  em maiúscula vira `choice`; item que muda letras (`worst` por `worse`,
+  `singing` por `sing`, `one thing` por `onething`) fica digitado, onde a trava
+  de resposta curta o corrige de forma exata. Foi isso que fez o Padrão 4 da
+  9ª rodada misturar as duas formas dentro da mesma categoria.
+- **O `getConvPracticeForCategory()` mora no fim de `js/data-conversation.js`**
+  e é o que a prática dirigida chama. Uma rodada nova reescreve o arquivo
+  inteiro, e já aconteceu de ele ficar para trás — o banco validava, o teste
+  passava, e a prática quebrava no navegador. O `validar.js` agora confere que
+  a função existe e que ela devolve a mesma contagem do banco.
 - O validador confere, nas questões digitadas, que **a própria `answer` e cada
   string de `accept` são corrigidas como `certo`** — a mesma rede do módulo de
   tradução, para nenhuma questão nascer reprovando a própria resposta.
