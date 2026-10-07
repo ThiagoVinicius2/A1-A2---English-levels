@@ -1,6 +1,6 @@
 /* ===================== Estado da aplicação ===================== */
 const STORAGE_KEY = "enCheckLastResults";
-const CONV_STORAGE_KEY = "enCheckConvResults_r8";   // r8: só a conversa "Making Plans", e com questão digitada
+const CONV_STORAGE_KEY = "enCheckConvResults_r9";   // r9: a conversa sobre hobbies — banco novo, resultado da rodada anterior fica de fora
 const TRANS_STORAGE_KEY = "enCheckTransResults_r3"; // r3: chaves de deck prefixadas pela unidade (u01-...)
 const TRANS_STORAGE_KEY_R2 = "enCheckTransResults_r2";  // só para migrar o histórico antigo uma vez
 const WEAK_THRESHOLD = 75;   // usado só para colorir a barra de desempenho (verde/amarelo/vermelho)
@@ -613,7 +613,9 @@ function renderConvLandingCard() {
   const details = detailsOpen ? `
     <div class="info-box">
       Every question comes from today's conversation. Most ask you to <strong>write</strong> — rewrite the
-      sentence, complete it or translate it — and only the vocabulary pattern is multiple choice:
+      sentence, complete it or translate it. Only the items that turn on a <strong>capital letter</strong>
+      are multiple choice, because the checker ignores case on purpose and would let <em>Gym</em> pass for
+      <em>gym</em>:
       <ul class="conv-pattern-list">
         ${Object.values(CONV_CATEGORIES).map(c => `<li><strong>${escapeHtml(c.tag)}:</strong> ${escapeHtml(c.label)}</li>`).join("")}
       </ul>
@@ -634,8 +636,8 @@ function renderConvLandingCard() {
     num: "02",
     kind: "Class feedback",
     title: "Conversation mistakes",
-    text: `Exercises from your "Making Plans" conversation — ${Object.keys(CONV_CATEGORIES).length} patterns,
-    ${CONV_TEST_QUESTIONS.length} questions, most of them typed rather than multiple choice.`,
+    text: `Exercises from today's conversation about hobbies — ${Object.keys(CONV_CATEGORIES).length} patterns,
+    ${CONV_TEST_QUESTIONS.length} questions, nearly all of them typed rather than multiple choice.`,
     accent2: true,
     details,
     links,
