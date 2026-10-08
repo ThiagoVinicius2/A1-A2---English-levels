@@ -1094,7 +1094,7 @@ function renderConvResults() {
           ? `<button class="btn block" onclick='startConvExercises(${JSON.stringify(r.improvableCategories)})'>Practise patterns below 100%</button>`
           : `<button class="btn block" onclick='startConvExercises(${JSON.stringify(Object.keys(CONV_CATEGORIES))})'>Practise every pattern (general review)</button>`
         }
-        <button class="btn secondary block" onclick="startConvTest()">Redo the practice</button>
+        <button class="btn secondary block" onclick="startConvTest()">Redo the full review</button>
         <button class="btn secondary block" onclick="goLanding()">Back to start</button>
       </div>
     </div>
@@ -1238,7 +1238,14 @@ function renderConvExerciseSummary() {
   state.convExerciseQuestions.forEach(q => {
     byCategory[q.category] = byCategory[q.category] || { correct: 0, total: 0 };
     byCategory[q.category].total++;
-    if (state.convExerciseAnswers[q.id] === q.correct) {
+    /* A MESMA régua do finishConvTest: convIsRight() lê o índice na múltipla
+       escolha e a nota do corretor na digitada. Antes isto comparava
+       `convExerciseAnswers[q.id] === q.correct`, que era certo quando o módulo
+       era só múltipla escolha — numa questão digitada a resposta guardada é o
+       TEXTO e `q.correct` nem existe, então toda digitada contava como errada e
+       a prática inteira certa mostrava 7%. Se precisar mexer aqui, mexa no
+       convIsRight(): a régua tem de ser uma só para o teste e para a prática. */
+    if (convIsRight(q, state.convExerciseAnswers[q.id], state.convExerciseGrades[q.id])) {
       byCategory[q.category].correct++;
       correct++;
     }
@@ -1268,7 +1275,7 @@ function renderConvExerciseSummary() {
           ? `<button class="btn block" onclick='startConvExercises(${JSON.stringify(improvableCategories)})'>Practise ${improvableCategories.length > 1 ? "patterns" : "pattern"} below 100%</button>`
           : `<button class="btn block" onclick='startConvExercises(${JSON.stringify(Object.keys(byCategory))})'>Practise every pattern (general review)</button>`
         }
-        <button class="btn secondary block" onclick="startConvTest()">Redo the full practice</button>
+        <button class="btn secondary block" onclick="startConvTest()">Redo the full review</button>
         <button class="btn secondary block" onclick="goLanding()">Back to start</button>
       </div>
     </div>

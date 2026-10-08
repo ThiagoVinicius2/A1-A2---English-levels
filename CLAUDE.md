@@ -99,6 +99,14 @@ consolidados saem e ficam registrados no comentário do topo do arquivo.
   `singing` por `sing`, `one thing` por `onething`) fica digitado, onde a trava
   de resposta curta o corrige de forma exata. Foi isso que fez o Padrão 4 da
   9ª rodada misturar as duas formas dentro da mesma categoria.
+- **Uma régua só, e ela vale nas DUAS telas.** `convIsRight(q, resposta, nota)`
+  é quem decide acerto, e tanto o `finishConvTest()` quanto o
+  `renderConvExerciseSummary()` precisam chamá-la. O resumo da prática ficou
+  comparando `convExerciseAnswers[q.id] === q.correct`, que estava certo quando
+  o módulo era só múltipla escolha: numa questão digitada a resposta guardada é
+  o **texto** e `q.correct` não existe, então toda digitada contava como errada
+  e a prática inteira certa mostrava 7%. Se mexer na régua, mexa no
+  `convIsRight()` — nunca numa das duas telas.
 - **O `getConvPracticeForCategory()` mora no fim de `js/data-conversation.js`**
   e é o que a prática dirigida chama. Uma rodada nova reescreve o arquivo
   inteiro, e já aconteceu de ele ficar para trás — o banco validava, o teste
@@ -420,6 +428,12 @@ vetar alguma coisa se discordar.
 - Teste da rodada de correção: errando 4 de 9 cartões e depois acertando os 4 na
   correção, o histórico do deck precisa continuar em 56% (5/9) — se virar 100%,
   a correção voltou a gravar por cima
+- **Porcentagem do módulo da conversa nas duas telas:** respondendo a prática
+  dirigida com um ciclo de certo / certo / typo / autoavaliação / erro, a tela
+  de resumo tem de mostrar a mesma fração que o teste mostraria, e as linhas por
+  padrão têm de somar o total. Contar quantos exercícios foram respondidos **não
+  basta** — era só isso que o smoke conferia, e por isso o resumo da prática
+  passou duas rodadas devolvendo 7% com tudo certo
 - Teste das unidades: 15 na grade, só as carregadas com link, toda chave de deck
   começando com a chave da sua unidade, nenhum deck vazando de uma unidade para
   outra, e o histórico gravado no formato antigo migrando para a chave com prefixo
