@@ -351,6 +351,15 @@ vetar alguma coisa se discordar.
   igual, sem reprovar quem escreve a posse sem apóstrofo. Por isso esses dois
   **não** entram em `TRANS_CONTRACTIONS`; as demais contrações (`'re`, `'ve`,
   `'ll`, `'m`, `n't`) entram, porque têm leitura única.
+- **`ain't` é o caso mais ambíguo de todos** e vale por `am not`, `is not`,
+  `are not`, `has not` e `have not`. Não cabe na `TRANS_CONTRACTIONS`, que troca
+  uma forma por **uma** leitura; entra pela mesma porta do `'s` e do `'d`, com
+  as leituras saindo do **sujeito que vem antes** (`TRANS_AINT_READINGS`). É o
+  que faz quem escreve `He hasn't got the guts` acertar o cartão do `ain't` —
+  e a tabela por sujeito é o que impede o corretor de passar a aceitar
+  `he am not`. O deck de Immersion Time da Unit 13 é inteiro sobre essa forma,
+  e cada cartão de lá ainda leva em `accept` a frase sem a dupla negativa, que
+  é como a gramática da escola pediria.
 - Guardas para não passar a aceitar inglês inexistente, em `transReadings()`:
   nada de `'s` valendo verbo depois de `this/these/those` ou de pronome de
   sujeito (`you's`), nem depois de sibilante (`Friends's`); e `TRANS_S_NEVER_POSSESSIVE`
@@ -412,11 +421,31 @@ vetar alguma coisa se discordar.
 
 ## Antes de publicar
 
+**A bateria mora em `testes/`, no próprio repositório, e roda inteira com um
+comando:**
+
+```sh
+sh testes/rodar.sh 13     # o número é a unidade do smoke; sem ele, a última
+```
+
+Ela já viveu numa pasta temporária de sessão e foi perdida junto com o
+contêiner — a rede que pega bug é o ativo mais caro do projeto e não pode
+depender da máquina que a escreveu. O `testes/README.md` diz o que cada arquivo
+defende; a lista abaixo é o que a bateria confere, e serve para conferir se
+algum teste foi perdido ou enfraquecido.
+
+Os testes de dado rodam só com o `node`, em um segundo, porque o `comum.js`
+carrega o `js/app.js` com um esqueleto de DOM. Isso importa: dá para conferir a
+**porcentagem que a tela mostra**, e não só a régua que a calcula — era
+exatamente essa diferença que escondia o bug dos 11%.
+
 - `node --check` nos quatro arquivos de `js/`
 - Validar os bancos: toda categoria com teste e prática, 4 opções e 4 explicações,
   `correct` dentro do intervalo, ids únicos; nos cartões de tradução, todo `deck`
   existente e a contagem por deck igual à do CSV **menos os cartões da lista de
-  poda** (o comentário no topo de `js/data-translate.js`)
+  poda** (o comentário no topo de `js/data-translate.js`). A contagem conferida
+  no dia da importação fica em `testes/contagens.json`: unidade nova atualiza o
+  arquivo de propósito, cartão que desaparece sem querer falha o teste
 - Autoteste do corretor de tradução: para todo cartão, a própria resposta (`en`) e
   cada string de `accept` precisam ser corrigidas como `certo`
 - Teste da porcentagem por deck: numa rodada com um acerto, um typo, uma resposta
@@ -456,6 +485,9 @@ vetar alguma coisa se discordar.
   própria no autoteste que falha nomeando o cartão quando uma delas aparece sem
   estar em `TRANS_CONTRACTIONS`. Foi ela que achou o `gotcha` do `t-233`, que
   reprovava "Got you!" desde a Unit 4
+- `ain't` nos dois sentidos: `I ain't got` == `I haven't got`, `he ain't got` ==
+  `he hasn't got`, `he ain't` == `he isn't`, `we ain't gonna` == `we aren't
+  going to` — e `he am not` e `I is not` precisam continuar sendo reprovados
 - Contração nos dois sentidos: para toda resposta do banco, a versão contraída e
   a expandida precisam dar `certo` — e `This's`, `Friends's`, `you's`, `its` por
   `it's` e `they're` por `their` precisam continuar sendo reprovadas
