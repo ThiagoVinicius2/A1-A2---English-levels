@@ -22,6 +22,7 @@ que a escreveu.
 |---|---|
 | `validar.js` | forma dos três bancos: categoria com teste e prática, 4 opções e 4 explicações, `correct` no intervalo, ids únicos, deck existente, `ctx` curto — e que o `getConvPracticeForCategory()` existe e devolve a mesma contagem do banco |
 | `corretor.js` | o corretor da resposta digitada: nenhum cartão reprova a própria resposta, nenhuma resposta vale em dois cartões, `ctx` nunca é resposta, contração e tipografia nos dois sentidos, apóstrofo sem cobertura, redução sem apóstrofo, `ain't` com as cinco leituras, sinônimos nos dois sentidos, número por extenso, e a contagem por deck contra `contagens.json` |
+| `literal.js [uNN]` | a sonda da tradução literal: para cada cartão, a tradução mais óbvia do português tem de ser corrigida como `certo`. As literais ficam em `literais/uNN.json` — é rede permanente, não só de importação: mexer num cartão e quebrar a tradução óbvia dele falha aqui |
 | `conversa.js` | a trava da resposta curta e a régua da porcentagem **nas duas telas** do módulo da conversa (foi o bug dos 11%) |
 | `traducao.js` | a régua do "de primeira" (certo + quase + autoavaliação = acerto), a mescla do histórico entre rodadas, a rodada de correção que **não** grava por cima, e a migração do formato antigo |
 
@@ -40,6 +41,31 @@ calcula. Era exatamente essa diferença que escondia o bug dos 11%.
 
 O erro de certificado do Google Fonts é do proxy do ambiente e os testes o
 ignoram.
+
+## `importar.js` — o passo 2 da importação
+
+```sh
+node testes/importar.js ~/caminho/cartoes_memhack_15.csv
+```
+
+Roda **antes** de importar, sobre o CSV cru, e imprime um relatório: contagem
+por deck, resposta em inglês que já vale num cartão do banco, enunciado em
+português repetido, enunciado parecido demais (Jaccard ≥ 0,5) e aviso de forma
+(pedaço de fala, palavra solta, célula com duas respostas, resposta entre
+aspas). Ele não falha nem passa — a decisão de podar é de quem importa, e os
+critérios estão no `CLAUDE.md`.
+
+O Jaccard é o que a comparação literal não pega. Na Unit 6 ele teria apontado
+"Estou dentro!", "Estou dentro com isso!" e "Tô dentro!"; na Unit 14 apontou os
+três "Isso é nojento!" (Eca / Ui / Blé), que ficaram com a interjeição como
+única diferença. Se a unidade já estiver no banco, os cartões dela ficam fora
+da comparação — senão cada um casaria consigo mesmo.
+
+## `literais/uNN.json`
+
+Uma tradução literal por cartão, escrita à mão no dia da importação. Só existe
+da Unit 13 em diante: antes disso a sonda era feita em script de sessão, e
+esses arquivos se perderam com o contêiner.
 
 ## `contagens.json`
 

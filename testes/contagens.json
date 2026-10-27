@@ -1,6 +1,6 @@
 {
   "_comentario": "Linha de base conferida contra o CSV de cada unidade no dia da importação. Unidade nova atualiza este arquivo; cartão que desaparece sem querer falha no testes/corretor.js.",
-  "total": 886,
+  "total": 951,
   "unidades": {
     "u01": 64,
     "u02": 51,
@@ -14,7 +14,8 @@
     "u10": 69,
     "u11": 59,
     "u12": 75,
-    "u13": 72
+    "u13": 72,
+    "u14": 65
   },
   "decks": {
     "u01-comprehension": 5,
@@ -104,6 +105,13 @@
     "u13-grammar1": 11,
     "u13-grammar2": 11,
     "u13-pronunciation": 8,
-    "u13-study": 6
+    "u13-study": 6,
+    "u14-comprehension": 7,
+    "u14-vocab": 10,
+    "u14-immersion": 16,
+    "u14-grammar1": 9,
+    "u14-grammar2": 11,
+    "u14-pronunciation": 7,
+    "u14-study": 5
   }
 }

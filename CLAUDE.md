@@ -161,7 +161,9 @@ vetar alguma coisa se discordar.
 
 1. **Ler com `encoding="utf-8-sig"`** e conferir o total e a contagem por deck
    contra o que o CSV traz.
-2. **Rodar a checagem de repetição antes de importar** — literal e semântica:
+2. **Rodar a checagem de repetição antes de importar** — é o
+   `node testes/importar.js caminho/do/csv`, que imprime o relatório. Literal
+   e semântica:
    - resposta em inglês igual à de um cartão que já existe;
    - resposta nova que já é aceita por um cartão antigo (`gradeTransAnswer`);
    - enunciado em português repetido, dentro da unidade e contra o banco;
@@ -185,13 +187,17 @@ vetar alguma coisa se discordar.
      sensível a pressão`.
    **Unidade sem nada para podar acontece** — a Unit 7 entrou inteira. Não
    force corte para cumprir tabela.
-4. **Testar o enunciado contra a tradução literal.** Para cada cartão
-   idiomático, escreva a tradução mais óbvia do português e passe pelo
-   `gradeTransAnswer`: se der `diferente`, o cartão reprova quem acertou. Aí
-   decida pela regra das duas situações — `accept` se as duas frases servem na
-   mesma hora, `ctx` se o enunciado não tem como escolher. O Immersion Time é
-   o deck que mais precisa: na varredura que achou o problema, **17 de 17
-   literais reprovadas estavam nele**.
+4. **Testar o enunciado contra a tradução literal.** Escreva a tradução mais
+   óbvia do português de **cada** cartão em `testes/literais/uNN.json` e rode
+   `node testes/literal.js NN`: se der `diferente`, o cartão reprova quem
+   acertou. Aí decida pela regra das duas situações — `accept` se as duas
+   frases servem na mesma hora, `ctx` se o enunciado não tem como escolher. O
+   Immersion Time é o deck que mais precisa: na varredura que achou o problema,
+   **17 de 17 literais reprovadas estavam nele**. O arquivo fica versionado e
+   passa a ser rede permanente: mexer num cartão mais tarde e quebrar a
+   tradução óbvia dele falha na bateria. O caso mais comum de reprovação é a
+   **combinação**: o `accept` cobre cada troca em separado, mas não as duas
+   juntas (na Unit 14 foram 23 de 65 assim).
 5. **Cadastrar `accept` com generosidade** onde o português admite mais de um
    inglês certo, e `note` (em inglês) quando o deck estiver treinando uma forma
    que o enunciado não tem como pedir. Caso típico: deck de modais, em que
@@ -206,8 +212,9 @@ vetar alguma coisa se discordar.
    e `outta` não eram acusadas por ninguém e reprovavam quem as escrevesse.
    Quando um deck **ensinar** uma redução, cadastre-a mesmo que o cartão
    traga só a forma longa.
-7. Rodar a bateria inteira de "Antes de publicar", subir o cache-busting e
-   publicar pelo fluxo padrão (branch → commit → PR → merge na `main`).
+7. Atualizar a contagem em `testes/contagens.json`, rodar a bateria inteira
+   (`sh testes/rodar.sh NN`), subir o cache-busting e publicar pelo fluxo
+   padrão (branch → commit → PR → merge na `main`).
 8. **Relatar o que saiu**, agrupado por motivo, para o dono poder pedir algum
    cartão de volta.
 
@@ -364,6 +371,14 @@ vetar alguma coisa se discordar.
   nada de `'s` valendo verbo depois de `this/these/those` ou de pronome de
   sujeito (`you's`), nem depois de sibilante (`Friends's`); e `TRANS_S_NEVER_POSSESSIVE`
   impede `its` de valer por `it's`.
+- **Apóstrofo resolvido por acidente é o que já escondeu bug duas vezes.** O
+  `o'clock` do `t-1012` passava porque a segunda etapa da normalização apaga
+  apóstrofo sobrando — mas quem escrevesse "nine o clock" separado era
+  reprovado. A rede cobra cobertura explícita de toda palavra com apóstrofo que
+  não seja `'s`, `'d` ou `ain't`, e o conserto é uma linha na
+  `TRANS_CONTRACTIONS` (lá estão `["o'clock", "oclock"]` e `["o clock",
+  "oclock"]`, os dois sentidos). Foi a mesma rede que achou o `gotcha` e o
+  `c'mon`.
 - **Contração nova numa unidade futura o teste acusa sozinho.** Toda palavra com
   apóstrofo nos cartões é conferida: se termina em `'re`, `'ve`, `'ll`, `'m` ou
   `n't` e não está em `TRANS_CONTRACTIONS`, o autoteste falha nomeando o cartão.
@@ -448,6 +463,10 @@ exatamente essa diferença que escondia o bug dos 11%.
   arquivo de propósito, cartão que desaparece sem querer falha o teste
 - Autoteste do corretor de tradução: para todo cartão, a própria resposta (`en`) e
   cada string de `accept` precisam ser corrigidas como `certo`
+- Sonda da tradução literal: para todo cartão com literal cadastrada em
+  `testes/literais/uNN.json`, a tradução mais óbvia do português precisa dar
+  `certo` — e toda carta da unidade precisa ter literal, senão cartão novo
+  passa batido
 - Teste da porcentagem por deck: numa rodada com um acerto, um typo, uma resposta
   diferente aceita na autoavaliação e um "Não lembro", **a tela de resultado e o
   histórico do deck têm de mostrar os mesmos 75% (3/4)** — é uma régua só. Se
