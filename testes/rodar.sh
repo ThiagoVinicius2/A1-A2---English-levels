@@ -30,6 +30,7 @@ roda() {
 echo "== testes de dado (rápidos)"
 roda testes/validar.js
 roda testes/corretor.js
+roda testes/literal.js
 roda testes/conversa.js
 roda testes/traducao.js
 
