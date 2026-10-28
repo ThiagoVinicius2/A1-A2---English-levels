@@ -135,11 +135,44 @@ consolidados saem e ficam registrados no comentário do topo do arquivo.
 Banco de cartões vindo do CSV do deck MemHack do curso (colunas
 `id, deck, ingles, portugues`).
 
+### Série de dados: a direção nova do módulo
+
+As unidades estão sendo **refeitas uma a uma** com as mesmas estruturas do
+curso, mas com frases do dia a dia de quem trabalha com dados (dashboard,
+query, pipeline, stakeholder, KPI). A Unit 1 já é essa série; as outras ainda
+são o conteúdo genérico do curso e vão sendo trocadas conforme chegar o CSV de
+cada uma.
+
+- **A unidade refeita é UM deck só** e abre **direto na rodada**: a pessoa
+  clica na Unit e cai no campo de digitação, sem tela de escolha de deck. Os
+  blocos do CSV (`Data Vocab Rocket`, `Data Grammar Hacks 01`…) viram só
+  comentário no bloco da unidade, para a origem de cada frase não se perder.
+- **O id da série tem prefixo próprio** (`d-1` … `d-50`). O CSV da série
+  recomeça a numeração em 1, e sem o prefixo colidiria com os `t-N` do curso —
+  e o registro de poda no topo do `js/data-translate.js`, que cita id, deixaria
+  de fazer sentido.
+- **Substituir uma unidade apaga os cartões antigos dela.** A Unit 1 perdeu os
+  64 cartões do curso (`t-01` a `t-74`, com a poda); eles continuam no
+  histórico do git. Ao refazer uma unidade, confira o que mais aponta para os
+  ids que vão sair: os casos dirigidos de sinônimo do `testes/corretor.js`
+  apontavam para `t-36`, `t-21` e `t-16`, todos da Unit 1, e tiveram de ser
+  repontados.
+- **Uma unidade de um deck só não tem o que escolher**, então
+  `openTransDecks()` manda direto para `startTransRound()`. Duas coisas
+  dependem disso e precisam andar juntas: o card da unidade (etiqueta com a
+  contagem de cartões e botão "Start the round", em vez de "N decks" e "Open
+  unit") e o botão **"Choose other decks"** da tela de resultado, que só
+  aparece com mais de um deck — numa unidade de deck único ele cairia no
+  `openTransDecks()` e **recomeçaria a rodada** em vez de abrir uma escolha.
+  O `testes/unidades.js` cobre as duas formas de abrir: se a tela de escolha
+  voltar a aparecer para a unidade de um deck, ou se uma de vários passar a
+  pular a escolha, o teste acusa.
+
 ### Unidades
 
 Os decks vivem dentro de **unidades** (`TRANS_UNITS`, `Unit 1` … `Unit 15`), que
 são as unidades do curso. A navegação é: card da página inicial → escolha da
-unidade → escolha dos decks daquela unidade → rodada.
+unidade → (escolha dos decks, nas unidades que têm mais de um) → rodada.
 
 - **A chave de cada deck é prefixada pela unidade** (`u01-comprehension`). Os
   nomes de baralho se repetem a cada unidade do curso ("Comprehension Practice",
@@ -390,8 +423,11 @@ vetar alguma coisa se discordar.
   rodada: `{ date, decks: { deckKey: { pct, correct, total, date } } }`. Cada
   rodada **mescla** — só os decks praticados são atualizados, os outros mantêm a
   nota da última vez. Suba a chave (`_r3` → `_r4` → …) se o formato mudar de novo.
-  `loadTransDeckStats()` tem uma migração única do `_r2` (chaves sem prefixo de
-  unidade) para o formato atual; pode sair quando não valer mais a pena.
+  Havia uma migração única do `_r2` (chaves sem prefixo de unidade) em
+  `loadTransDeckStats()`. Ela mapeava tudo para os decks da Unit 1 do curso,
+  que deixaram de existir quando a unidade foi refeita com a série de dados —
+  sem deck de destino não havia mais o que migrar, e ela saiu. O dado velho
+  fica órfão no `localStorage`, sem efeito.
 - **Uma nota só: `state.transGrades`.** Ela serve ao placar da rodada e à
   porcentagem por deck, e `transIsHit()` é a régua das duas.
   - **Contam como acerto:** `certo`; `quase` (o inglês produzido estava certo,

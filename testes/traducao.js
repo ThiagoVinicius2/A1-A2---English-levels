@@ -100,18 +100,18 @@ Object.keys(bruto.decks).forEach(k => {
   p.ok(!!A.TRANS_DECKS[k], `o deck gravado ${k} existe em TRANS_DECKS (chave com prefixo de unidade)`);
 });
 
-/* a migração do formato antigo (_r2, chaves sem prefixo de unidade) */
+/* O formato antigo (_r2, chaves sem prefixo de unidade) não é mais migrado: a
+   migração mapeava tudo para os decks da Unit 1 do curso, que deixaram de
+   existir com a série de dados. O que importa agora é que o dado velho seja
+   ignorado sem quebrar nada. */
 const P2 = carregarApp();
 P2.localStorage.setItem("enCheckTransResults_r2", JSON.stringify({
   date: "2026-01-01T00:00:00.000Z",
   decks: { vocab2: { pct: 50, correct: 1, total: 2, date: "2026-01-01T00:00:00.000Z" } },
 }));
-const migrado = P2.loadTransDeckStats();
-const chavesMigradas = Object.keys(migrado);
-p.ok(chavesMigradas.length > 0, "a migração do _r2 trouxe algum deck");
-p.ok(chavesMigradas.every(k => /^u\d\d-/.test(k)),
-     `toda chave migrada ganhou o prefixo de unidade (achei ${chavesMigradas.join(", ")})`);
-p.ok(!migrado.vocab2, "a chave antiga sem prefixo não sobrou");
-p.nota(`migração do _r2: ${chavesMigradas.join(", ")}`);
+const semMigracao = P2.loadTransDeckStats();
+p.ok(Object.keys(semMigracao).length === 0,
+     `histórico no formato _r2 é ignorado (veio ${JSON.stringify(semMigracao)})`);
+p.ok(P2.state.transFirstGrades === undefined, "o state continua sem transFirstGrades");
 
 p.fim();
