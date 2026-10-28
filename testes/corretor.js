@@ -135,8 +135,12 @@ C.forEach(c => {
 p.nota(`sinônimos: ${nSin} trocas conferidas sobre as respostas do banco`);
 /* casos dirigidos dos pares documentados: a rede acima só percorre o que está
    na tabela, então não acusa a REMOÇÃO de um par */
+/* Os três primeiros apontavam para cartões da Unit 1 do curso (t-36, t-21,
+   t-16), que saíram do banco quando a unidade foi refeita com a série de
+   dados. Foram repontados para cartões que seguem no banco, com as mesmas
+   palavras. */
 [
-  ["t-306", "children"], ["t-312", "children"], ["t-36", "guess"], ["t-21", "store"], ["t-16", "thanks"],
+  ["t-306", "guess"], ["t-312", "kids"], ["t-411", "children"], ["t-77", "store"], ["t-91", "thanks"],
 ].forEach(([id, palavra]) => {
   const c = C.filter(x => x.id === id)[0];
   if (!c) return p.ok(false, `caso dirigido: o cartão ${id} não existe mais`);

@@ -35,7 +35,7 @@ calcula. Era exatamente essa diferença que escondia o bug dos 11%.
 
 | Arquivo | O que defende |
 |---|---|
-| `unidades.js` | a grade das 15 unidades, só as carregadas com link, e a tela de decks de **cada** unidade carregada, uma por uma, sem deck vazando |
+| `unidades.js` | a grade das 15 unidades, só as carregadas com link, e **as duas formas de abrir**: a unidade de um deck só cai direto na rodada, a de vários passa pela escolha — uma por uma, sem deck vazando |
 | `smoke.js` | os três módulos de ponta a ponta, incluindo a prática dirigida da conversa — a tela que já quebrou por o banco novo ter perdido uma função — e **zero erro de JS** |
 | `smoke_unidade.js NN` | a rodada completa de uma unidade: os quatro vereditos e a porcentagem gravada por deck. É o teste da importação |
 

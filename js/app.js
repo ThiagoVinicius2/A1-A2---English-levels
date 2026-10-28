@@ -2,7 +2,6 @@
 const STORAGE_KEY = "enCheckLastResults";
 const CONV_STORAGE_KEY = "enCheckConvResults_r9";   // r9: a conversa sobre hobbies — banco novo, resultado da rodada anterior fica de fora
 const TRANS_STORAGE_KEY = "enCheckTransResults_r3"; // r3: chaves de deck prefixadas pela unidade (u01-...)
-const TRANS_STORAGE_KEY_R2 = "enCheckTransResults_r2";  // só para migrar o histórico antigo uma vez
 const WEAK_THRESHOLD = 75;   // usado só para colorir a barra de desempenho (verde/amarelo/vermelho)
 const MASTERY_PCT = 100;     // qualquer categoria abaixo disso sempre entra na revisão/prática
 
@@ -1312,19 +1311,11 @@ function transIsHit(grade) {
 function loadTransDeckStats() {
   const guardado = loadResults(TRANS_STORAGE_KEY);
   if (guardado && guardado.decks) return guardado.decks;
-
-  /* Migração única: antes das unidades as chaves eram "comprehension",
-     "vocab1"… Todas eram da unidade 1, então ganham o prefixo e o histórico
-     não se perde. Roda uma vez: a primeira gravação já usa a chave nova. */
-  const antigo = loadResults(TRANS_STORAGE_KEY_R2);
-  if (antigo && antigo.decks) {
-    const migrado = {};
-    Object.keys(antigo.decks).forEach(k => {
-      const nova = k.indexOf("-") === -1 ? "u01-" + k : k;
-      if (TRANS_DECKS[nova]) migrado[nova] = antigo.decks[k];
-    });
-    return migrado;
-  }
+  /* Havia aqui uma migração do formato _r2 (chaves sem prefixo de unidade,
+     "comprehension", "vocab1"…). Ela mapeava tudo para os decks da Unit 1 —
+     que deixaram de existir quando a unidade foi refeita com a série de dados.
+     Sem deck de destino, a migração não tinha mais o que migrar e saiu. O dado
+     velho fica órfão no localStorage, sem efeito. */
   return {};
 }
 
@@ -1354,11 +1345,20 @@ function openTransUnits() {
   render();
 }
 
-/* Abre a lista de decks de uma unidade. Sem argumento, reabre a última. */
+/* Abre a lista de decks de uma unidade. Sem argumento, reabre a última.
+
+   Unidade de UM deck só não tem escolha para fazer, então ela abre direto na
+   rodada — é o caso da série de dados, em que a unidade inteira é uma lista de
+   frases. A tela de escolha continua existindo para as unidades do curso, que
+   têm sete decks cada. Por isso o botão "Choose other decks" da tela de
+   resultado só aparece quando há mais de um deck: nessas unidades ele cairia
+   aqui e recomeçaria a rodada em vez de abrir uma escolha. */
 function openTransDecks(unitKey, preSelecionados) {
   const unidade = TRANS_UNITS[unitKey] ? unitKey : state.transUnit;
   if (!unidade || !getTransDecksForUnit(unidade).length) return openTransUnits();
   state.transUnit = unidade;
+  const doUnidade = getTransDecksForUnit(unidade);
+  if (doUnidade.length === 1) return startTransRound(doUnidade);
   state.transDeckSelection = knownCategories(preSelecionados, TRANS_DECKS)
     .filter(k => TRANS_DECKS[k].unit === unidade);
   state.view = "transDecks";
@@ -1616,7 +1616,8 @@ function renderTransUnits() {
   app.innerHTML = `
     <div class="card">
       <h2>Which unit are you practising?</h2>
-      <p class="lead">Each unit holds the decks of one unit of your course.
+      <p class="lead">Each unit follows one unit of your course — some open straight into the round,
+      others let you pick decks first.
       ${comDeck.length} of ${chaves.length} units ${comDeck.length === 1 ? "is" : "are"} loaded so far.</p>
 
       <div class="unit-grid">
@@ -1635,18 +1636,24 @@ function renderTransUnits() {
               </article>
             `;
           }
+          /* Unidade de um deck só abre direto na rodada, então o card dela diz
+             isso: nem "1 deck" na etiqueta, nem "1/1 decks practised" no
+             progresso — informação que só confundiria. */
+          const umDeck = decks.length === 1;
           return `
             <article class="module-card">
               <div class="module-top">
                 <span>${u.num}</span>
-                <span class="module-kind">${decks.length} ${decks.length === 1 ? "deck" : "decks"}</span>
+                <span class="module-kind">${umDeck ? `${cartoes} cards` : `${decks.length} decks`}</span>
               </div>
               <h3>${escapeHtml(u.label)}</h3>
               <p>${cartoes} ${cartoes === 1 ? "sentence" : "sentences"} to translate.</p>
               <div class="module-actions">
-                <button class="module-link" onclick="openTransDecks('${key}')">Open unit &rarr;</button>
+                <button class="module-link" onclick="openTransDecks('${key}')">
+                  ${umDeck ? `Start the round &rarr;` : `Open unit &rarr;`}
+                </button>
                 ${prog
-                  ? `<span class="module-score">First try · ${prog.pct}% · ${prog.praticados}/${prog.decks} decks practised</span>`
+                  ? `<span class="module-score">First try · ${prog.pct}%${umDeck ? "" : ` · ${prog.praticados}/${prog.decks} decks practised`}</span>`
                   : `<span class="module-score">Not started yet</span>`}
               </div>
             </article>
@@ -1893,7 +1900,9 @@ function renderTransResults() {
           : ""
         }
         <button class="btn${r.isRetry ? "" : " secondary"} block" onclick='startTransRound(${JSON.stringify(decks)})'>Redo ${r.isRetry ? "the whole deck (updates the score)" : "this round"}</button>
-        <button class="btn secondary block" onclick="openTransDecks()">Choose other decks</button>
+        ${getTransDecksForUnit(state.transUnit).length > 1
+          ? `<button class="btn secondary block" onclick="openTransDecks()">Choose other decks</button>`
+          : ""}
         <button class="btn secondary block" onclick="openTransUnits()">Choose another unit</button>
         <button class="btn secondary block" onclick="goLanding()">Back to start</button>
       </div>

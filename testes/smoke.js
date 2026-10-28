@@ -130,17 +130,37 @@ const p = criarPlacar("SMOKE DOS TRÊS MÓDULOS");
   p.ok((await page.locator(".unit-grid .module-card.empty").count()) === 15 - carregadas,
        `as outras ${15 - carregadas} aparecem como "No decks yet"`);
 
-  await page.click(".unit-grid .module-card:not(.empty):nth-of-type(1) .module-link");
+  /* as duas formas de abrir uma unidade, derivadas do banco: a de um deck só
+     cai direto na rodada; a de vários continua passando pela escolha */
+  const todas = Object.keys(A.TRANS_UNITS).filter(u => A.getTransDecksForUnit(u).length);
+  const umDeck = todas.filter(u => A.getTransDecksForUnit(u).length === 1)[0];
+  const variosDecks = todas.filter(u => A.getTransDecksForUnit(u).length > 1)[0];
+
+  if (umDeck) {
+    await page.click(`.unit-grid .module-card:not(.empty):nth-of-type(${todas.indexOf(umDeck) + 1}) .module-link`);
+    await page.waitForTimeout(150);
+    const direto = await page.evaluate(() => ({ view: state.view, n: state.transCards.length, unidade: state.transUnit }));
+    p.ok(direto.view === "transRound" && direto.unidade === umDeck,
+         `${umDeck}: um deck só, abre direto na rodada (abriu "${direto.view}")`);
+    p.ok(direto.n === A.countTransCardsForUnit(umDeck),
+         `${umDeck}: a rodada traz as ${A.countTransCardsForUnit(umDeck)} frases da unidade (trouxe ${direto.n})`);
+    p.ok((await page.locator("#trans-input").count()) === 1, `${umDeck}: o campo de digitação já está na tela`);
+    await page.evaluate(() => openTransUnits());
+    await page.waitForSelector(".unit-grid");
+  } else p.ok(false, "nenhuma unidade de um deck só no banco");
+
+  p.ok(!!variosDecks, "ainda existe unidade de vários decks");
+  await page.click(`.unit-grid .module-card:not(.empty):nth-of-type(${todas.indexOf(variosDecks) + 1}) .module-link`);
   await page.waitForSelector(".trans-deck-list");
   const nomes = await page.locator(".trans-deck-name").allTextContents();
   p.ok(nomes.length > 0, "a tela de decks lista os decks da unidade");
   /* o deck precisa de pelo menos 5 cartões para caber acerto, typo,
      autoavaliação e "não lembro" na mesma rodada */
   const deckAlvo = Object.keys(A.TRANS_DECKS)
-    .filter(k => A.TRANS_DECKS[k].unit === "u01" && A.getTransCardsForDeck(k).length >= 5)[0];
+    .filter(k => A.TRANS_DECKS[k].unit === variosDecks && A.getTransCardsForDeck(k).length >= 5)[0];
   const rotuloAlvo = A.TRANS_DECKS[deckAlvo].label;
   const iAlvo = nomes.findIndex(x => x.indexOf(rotuloAlvo) !== -1);
-  p.ok(iAlvo >= 0, `o deck ${rotuloAlvo} está na lista da unidade`);
+  p.ok(iAlvo >= 0, `o deck ${rotuloAlvo} está na lista da ${variosDecks}`);
   await page.locator(".trans-deck-option").nth(iAlvo).click();
   await page.click("button:has-text('Start')");
   await page.waitForSelector("#trans-input");
