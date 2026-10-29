@@ -139,9 +139,11 @@ Banco de cartões vindo do CSV do deck MemHack do curso (colunas
 
 As unidades estão sendo **refeitas uma a uma** com as mesmas estruturas do
 curso, mas com frases do dia a dia de quem trabalha com dados (dashboard,
-query, pipeline, stakeholder, KPI). A Unit 1 já é essa série; as outras ainda
-são o conteúdo genérico do curso e vão sendo trocadas conforme chegar o CSV de
-cada uma.
+query, pipeline, stakeholder, KPI). As Units 1 e 2 já são essa série; as
+outras ainda são o conteúdo genérico do curso e vão sendo trocadas conforme
+chegar o CSV de cada uma. O CSV da série continua a numeração de uma unidade
+para a outra (a Unit 1 foi 1-50, a Unit 2 foi 51-100), então o id do cartão
+acompanha: `d-51` a `d-100`.
 
 - **A unidade refeita é UM deck só** e abre **direto na rodada**: a pessoa
   clica na Unit e cai no campo de digitação, sem tela de escolha de deck. Os
@@ -152,11 +154,19 @@ cada uma.
   e o registro de poda no topo do `js/data-translate.js`, que cita id, deixaria
   de fazer sentido.
 - **Substituir uma unidade apaga os cartões antigos dela.** A Unit 1 perdeu os
-  64 cartões do curso (`t-01` a `t-74`, com a poda); eles continuam no
-  histórico do git. Ao refazer uma unidade, confira o que mais aponta para os
-  ids que vão sair: os casos dirigidos de sinônimo do `testes/corretor.js`
-  apontavam para `t-36`, `t-21` e `t-16`, todos da Unit 1, e tiveram de ser
-  repontados.
+  64 cartões do curso (`t-01` a `t-74`) e a Unit 2 perdeu 51 (`t-77` a
+  `t-141`); eles continuam no histórico do git. Ao refazer uma unidade, confira
+  o que mais aponta para os ids que vão sair. Aconteceu duas vezes com os casos
+  dirigidos de sinônimo do `testes/corretor.js`: eles apontavam para `t-36`,
+  `t-21` e `t-16` (Unit 1) e, depois de repontados, para `t-77` e `t-91`
+  (Unit 2). Agora são **frases sintéticas**, que não dependem de cartão nenhum
+  — é o conserto certo para uma rede que quebra a cada substituição.
+- **Pergunta repetida entre unidades de propósito acontece, e não é repetição.**
+  O `d-16` ("Você tem acesso ao banco de dados?" → `Do you have`) e o `d-78`
+  ("Ela tem acesso ao banco de dados?" → `Does she have`) são o mesmo
+  enunciado com sujeito trocado: é exatamente a lição da Unit 2. O Jaccard
+  acusa (0,67), e a decisão é manter — as respostas não se cruzam, porque
+  `do` e `does` são palavras diferentes.
 - **Uma unidade de um deck só não tem o que escolher**, então
   `openTransDecks()` manda direto para `startTransRound()`. Duas coisas
   dependem disso e precisam andar juntas: o card da unidade (etiqueta com a
@@ -530,9 +540,11 @@ exatamente essa diferença que escondia o bug dos 11%.
   enunciado, nunca resposta
 - Sinônimos nos dois sentidos: para todo cartão, trocar na resposta uma palavra
   de `TRANS_SYNONYMS` pela equivalente precisa dar `certo` — e os pares
-  documentados têm caso dirigido próprio (`t-306`, `t-312`, `t-36`, `t-21`,
-  `t-16`), porque a rede só percorre o que está na tabela e não acusa a remoção
-  de um par
+  documentados têm caso dirigido próprio, porque a rede só percorre o que está
+  na tabela e não acusa a remoção de um par. Esses casos dirigidos são **frases
+  sintéticas**, não cartões do banco: a versão anterior apontava para `t-36`,
+  `t-21`, `t-16`, `t-77` e `t-91`, e quebrava a cada unidade refeita com a
+  série de dados — que apaga os cartões antigos daquela unidade
 - Número por extenso: `twenty five`, `thirty one`, `ninety nine` precisam
   normalizar igual a `25`, `31`, `99`
 - Fala reduzida sem apóstrofo: `lemme`, `gimme`, `Imma`, `gotcha` e companhia
