@@ -37,17 +37,11 @@ const p = criarPlacar(`SMOKE DA ${(A.TRANS_UNITS[unidade] || {}).label || unidad
   await page.waitForTimeout(150);
   p.ok(await page.evaluate(u => state.transUnit === u, unidade), `abriu a ${unidade}`);
 
-  /* Unidade de um deck só já entrou na rodada ao clicar no card da unidade;
-     a de vários decks para na escolha, e aí o deck é marcado pelo onclick,
-     que traz a chave (o rótulo se repete entre unidades). */
-  if (decks.length > 1) {
-    await page.waitForSelector(".trans-deck-list");
-    await page.click(`.trans-deck-option[onclick*="${alvo}"]`);
-    await page.click("button:has-text('Start')");
-  } else {
-    p.ok(await page.evaluate(() => state.view === "transRound"),
-         `${unidade}: um deck só, então o card da unidade abre direto na rodada`);
-  }
+  /* o deck é marcado pelo onclick, que traz a chave — o rótulo se repete
+     entre unidades */
+  await page.waitForSelector(".trans-deck-list");
+  await page.click(`.trans-deck-option[onclick*="${alvo}"]`);
+  await page.click("button:has-text('Start')");
   await page.waitForSelector("#trans-input");
   const quantos = await page.evaluate(() => state.transCards.length);
   p.ok(quantos === cartoesDoDeck.length, `a rodada trouxe os ${cartoesDoDeck.length} cartões do ${alvo} (trouxe ${quantos})`);

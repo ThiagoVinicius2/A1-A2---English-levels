@@ -18,8 +18,16 @@
     "u14": 65
   },
   "decks": {
-    "u01-dados": 50,
-    "u02-dados": 50,
+    "u01-about": 10,
+    "u01-have": 10,
+    "u01-doquestions": 10,
+    "u01-whquestions": 10,
+    "u01-contractions": 10,
+    "u02-frequency": 10,
+    "u02-thirdperson": 10,
+    "u02-negative": 10,
+    "u02-doesquestions": 10,
+    "u02-thanks": 10,
     "u03-comprehension": 8,
     "u03-vocab": 10,
     "u03-immersion": 6,
