@@ -49,63 +49,42 @@ const vazias = Object.keys(A.TRANS_UNITS).filter(u => !A.getTransDecksForUnit(u)
   }
 
   /* ---- cada unidade carregada, uma por uma ----
-     Unidade de um deck só NÃO passa pela tela de escolha: ela abre direto na
-     rodada. É o caso da série de dados, em que a unidade inteira é uma lista
-     de frases. Esta é a rede dessa mudança: se a tela de escolha voltar a
-     aparecer para ela, ou se uma unidade de vários decks passar a pular a
-     escolha, o teste acusa. */
-  let abriramDireto = 0, passaramPelaEscolha = 0;
+     Toda unidade passa pela tela de escolha de decks. Houve um período em que
+     unidade de um deck só abria direto na rodada (a série de dados nasceu
+     assim), e este teste cobria as duas formas; com cinco decks por unidade
+     não há mais unidade de deck único, e o passeio voltou a ser um só. */
   for (let i = 0; i < carregadas.length; i++) {
     const u = carregadas[i];
     const esperados = A.getTransDecksForUnit(u);
     await page.click(`.unit-grid .module-card:not(.empty):nth-of-type(${i + 1}) .module-link`);
-    await page.waitForTimeout(120);
-    const tela = await page.evaluate(() => ({ view: state.view, unidade: state.transUnit }));
-    p.ok(tela.unidade === u, `o ${i + 1}º card abre a ${u} (abriu ${tela.unidade})`);
-
-    if (esperados.length === 1) {
-      p.ok(tela.view === "transRound",
-           `${u}: um deck só, então abre direto na rodada (abriu "${tela.view}")`);
-      const naRodada = await page.evaluate(() => state.transCards.length);
-      const daUnidade = A.countTransCardsForUnit(u);
-      p.ok(naRodada === daUnidade, `${u}: a rodada traz os ${daUnidade} cartões da unidade (trouxe ${naRodada})`);
-      p.ok((await page.locator("#trans-input").count()) === 1, `${u}: o campo de digitação está na tela`);
-      abriramDireto++;
-      await page.click("button:has-text('Back to units'), button:has-text('Leave the round')").catch(() => {});
-      /* a saída da rodada passa pelo modal de confirmação */
-      const confirmar = page.locator("button:has-text('Leave')");
-      if (await confirmar.count()) await confirmar.first().click();
-      await page.waitForTimeout(100);
-      if (!(await page.locator(".unit-grid").count())) {
-        await page.evaluate(() => openTransUnits());
-        await page.waitForTimeout(100);
-      }
-      await page.waitForSelector(".unit-grid");
-      continue;
-    }
-
-    p.ok(tela.view === "transDecks",
-         `${u}: tem ${esperados.length} decks, então passa pela escolha (abriu "${tela.view}")`);
     await page.waitForSelector(".trans-deck-list");
     const d = await page.evaluate(() => ({
+      unidade: state.transUnit,
+      view: state.view,
       decks: [...document.querySelectorAll(".trans-deck-option")].map(el => el.getAttribute("onclick")),
       titulo: (document.querySelector(".q-level") || {}).textContent || "",
     }));
+    p.ok(d.unidade === u, `o ${i + 1}º card abre a ${u} (abriu ${d.unidade})`);
+    p.ok(d.view === "transDecks", `${u}: passa pela tela de escolha (abriu "${d.view}")`);
     p.ok(d.decks.length === esperados.length,
          `${u}: a tela lista os ${esperados.length} decks da unidade (listou ${d.decks.length})`);
     p.ok(d.decks.every(on => on && on.indexOf(u + "-") !== -1),
          `${u}: nenhum deck de outra unidade vazou`);
     p.ok(new RegExp(A.TRANS_UNITS[u].label).test(d.titulo),
          `${u}: a tela se identifica como "${A.TRANS_UNITS[u].label}" (achei "${d.titulo.trim()}")`);
-    passaramPelaEscolha++;
     await page.click("button:has-text('Back to units')");
     await page.waitForSelector(".unit-grid");
   }
-  p.ok(abriramDireto > 0, "ao menos uma unidade abre direto na rodada");
-  p.ok(passaramPelaEscolha > 0, "ao menos uma unidade continua passando pela escolha de decks");
-  p.nota(`${abriramDireto} unidade(s) abrem direto na rodada, ${passaramPelaEscolha} passam pela escolha`);
-
   p.nota(`${carregadas.length} unidades carregadas conferidas uma por uma: ${carregadas.join(", ")}`);
+
+  /* a série de dados tem cinco decks de dez por unidade — o corte que o dono
+     pediu depois de ver as 50 frases juntas */
+  ["u01", "u02"].forEach(u => {
+    const ds = A.getTransDecksForUnit(u);
+    p.ok(ds.length === 5, `${u}: cinco decks (tem ${ds.length})`);
+    ds.forEach(k => p.ok(A.getTransCardsForDeck(k).length === 10,
+      `${u}: o deck ${k} tem dez cartas (tem ${A.getTransCardsForDeck(k).length})`));
+  });
 
   p.ok(errosJs.length === 0, `erros de JS: ${errosJs.join(" | ")}`);
   await browser.close();

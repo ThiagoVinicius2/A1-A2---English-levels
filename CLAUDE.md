@@ -145,10 +145,17 @@ chegar o CSV de cada uma. O CSV da série continua a numeração de uma unidade
 para a outra (a Unit 1 foi 1-50, a Unit 2 foi 51-100), então o id do cartão
 acompanha: `d-51` a `d-100`.
 
-- **A unidade refeita é UM deck só** e abre **direto na rodada**: a pessoa
-  clica na Unit e cai no campo de digitação, sem tela de escolha de deck. Os
-  blocos do CSV (`Data Vocab Rocket`, `Data Grammar Hacks 01`…) viram só
-  comentário no bloco da unidade, para a origem de cada frase não se perder.
+- **A unidade refeita tem CINCO decks de dez cartas**, um por estrutura. A
+  primeira versão era um deck só, com as 50 frases juntas e a unidade abrindo
+  direto na rodada; o dono praticou e não gostou — 50 numa fila é longo demais
+  e não dá para escolher o que treinar. O corte segue a ordem do CSV, que já é
+  temática, então cada deck é um intervalo contínuo de id (`d-1` a `d-10`,
+  `d-11` a `d-20`…), anotado no comentário do bloco da unidade junto do bloco
+  original do CSV de onde cada frase veio.
+- **O rótulo do deck diz a estrutura, não o nome do bloco do CSV** ("Talking
+  about your work", "Do we and do they…?", "Spoken contractions"). É interface,
+  então em inglês. O `tag` segue `Deck 1` … `Deck 5`, como nas unidades do
+  curso.
 - **O id da série tem prefixo próprio** (`d-1` … `d-50`). O CSV da série
   recomeça a numeração em 1, e sem o prefixo colidiria com os `t-N` do curso —
   e o registro de poda no topo do `js/data-translate.js`, que cita id, deixaria
@@ -167,16 +174,14 @@ acompanha: `d-51` a `d-100`.
   enunciado com sujeito trocado: é exatamente a lição da Unit 2. O Jaccard
   acusa (0,67), e a decisão é manter — as respostas não se cruzam, porque
   `do` e `does` são palavras diferentes.
-- **Uma unidade de um deck só não tem o que escolher**, então
-  `openTransDecks()` manda direto para `startTransRound()`. Duas coisas
-  dependem disso e precisam andar juntas: o card da unidade (etiqueta com a
-  contagem de cartões e botão "Start the round", em vez de "N decks" e "Open
-  unit") e o botão **"Choose other decks"** da tela de resultado, que só
-  aparece com mais de um deck — numa unidade de deck único ele cairia no
-  `openTransDecks()` e **recomeçaria a rodada** em vez de abrir uma escolha.
-  O `testes/unidades.js` cobre as duas formas de abrir: se a tela de escolha
-  voltar a aparecer para a unidade de um deck, ou se uma de vários passar a
-  pular a escolha, o teste acusa.
+- **Toda unidade passa pela tela de escolha de decks.** Houve um atalho no
+  `openTransDecks()` que mandava unidade de um deck só direto para a rodada,
+  de quando a série de dados era um deck por unidade. Com cinco decks não há
+  mais unidade de deck único, o atalho virou caminho morto e saiu — junto do
+  card especial ("Start the round") e do esconde-esconde do botão "Choose other
+  decks". **Se uma unidade de deck único voltar**, lembre do laço: esse botão
+  chama `openTransDecks()` sem argumento, que com um deck só recomeçaria a
+  rodada em vez de abrir uma escolha.
 
 ### Unidades
 
