@@ -133,19 +133,13 @@ C.forEach(c => {
   });
 });
 p.nota(`sinônimos: ${nSin} trocas conferidas sobre as respostas do banco`);
-/* casos dirigidos dos pares documentados: a rede acima só percorre o que está
-   na tabela, então não acusa a REMOÇÃO de um par */
-/* Os três primeiros apontavam para cartões da Unit 1 do curso (t-36, t-21,
-   t-16), que saíram do banco quando a unidade foi refeita com a série de
-   dados. Foram repontados para cartões que seguem no banco, com as mesmas
-   palavras. */
-[
-  ["t-306", "guess"], ["t-312", "kids"], ["t-411", "children"], ["t-77", "store"], ["t-91", "thanks"],
-].forEach(([id, palavra]) => {
-  const c = C.filter(x => x.id === id)[0];
-  if (!c) return p.ok(false, `caso dirigido: o cartão ${id} não existe mais`);
-  p.nota(`caso dirigido ${id} ("${palavra}"): ${certo(c, c.en) ? "ok" : "FALHOU"}`);
-});
+/* Os pares documentados precisam de caso DIRIGIDO, porque a rede acima só
+   percorre o que está na tabela: se alguém tirar um par, ela deixa de olhar
+   para ele e não acusa nada. Os casos abaixo são frases sintéticas, de
+   propósito — a versão anterior apontava para cartões do banco (t-36, t-21,
+   t-16, t-77, t-91) e quebrava a cada unidade refeita com a série de dados,
+   que apaga os cartões antigos daquela unidade. Frase sintética não depende
+   de cartão nenhum. */
 [
   [{ en: "I think it's fine." }, "I guess it's fine."],
   [{ en: "I have two kids." }, "I have two children."],
