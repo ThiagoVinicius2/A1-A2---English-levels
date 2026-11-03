@@ -139,11 +139,11 @@ Banco de cartões vindo do CSV do deck MemHack do curso (colunas
 
 As unidades estão sendo **refeitas uma a uma** com as mesmas estruturas do
 curso, mas com frases do dia a dia de quem trabalha com dados (dashboard,
-query, pipeline, stakeholder, KPI). As Units 1, 2 e 3 já são essa série; as
+query, pipeline, stakeholder, KPI). As Units 1 a 4 já são essa série; as
 outras ainda são o conteúdo genérico do curso e vão sendo trocadas conforme
 chegar o CSV de cada uma. O CSV da série continua a numeração de uma unidade
-para a outra (Unit 1: 1-50, Unit 2: 51-100, Unit 3: 101-150), então o id do
-cartão acompanha.
+para a outra (Unit 1: 1-50, Unit 2: 51-100, Unit 3: 101-150, Unit 4:
+151-200), então o id do cartão acompanha.
 
 - **A unidade refeita tem CINCO decks de dez cartas**, um por estrutura. A
   primeira versão era um deck só, com as 50 frases juntas e a unidade abrindo
@@ -164,6 +164,14 @@ cartão acompanha.
   about your work", "Do we and do they…?", "Spoken contractions"). É interface,
   então em inglês. O `tag` segue `Deck 1` … `Deck 5`, como nas unidades do
   curso.
+- **Cuidado com rótulo que contém palavra de botão.** O `:has-text()` do
+  Playwright casa por **substring**, então o deck "Stop and start, and what to
+  show" (Unit 4) fez o `button:has-text('Start')` do smoke clicar no deck em
+  vez do botão de começar a rodada — e o teste falhou com timeout no campo de
+  digitação, por culpa do teste. O conserto foi no seletor
+  (`button.btn.block:has-text('Start')`), não no rótulo: teste não deve
+  depender de texto solto. Se escrever um seletor por texto, prenda-o na
+  classe.
 - **O id da série tem prefixo próprio** (`d-1` … `d-50`). O CSV da série
   recomeça a numeração em 1, e sem o prefixo colidiria com os `t-N` do curso —
   e o registro de poda no topo do `js/data-translate.js`, que cita id, deixaria
