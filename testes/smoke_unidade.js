@@ -41,7 +41,11 @@ const p = criarPlacar(`SMOKE DA ${(A.TRANS_UNITS[unidade] || {}).label || unidad
      entre unidades */
   await page.waitForSelector(".trans-deck-list");
   await page.click(`.trans-deck-option[onclick*="${alvo}"]`);
-  await page.click("button:has-text('Start')");
+  /* O seletor precisa da classe: ":has-text" casa por SUBSTRING, e um rótulo
+     de deck pode conter a palavra ("Stop and start, and what to show", na
+     Unit 4). Sem a classe, o clique caía no deck em vez do botão, e o teste
+     falhava com timeout no campo de digitação — por culpa do teste. */
+  await page.click("button.btn.block:has-text('Start')");
   await page.waitForSelector("#trans-input");
   const quantos = await page.evaluate(() => state.transCards.length);
   p.ok(quantos === cartoesDoDeck.length, `a rodada trouxe os ${cartoesDoDeck.length} cartões do ${alvo} (trouxe ${quantos})`);
