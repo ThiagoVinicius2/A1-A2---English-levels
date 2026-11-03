@@ -151,8 +151,14 @@ p.nota(`sinônimos: ${nSin} trocas conferidas sobre as respostas do banco`);
 ].forEach(([card, txt]) => p.ok(certo(card, txt), `par de sinônimo: "${txt}" devia dar certo`));
 
 /* ---- 8. número por extenso vale pelo algarismo até 99 ---- */
-[["twenty five", "25"], ["thirty one", "31"], ["ninety nine", "99"], ["twelve", "12"], ["seven", "7"]]
+[["twenty five", "25"], ["thirty one", "31"], ["ninety nine", "99"], ["twelve", "12"], ["seven", "7"],
+ /* centena e milhar entraram com a Unit 3 da série de dados ("três mil linhas") */
+ ["three thousand", "3000"], ["a thousand", "1000"], ["two hundred", "200"],
+ ["a hundred twenty", "120"], ["one hundred twenty", "120"],
+ ["three thousand five hundred", "3500"]]
   .forEach(([ext, num]) => p.ok(N(ext) === N(num), `número por extenso: "${ext}" devia normalizar igual a "${num}" (deu "${N(ext)}" x "${N(num)}")`));
+/* e o artigo sozinho continua sendo artigo, não número */
+p.ok(N("a table") === "a table", `"a table" não pode virar número (deu "${N("a table")}")`);
 p.ok(N("7 a.m.") === N("7 AM") && N("7 AM") === N("7am"), "7 a.m. == 7 AM == 7am");
 
 /* ---- 9. tipografia nos dois sentidos ---- */

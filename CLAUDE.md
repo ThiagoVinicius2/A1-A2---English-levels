@@ -139,19 +139,27 @@ Banco de cartões vindo do CSV do deck MemHack do curso (colunas
 
 As unidades estão sendo **refeitas uma a uma** com as mesmas estruturas do
 curso, mas com frases do dia a dia de quem trabalha com dados (dashboard,
-query, pipeline, stakeholder, KPI). As Units 1 e 2 já são essa série; as
+query, pipeline, stakeholder, KPI). As Units 1, 2 e 3 já são essa série; as
 outras ainda são o conteúdo genérico do curso e vão sendo trocadas conforme
 chegar o CSV de cada uma. O CSV da série continua a numeração de uma unidade
-para a outra (a Unit 1 foi 1-50, a Unit 2 foi 51-100), então o id do cartão
-acompanha: `d-51` a `d-100`.
+para a outra (Unit 1: 1-50, Unit 2: 51-100, Unit 3: 101-150), então o id do
+cartão acompanha.
 
 - **A unidade refeita tem CINCO decks de dez cartas**, um por estrutura. A
   primeira versão era um deck só, com as 50 frases juntas e a unidade abrindo
   direto na rodada; o dono praticou e não gostou — 50 numa fila é longo demais
   e não dá para escolher o que treinar. O corte segue a ordem do CSV, que já é
-  temática, então cada deck é um intervalo contínuo de id (`d-1` a `d-10`,
-  `d-11` a `d-20`…), anotado no comentário do bloco da unidade junto do bloco
-  original do CSV de onde cada frase veio.
+  temática, então cada deck costuma ser um intervalo contínuo de id (`d-1` a
+  `d-10`, `d-11` a `d-20`…), anotado no comentário do bloco da unidade junto
+  do bloco original do CSV de onde cada frase veio.
+- **Quando o corte sequencial parte uma lição no meio, o deck deixa de ser
+  contíguo** — e isso é melhor que partir. Na Unit 3 os blocos do CSV têm 14,
+  14, 6, 9 e 7 cartões: cortar de dez em dez deixaria o presente contínuo
+  (14 cartões) partido em dois pedaços desiguais. Então o Deck 2 junta o resto
+  do "to be" com as seis respostas ao obrigado, o Deck 4 junta o resto do
+  contínuo com os verbos do dia a dia, e o Deck 3 fica com os dez do contínuo
+  inteiros. O comentário do bloco lista as faixas de cada deck quando elas não
+  são contíguas.
 - **O rótulo do deck diz a estrutura, não o nome do bloco do CSV** ("Talking
   about your work", "Do we and do they…?", "Spoken contractions"). É interface,
   então em inglês. O `tag` segue `Deck 1` … `Deck 5`, como nas unidades do
@@ -361,13 +369,19 @@ vetar alguma coisa se discordar.
   os parênteses viram espaço na normalização, então sem isso quem escrever só
   "XL pants" é reprovado.
 - **`note` é interface, então em inglês** ("Also: Thanks a ton!").
-- **Número por extenso vale pelo algarismo até 99.** `TRANS_NUMBERS` cobre
-  1-20 e as dezenas, e `transFinishNormalize()` soma a dezena com a unidade
-  depois da troca (`twenty five` → `20 5` → `25`). Isso era meia cobertura
-  antes da Unit 8 e meia cobertura é pior que nenhuma: a tabela parava em
-  doze, então `twenty five` virava `twenty 5`, que não casava nem com o
-  algarismo nem com a forma escrita. Centena não está coberta — se uma
-  unidade trouxer, estenda a soma junto.
+- **Número por extenso vale pelo algarismo, inclusive centena e milhar.**
+  `TRANS_NUMBERS` cobre 1-20 e as dezenas, e `transFinishNormalize()` compõe o
+  resto: soma a dezena com a unidade (`twenty five` → `20 5` → `25`),
+  multiplica no `hundred` e no `thousand` (`three thousand` → `3 thousand` →
+  `3000`) e soma a composição (`three thousand five hundred` → `3000 500` →
+  `3500`; `a hundred twenty` → `100 20` → `120`). O artigo faz o papel do
+  número em `a hundred` e `a thousand`, mas `a table` continua sendo artigo.
+  Isso era meia cobertura antes da Unit 8 e meia cobertura é pior que nenhuma:
+  a tabela parava em doze, então `twenty five` virava `twenty 5`, que não
+  casava nem com o algarismo nem com a forma escrita. A centena e o milhar
+  entraram com a Unit 3 da série de dados ("três mil linhas"). O que **não**
+  está coberto é o algarismo com separador: `3,000` normaliza para `3 000`, e
+  por isso o `d-145` traz essa forma em `accept`.
 - Fala de filme/série vem **envolta em aspas** no CSV (o diálogo do Pets, na
   Unit 3). Tire as aspas ao importar: a correção ignora pontuação, mas sem isso
   elas aparecem na resposta mostrada na tela. Cuidado com o caso em que a aspa
@@ -550,8 +564,10 @@ exatamente essa diferença que escondia o bug dos 11%.
   sintéticas**, não cartões do banco: a versão anterior apontava para `t-36`,
   `t-21`, `t-16`, `t-77` e `t-91`, e quebrava a cada unidade refeita com a
   série de dados — que apaga os cartões antigos daquela unidade
-- Número por extenso: `twenty five`, `thirty one`, `ninety nine` precisam
-  normalizar igual a `25`, `31`, `99`
+- Número por extenso: `twenty five`, `thirty one`, `ninety nine`,
+  `three thousand`, `two hundred`, `a hundred twenty` e `three thousand five
+  hundred` precisam normalizar igual a `25`, `31`, `99`, `3000`, `200`, `120`
+  e `3500` — e `a table` precisa continuar sendo artigo, não número
 - Fala reduzida sem apóstrofo: `lemme`, `gimme`, `Imma`, `gotcha` e companhia
   não têm apóstrofo, então a rede das contrações não as enxerga — há uma lista
   própria no autoteste que falha nomeando o cartão quando uma delas aparece sem
