@@ -79,7 +79,7 @@ const vazias = Object.keys(A.TRANS_UNITS).filter(u => !A.getTransDecksForUnit(u)
 
   /* a série de dados tem cinco decks de dez por unidade — o corte que o dono
      pediu depois de ver as 50 frases juntas */
-  ["u01", "u02", "u03", "u04", "u05"].forEach(u => {
+  ["u01", "u02", "u03", "u04", "u05", "u06"].forEach(u => {
     const ds = A.getTransDecksForUnit(u);
     p.ok(ds.length === 5, `${u}: cinco decks (tem ${ds.length})`);
     ds.forEach(k => p.ok(A.getTransCardsForDeck(k).length === 10,

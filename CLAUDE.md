@@ -139,7 +139,7 @@ Banco de cartões vindo do CSV do deck MemHack do curso (colunas
 
 As unidades estão sendo **refeitas uma a uma** com as mesmas estruturas do
 curso, mas com frases do dia a dia de quem trabalha com dados (dashboard,
-query, pipeline, stakeholder, KPI). As Units 1 a 5 já são essa série; as
+query, pipeline, stakeholder, KPI). As Units 1 a 6 já são essa série; as
 outras ainda são o conteúdo genérico do curso e vão sendo trocadas conforme
 chegar o CSV de cada uma. O CSV da série continua a numeração de uma unidade
 para a outra (50 por unidade: a Unit 1 foi 1-50 e a Unit 5 foi 201-250),
@@ -232,9 +232,11 @@ vetar alguma coisa se discordar.
    - resposta nova que já é aceita por um cartão antigo (`gradeTransAnswer`);
    - enunciado em português repetido, dentro da unidade e contra o banco;
    - **enunciados parecidos demais** (Jaccard ≥ 0,5 sobre o português
-     normalizado). É o que a comparação literal não pega: na Unit 6,
+     normalizado). É o que a comparação literal não pega: na Unit 6 do curso,
      "Estou dentro!", "Estou dentro com isso!" e "Tô dentro!" eram três
-     cartões com três respostas diferentes e nenhum teste literal acusava.
+     cartões com três respostas diferentes e nenhum teste literal acusava. Na
+     série de dados isso virou **um** cartão (`d-282`), com as outras formas
+     em `accept`.
 3. **Podar**, pelos critérios já firmados (o comentário no topo de
    `js/data-translate.js` guarda a lista com o motivo de cada cartão):
    - **repetição** — fica um cartão só. Se o enunciado repetido tem respostas
