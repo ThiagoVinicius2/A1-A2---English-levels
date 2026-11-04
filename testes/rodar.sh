@@ -6,8 +6,8 @@
 set -e
 cd "$(dirname "$0")/.."
 
-echo "== node --check nos quatro arquivos de js/"
-for f in js/data.js js/data-conversation.js js/data-translate.js js/app.js; do
+echo "== node --check nos cinco arquivos de js/"
+for f in js/data.js js/data-conversation.js js/data-translate.js js/data-interview.js js/app.js; do
   node --check "$f"
 done
 echo "   ok"
@@ -33,6 +33,7 @@ roda testes/corretor.js
 roda testes/literal.js
 roda testes/conversa.js
 roda testes/traducao.js
+roda testes/entrevista.js
 
 echo "== testes de navegador (Chromium)"
 roda testes/unidades.js

@@ -2,6 +2,7 @@
 const STORAGE_KEY = "enCheckLastResults";
 const CONV_STORAGE_KEY = "enCheckConvResults_r9";   // r9: a conversa sobre hobbies — banco novo, resultado da rodada anterior fica de fora
 const TRANS_STORAGE_KEY = "enCheckTransResults_r3"; // r3: chaves de deck prefixadas pela unidade (u01-...)
+const INTERVIEW_STORAGE_KEY = "enCheckInterviewResults_r1";
 const WEAK_THRESHOLD = 75;   // usado só para colorir a barra de desempenho (verde/amarelo/vermelho)
 const MASTERY_PCT = 100;     // qualquer categoria abaixo disso sempre entra na revisão/prática
 
@@ -9,6 +10,7 @@ const state = {
   view: "landing",       // landing | test | results | exercise | exerciseSummary
                          // convTest | convResults | convExercise | convExerciseSummary
                          // transDecks | transRound | transResults
+                         // interview | interviewResults
   testQuestions: [],
   testIndex: 0,
   testAnswers: {},        // { questionId: selectedOptionIndex }
@@ -51,6 +53,18 @@ const state = {
   transEmptyWarn: false,    // avisa que o campo está vazio, sem revelar a resposta
   transIsRetry: false,      // rodada só com as frases erradas: não mexe no histórico do deck
   transUnit: null,          // unidade aberta na tela de decks
+
+  // --- Módulo "Job Interview" (resposta aberta: não há gabarito) ---
+  interviewQuestions: [],
+  interviewIndex: 0,
+  interviewAnswers: {},     // { questionId: texto digitado }
+  interviewDraft: "",       // o que está no campo agora; guardado a cada tecla para render() não levar embora
+  interviewChecks: {},      // { questionId: [bool por ponto do checklist] } — a nota do módulo
+  interviewRevealed: {},    // { questionId: true } assim que a resposta é conferida
+  interviewResults: null,
+  interviewEmptyWarn: false,
+  interviewLandingDetailsOpen: false,
+  interviewExitConfirmOpen: false,
 };
 
 const app = document.getElementById("app");
@@ -504,7 +518,7 @@ function nextConvExercise() {
 /* ===================== Render principal ===================== */
 function render() {
   window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
-  /* A tela inicial usa uma faixa mais larga para os três cards caberem sem rolagem;
+  /* A tela inicial usa uma faixa mais larga para os cards caberem sem rolagem;
      as telas de questão ficam nos 960px, que é a largura boa de leitura. */
   app.className = state.view === "landing" ? "app app-landing" : "app";
   if (state.view === "landing") return renderLanding();
@@ -520,6 +534,8 @@ function render() {
   if (state.view === "transDecks") return renderTransDecks();
   if (state.view === "transRound") return renderTransRound();
   if (state.view === "transResults") return renderTransResults();
+  if (state.view === "interview") return renderInterview();
+  if (state.view === "interviewResults") return renderInterviewResults();
 }
 
 /* ---------- Landing ---------- */
@@ -528,8 +544,9 @@ function renderLanding() {
     <section class="hero">
       <div class="hero-eyebrow">English for data &amp; business</div>
       <h1 class="hero-title">Talk about data with the same precision you analyze it.</h1>
-      <p class="hero-sub">Find your level, fix the mistakes from your conversations and practice
-      translation with the vocabulary of metrics, reports and meetings.</p>
+      <p class="hero-sub">Find your level, fix the mistakes from your conversations, practice
+      translation with the vocabulary of metrics and reports — and rehearse the interview that
+      comes after.</p>
       <button class="btn" onclick="startTest()">Take the level test</button>
     </section>
 
@@ -537,6 +554,7 @@ function renderLanding() {
       ${renderLandingCard()}
       ${renderConvLandingCard()}
       ${renderTransLandingCard()}
+      ${renderInterviewLandingCard()}
     </section>
   `;
 }
@@ -1920,6 +1938,414 @@ function renderTransMistakesReview(mistakes) {
                  </div>`
               : renderTransDiff(esperada, m.typed)}
             ${card.note ? `<p class="trans-note">${escapeHtml(card.note)}</p>` : ""}
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
+/* ===================== Módulo 04: "Job Interview" ===================== */
+/* Resposta aberta: a pessoa escreve a resposta inteira da entrevista.
+
+   Não existe gabarito aqui, e é por isso que a régua é a autoavaliação por
+   checklist: "Tell me about yourself" tem infinitas respostas boas, e comparar
+   string com uma resposta modelo reprovaria quase toda resposta certa. O que o
+   app faz automaticamente é o que dá para medir sem errar — tamanho em palavras
+   e quais blocos de inglês apareceram — e o que vale nota é a pessoa marcando
+   quais pontos ela cobriu. */
+
+function toggleInterviewLandingDetails() {
+  state.interviewLandingDetailsOpen = !state.interviewLandingDetailsOpen;
+  render();
+}
+
+function interviewCurrentQuestion() {
+  return state.interviewQuestions[state.interviewIndex];
+}
+
+function startInterview() {
+  /* Ordem fixa, não sorteada: a sequência é a da entrevista de verdade —
+     abre em "Tell me about yourself" e fecha em "Do you have any questions". */
+  state.interviewQuestions = INTERVIEW_QUESTIONS.slice();
+  state.interviewIndex = 0;
+  state.interviewAnswers = {};
+  state.interviewChecks = {};
+  state.interviewRevealed = {};
+  state.interviewDraft = "";
+  state.interviewEmptyWarn = false;
+  state.interviewResults = null;
+  state.view = "interview";
+  render();
+}
+
+/* Guarda o que está sendo digitado a cada tecla. É o que impede o rascunho de
+   ir embora quando algo chama render() (abrir o modal de saída, por exemplo):
+   aqui a resposta é um parágrafo inteiro, perdê-lo seria grave. Esta função
+   NUNCA chama render() — rescrever o #app no meio da digitação levaria o campo,
+   o foco e o cursor. */
+function saveInterviewDraft(valor) {
+  state.interviewDraft = valor;
+  /* O contador de palavras é atualizado na mão, mexendo só no texto DESTE nó.
+     Um render() aqui reescreveria o #app inteiro e levaria junto o campo, o
+     foco e o cursor — com uma resposta de 100 palavras, seria o fim. */
+  const contador = document.getElementById("interview-count");
+  const q = interviewCurrentQuestion();
+  if (contador && q) {
+    const n = interviewWordCount(valor);
+    contador.textContent = `${n} ${n === 1 ? "word" : "words"} \u00b7 aim for ${q.palavras[0]} to ${q.palavras[1]}`;
+  }
+}
+
+function submitInterviewAnswer() {
+  const q = interviewCurrentQuestion();
+  if (!q || state.interviewRevealed[q.id]) return;
+  const campo = document.getElementById("interview-input");
+  const digitado = campo ? campo.value : state.interviewDraft;
+  if (!interviewWordCount(digitado)) {
+    state.interviewDraft = digitado;
+    state.interviewEmptyWarn = true;
+    render();
+    return;
+  }
+  state.interviewEmptyWarn = false;
+  state.interviewAnswers[q.id] = digitado;
+  /* O checklist começa todo desmarcado: quem marca é a pessoa, lendo os pontos
+     depois de ter escrito. Marcar por padrão daria nota cheia a quem só passa
+     batido pelas telas. */
+  state.interviewChecks[q.id] = q.pontos.map(() => false);
+  state.interviewRevealed[q.id] = true;
+  render();
+}
+
+/* Pular: fica registrada como pergunta sem resposta, e vale zero ponto. */
+function skipInterviewQuestion() {
+  const q = interviewCurrentQuestion();
+  if (!q || state.interviewRevealed[q.id]) return;
+  state.interviewEmptyWarn = false;
+  state.interviewAnswers[q.id] = "";
+  state.interviewChecks[q.id] = q.pontos.map(() => false);
+  state.interviewRevealed[q.id] = true;
+  render();
+}
+
+function toggleInterviewPoint(idx) {
+  const q = interviewCurrentQuestion();
+  if (!q || !state.interviewRevealed[q.id]) return;
+  const marcas = state.interviewChecks[q.id] || q.pontos.map(() => false);
+  marcas[idx] = !marcas[idx];
+  state.interviewChecks[q.id] = marcas;
+  render();
+}
+
+function nextInterviewQuestion() {
+  state.interviewEmptyWarn = false;
+  if (state.interviewIndex < state.interviewQuestions.length - 1) {
+    state.interviewIndex++;
+    state.interviewDraft = state.interviewAnswers[interviewCurrentQuestion().id] || "";
+    render();
+  } else {
+    finishInterview();
+  }
+}
+
+function prevInterviewQuestion() {
+  state.interviewEmptyWarn = false;
+  if (state.interviewIndex > 0) {
+    state.interviewIndex--;
+    state.interviewDraft = state.interviewAnswers[interviewCurrentQuestion().id] || "";
+    render();
+  }
+}
+
+function requestExitInterview() {
+  const campo = document.getElementById("interview-input");
+  if (campo) state.interviewDraft = campo.value;   // o render do modal leva o campo embora
+  state.interviewExitConfirmOpen = true;
+  render();
+}
+
+function cancelExitInterview() {
+  state.interviewExitConfirmOpen = false;
+  render();
+}
+
+function confirmExitInterview() {
+  state.interviewExitConfirmOpen = false;
+  goLanding();
+}
+
+/* Pontos marcados sobre pontos possíveis — a régua do módulo, e a única honesta
+   numa resposta aberta. Pergunta não respondida entra com zero sobre o total,
+   então pular não melhora a nota. */
+function interviewScore(q) {
+  const marcas = state.interviewChecks[q.id] || [];
+  return { marcados: marcas.filter(Boolean).length, total: q.pontos.length };
+}
+
+function interviewResultLabel(overall) {
+  if (overall >= 90) return "Your answers cover what an interviewer is listening for";
+  if (overall >= 70) return "Solid answers — a few points still left out";
+  if (overall >= 40) return "The answers are there, but half of what matters is missing";
+  return "Worth rewriting these with the checklist beside you";
+}
+
+function finishInterview() {
+  const porPergunta = {};
+  let marcados = 0;
+  let total = 0;
+  state.interviewQuestions.forEach(q => {
+    const s = interviewScore(q);
+    porPergunta[q.id] = {
+      pct: pct(s.marcados, s.total),
+      marcados: s.marcados,
+      total: s.total,
+      respondida: !!(state.interviewAnswers[q.id] || "").trim(),
+    };
+    marcados += s.marcados;
+    total += s.total;
+  });
+
+  const overallPct = pct(marcados, total);
+  state.interviewResults = {
+    overallPct,
+    label: interviewResultLabel(overallPct),
+    porPergunta,
+    marcados,
+    total,
+    respondidas: state.interviewQuestions.filter(q => (state.interviewAnswers[q.id] || "").trim()).length,
+  };
+  saveResults({
+    date: new Date().toISOString(),
+    overall: overallPct,
+    perguntas: porPergunta,
+  }, INTERVIEW_STORAGE_KEY);
+
+  state.view = "interviewResults";
+  render();
+}
+
+/* ---------- Landing: card do módulo ---------- */
+function renderInterviewLandingCard() {
+  const last = loadResults(INTERVIEW_STORAGE_KEY);
+  const detailsOpen = state.interviewLandingDetailsOpen;
+
+  const details = detailsOpen ? `
+    <div class="info-box">
+      Each question is the real thing, in English, and you type the whole answer — there is no
+      multiple choice and no single right answer. After you answer, the screen shows how long your
+      answer is, which English building blocks you used, a model answer from a data analyst, and a
+      checklist of what a strong answer covers. <strong>You tick what you covered</strong>, and
+      that is your score: there is no way to grade a free answer automatically, and the person who
+      wrote it is the one who knows. The questions:
+      <ul class="conv-pattern-list">
+        ${INTERVIEW_QUESTIONS.map(q => `<li><strong>${escapeHtml(q.tag)}:</strong> ${escapeHtml(q.question)}</li>`).join("")}
+      </ul>
+    </div>
+  ` : "";
+
+  const links = `
+    <button class="module-link" onclick="startInterview()">Practice the interview &rarr;</button>
+    <button class="module-link quiet" onclick="toggleInterviewLandingDetails()">${detailsOpen ? "Hide details" : "How it works"}</button>
+  `;
+
+  return renderModuleCard({
+    num: "04",
+    kind: "Speaking prep",
+    title: "Job interview",
+    text: `${INTERVIEW_QUESTIONS.length} questions you will be asked in English, answered by writing
+    the whole thing${last && typeof last.overall === "number" ? ` — last round: <strong>${last.overall}%</strong> of the checklist covered` : ""}.`,
+    accent2: true,
+    details,
+    links,
+  });
+}
+
+/* ---------- Tela da pergunta ---------- */
+function renderInterview() {
+  const q = interviewCurrentQuestion();
+  const total = state.interviewQuestions.length;
+  const current = state.interviewIndex + 1;
+  const revealed = !!state.interviewRevealed[q.id];
+  const isLast = state.interviewIndex === total - 1;
+  const typed = revealed ? (state.interviewAnswers[q.id] || "") : state.interviewDraft;
+  const palavras = interviewWordCount(typed);
+  const [min, max] = q.palavras;
+
+  let feedback = "";
+  if (revealed) {
+    const respondida = !!typed.trim();
+    const blocos = interviewPhrasesFound(q, typed);
+    const usados = blocos.filter(b => b.achou).length;
+    const marcas = state.interviewChecks[q.id] || [];
+    const marcados = marcas.filter(Boolean).length;
+    const tamanho = !respondida
+      ? { cls: "bad", texto: "👀 You skipped this one — this question counts as zero." }
+      : palavras < min
+        ? { cls: "warn", texto: `🟡 ${palavras} words — a bit short. Aim for ${min} to ${max}, which is about 30 to 60 seconds of speaking.` }
+        : palavras > max
+          ? { cls: "warn", texto: `🟡 ${palavras} words — longer than an interviewer listens to. Aim for ${min} to ${max}.` }
+          : { cls: "good", texto: `✅ ${palavras} words — right in the ${min} to ${max} range, about 30 to 60 seconds of speaking.` };
+
+    feedback = `
+      <div class="explain-box ${tamanho.cls}">${tamanho.texto}</div>
+
+      ${respondida ? `
+        <div class="section-title">Building blocks you used (${usados} of ${blocos.length})</div>
+        <div class="phrase-list">
+          ${blocos.map(b => `<span class="phrase-chip${b.achou ? " on" : ""}">${b.achou ? "✓" : "+"} ${escapeHtml(b.frase)}</span>`).join("")}
+        </div>
+        <p class="trans-note">These are suggestions, not a score — the ones marked with + are useful ways to open each part of the answer.</p>
+      ` : ""}
+
+      <div class="section-title">What a strong answer covers — tick what you said (${marcados} of ${q.pontos.length})</div>
+      <div class="check-list">
+        ${q.pontos.map((p, i) => `
+          <button type="button" class="check-row${marcas[i] ? " on" : ""}" onclick="toggleInterviewPoint(${i})">
+            <span class="check-box">${marcas[i] ? "✓" : ""}</span>
+            <span>${escapeHtml(p)}</span>
+          </button>
+        `).join("")}
+      </div>
+
+      <div class="section-title">Model answer</div>
+      <div class="interview-model">${escapeHtml(q.modelo)}</div>
+    `;
+  }
+
+  app.innerHTML = `
+    <div class="card">
+      <div class="progress-wrap">
+        <div class="progress-label">
+          <span>Question ${current} of ${total}</span>
+          <span>${Math.round((state.interviewIndex / total) * 100)}%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${(state.interviewIndex / total) * 100}%"></div></div>
+      </div>
+
+      <span class="q-level">${escapeHtml(q.tag)} &middot; answer in English</span>
+      <div class="q-prompt">${escapeHtml(q.question)}</div>
+      <p class="interview-why">${escapeHtml(q.porque)}</p>
+
+      ${revealed ? `
+        <div class="section-title">Your answer</div>
+        <div class="interview-answer">${typed.trim() ? escapeHtml(typed) : "<em>No answer — you skipped this question.</em>"}</div>
+      ` : `
+        <textarea id="interview-input" class="interview-input" rows="7"
+          autocomplete="off" autocapitalize="sentences" spellcheck="false"
+          oninput="saveInterviewDraft(this.value)"
+          placeholder="Write your full answer in English, the way you would say it out loud (${min} to ${max} words)">${escapeHtml(state.interviewDraft)}</textarea>
+        <p class="interview-count" id="interview-count">${palavras} ${palavras === 1 ? "word" : "words"} &middot; aim for ${min} to ${max}</p>
+        ${state.interviewEmptyWarn ? `<p class="trans-warn">Write your answer before checking — or skip this question.</p>` : ""}
+        <div class="actions">
+          <button class="btn" onclick="submitInterviewAnswer()">Check my answer</button>
+          <button class="btn secondary" onclick="skipInterviewQuestion()">Skip this one</button>
+        </div>
+      `}
+
+      ${feedback}
+
+      ${revealed ? `
+        <div class="actions">
+          ${state.interviewIndex > 0 ? `<button class="btn secondary" onclick="prevInterviewQuestion()">Back</button>` : ""}
+          <button class="btn" id="interview-next" onclick="nextInterviewQuestion()">${isLast ? "See results" : "Next question"}</button>
+        </div>
+      ` : ""}
+
+      <div class="exit-actions">
+        <button class="btn secondary block" onclick="requestExitInterview()">Back to start</button>
+      </div>
+    </div>
+    ${state.interviewExitConfirmOpen ? renderConfirmModal({
+      title: "Leave the interview?",
+      message: "You have not finished it. If you leave now, the answers you have written are lost.",
+      confirmLabel: "Leave and lose answers",
+      cancelLabel: "Keep going",
+      onConfirm: "confirmExitInterview()",
+      onCancel: "cancelExitInterview()",
+    }) : ""}
+  `;
+
+  /* Foco no campo quando há o que escrever, senão no botão de avançar. O cursor
+     vai para o fim do rascunho — sem isso, voltar do modal de saída deixaria o
+     cursor no começo do texto já escrito. */
+  if (!state.interviewExitConfirmOpen) {
+    const campo = document.getElementById("interview-input");
+    if (campo) {
+      campo.focus();
+      if (campo.setSelectionRange) campo.setSelectionRange(campo.value.length, campo.value.length);
+    } else {
+      const proximo = document.getElementById("interview-next");
+      if (proximo) proximo.focus();
+    }
+  }
+}
+
+/* ---------- Resultado ---------- */
+function renderInterviewResults() {
+  const r = state.interviewResults;
+  const faltando = state.interviewQuestions.filter(q => r.porPergunta[q.id].pct < MASTERY_PCT);
+
+  app.innerHTML = `
+    <div class="card">
+      <div class="score-hero">
+        <div class="score-number">${r.overallPct}%</div>
+        <div class="score-level">${escapeHtml(r.label)}</div>
+        <p style="margin-top:8px;">${r.marcados} of ${r.total} checklist points covered,
+        across ${r.respondidas} of ${state.interviewQuestions.length} questions answered</p>
+      </div>
+
+      <h2>Question by question</h2>
+      ${state.interviewQuestions.map(q => `
+        <div class="cat-row">
+          <div class="cat-name">${escapeHtml(q.question)}</div>
+          <div class="cat-bar-wrap"><div class="cat-bar-fill ${barClass(r.porPergunta[q.id].pct)}" style="width:${r.porPergunta[q.id].pct}%"></div></div>
+          <div class="cat-pct">${r.porPergunta[q.id].marcados}/${r.porPergunta[q.id].total}</div>
+        </div>
+      `).join("")}
+
+      <div class="info-box">
+        This percentage is <strong>your own reading</strong> of your answers, not an automatic
+        grade — a free answer cannot be graded by comparing text. Use it as a checklist: rewrite
+        the answers below 100% with the missing points in, out loud, until they come out without
+        thinking.
+      </div>
+
+      ${faltando.length ? `
+        <div class="section-title">Still missing points</div>
+        <div class="weak-list">${faltando.map(q => `<span class="weak-chip">${escapeHtml(q.tag)}</span>`).join("")}</div>
+      ` : `<div class="all-good">You covered every point in all ${state.interviewQuestions.length} answers.</div>`}
+
+      ${renderInterviewReview()}
+
+      <div class="actions" style="flex-direction:column; margin-top:24px;">
+        <button class="btn block" onclick="startInterview()">Answer all ${state.interviewQuestions.length} again</button>
+        <button class="btn secondary block" onclick="goLanding()">Back to start</button>
+      </div>
+    </div>
+  `;
+}
+
+/* Revisão: a resposta que a pessoa escreveu ao lado da modelo, para comparar as
+   duas depois de a nota já ter saído. */
+function renderInterviewReview() {
+  return `
+    <div class="section-title">Your answers next to the model ones</div>
+    <div class="card" style="box-shadow:none; border-color:var(--border);">
+      ${state.interviewQuestions.map(q => {
+        const typed = state.interviewAnswers[q.id] || "";
+        const marcas = state.interviewChecks[q.id] || [];
+        const faltou = q.pontos.filter((p, i) => !marcas[i]);
+        return `
+          <div class="trans-review-item">
+            <div class="trans-review-pt">${escapeHtml(q.question)}</div>
+            <p class="interview-tag">Your answer</p>
+            <div class="interview-answer">${typed.trim() ? escapeHtml(typed) : "<em>No answer — you skipped this question.</em>"}</div>
+            ${faltou.length ? `
+              <p class="trans-note">Missing: ${escapeHtml(faltou.join("; "))}</p>
+            ` : `<p class="trans-note">Every point covered.</p>`}
+            <p class="interview-tag">Model answer</p>
+            <div class="interview-model">${escapeHtml(q.modelo)}</div>
           </div>
         `;
       }).join("")}

@@ -426,7 +426,7 @@ p { margin: 0 0 16px; color: var(--ink-75); }
    precisa dela. Não entra na comparação — é só o enunciado se completando. */
 .q-context {
   font-size: .9rem;
-  color: var(--muted);
+  color: var(--ink-55);
   margin: 0 0 20px;
   font-style: italic;
 }
@@ -681,6 +681,134 @@ p { margin: 0 0 16px; color: var(--ink-75); }
 .trans-review-item { padding: 14px 0; border-bottom: 1px dashed var(--line); }
 .trans-review-item:last-child { border-bottom: none; }
 .trans-review-pt { font-weight: 600; color: var(--ink); }
+
+/* ---------- Módulo da entrevista ---------- */
+/* Resposta aberta: o campo é um <textarea>, e não o <input> de uma linha dos
+   outros módulos — a resposta de entrevista tem 70 a 140 palavras. Mesmo
+   tamanho de fonte do .trans-input (>= 16px) para o iOS não dar zoom ao focar. */
+.interview-input {
+  width: 100%;
+  margin-top: 18px;
+  padding: 14px 16px;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel-soft);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 1.02rem;
+  line-height: 1.55;
+  resize: vertical;
+  min-height: 150px;
+}
+.interview-input::placeholder { color: var(--ink-40); }
+.interview-input:focus {
+  outline: none;
+  border-color: var(--acc);
+  box-shadow: 0 0 0 3px rgba(79, 209, 229, .18);
+}
+.interview-count {
+  margin: 8px 0 0;
+  color: var(--ink-40);
+  font-size: .82rem;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  letter-spacing: .04em;
+}
+
+/* Por que a pergunta é feita: orientação, em português, acima do campo. */
+.interview-why {
+  margin: 0 0 4px;
+  color: var(--ink-55);
+  font-size: .92rem;
+  line-height: 1.6;
+}
+
+.interview-answer {
+  margin-top: 10px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: var(--panel-soft);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  line-height: 1.6;
+  white-space: pre-wrap;   /* a pessoa escreve em parágrafos; preserva as quebras */
+}
+/* Etiqueta curta na revisão, para a resposta da pessoa e a modelo não se
+   confundirem quando ficam uma embaixo da outra. */
+.interview-tag {
+  margin: 14px 0 0;
+  color: var(--ink-40);
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.interview-model {
+  margin-top: 10px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: rgba(155, 140, 255, .08);
+  border: 1px solid rgba(155, 140, 255, .28);
+  color: var(--ink);
+  line-height: 1.65;
+}
+
+/* Blocos de inglês encontrados no texto digitado. Dica, não nota. */
+.phrase-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.phrase-chip {
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px dashed var(--line);
+  background: transparent;
+  color: var(--ink-55);
+  font-size: .82rem;
+}
+.phrase-chip.on {
+  border-style: solid;
+  border-color: rgba(79, 209, 229, .4);
+  background: rgba(79, 209, 229, .1);
+  color: var(--acc);
+}
+
+/* O checklist é a régua do módulo, então cada linha é clicável de ponta a ponta. */
+.check-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.check-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel-soft);
+  color: var(--ink-55);
+  font-family: inherit;
+  font-size: .95rem;
+  line-height: 1.45;
+  cursor: pointer;
+  transition: border-color .15s, background .15s, color .15s;
+}
+.check-row:hover { border-color: var(--acc); }
+.check-row.on {
+  border-color: rgba(79, 209, 229, .45);
+  background: rgba(79, 209, 229, .09);
+  color: var(--ink);
+}
+.check-box {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 1.5px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .8rem;
+  color: var(--btn-ink);
+  margin-top: 1px;
+}
+.check-row.on .check-box { background: var(--acc); border-color: var(--acc); }
 
 /* ---------- Responsivo ---------- */
 @media (max-width: 560px) {

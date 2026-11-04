@@ -1,4 +1,4 @@
-/* Validação dos três bancos: forma, não comportamento.
+/* Validação dos quatro bancos: forma, não comportamento.
 
    É o teste mais barato da bateria e o que pega o erro mais comum de uma
    rodada nova — categoria sem prática, explicação a menos, id repetido,
@@ -117,5 +117,37 @@ Object.keys(A.TRANS_DECKS).forEach(k => {
 p.ok(Object.keys(A.TRANS_UNITS).length === 15, `TRANS_UNITS tem 15 unidades (tem ${Object.keys(A.TRANS_UNITS).length})`);
 p.nota(`tradução: ${A.TRANS_CARDS.length} cartões em ${Object.keys(A.TRANS_DECKS).length} decks, ` +
         `${Object.keys(A.TRANS_UNITS).filter(u => A.getTransDecksForUnit(u).length).length} unidades carregadas`);
+
+/* ============ 4. Entrevista (js/data-interview.js) ============ */
+/* Aqui não há gabarito para conferir — o que o validador defende é a FORMA de
+   que a tela depende: sem `pontos` não há nota (ela é o checklist), sem
+   `frases` a detecção de blocos imprime lista vazia, e `palavras` é lido
+   desestruturado em [min, max]. */
+const idsEntrevista = {};
+p.ok(Array.isArray(A.INTERVIEW_QUESTIONS) && A.INTERVIEW_QUESTIONS.length > 0,
+     "INTERVIEW_QUESTIONS existe e não está vazio");
+(A.INTERVIEW_QUESTIONS || []).forEach(q => {
+  p.ok(!idsEntrevista[q.id], `entrevista ${q.id}: id repetido`);
+  idsEntrevista[q.id] = true;
+  p.ok(typeof q.question === "string" && q.question.trim(), `entrevista ${q.id}: question vazia`);
+  p.ok(typeof q.tag === "string" && q.tag.trim(), `entrevista ${q.id}: tag vazia`);
+  p.ok(typeof q.porque === "string" && q.porque.trim().length > 40, `entrevista ${q.id}: porque curto demais`);
+  p.ok(typeof q.modelo === "string" && q.modelo.trim(), `entrevista ${q.id}: modelo vazio`);
+  p.ok(Array.isArray(q.pontos) && q.pontos.length >= 3 && q.pontos.every(x => typeof x === "string" && x.trim()),
+       `entrevista ${q.id}: pontos precisa ter 3+ strings não vazias (a nota do módulo sai daqui)`);
+  p.ok(Array.isArray(q.frases) && q.frases.length > 0 && q.frases.every(x => typeof x === "string" && x.trim()),
+       `entrevista ${q.id}: frases precisa ter strings não vazias`);
+  p.ok(Array.isArray(q.palavras) && q.palavras.length === 2 &&
+       Number.isInteger(q.palavras[0]) && Number.isInteger(q.palavras[1]) && q.palavras[0] < q.palavras[1],
+       `entrevista ${q.id}: palavras precisa ser [min, max] com min < max`);
+  /* A resposta modelo tem de caber na faixa que a tela cobra de quem responde:
+     modelo fora da faixa é a tela pedindo uma coisa e ensinando outra. */
+  const n = A.interviewWordCount(q.modelo);
+  p.ok(n >= q.palavras[0] && n <= q.palavras[1],
+       `entrevista ${q.id}: o modelo tem ${n} palavras, fora da faixa ${q.palavras.join("-")} que a tela cobra`);
+  p.ok(A.getInterviewQuestionById(q.id) === q, `entrevista ${q.id}: getInterviewQuestionById não devolve a pergunta`);
+});
+p.nota(`entrevista: ${(A.INTERVIEW_QUESTIONS || []).length} perguntas, ` +
+       `${(A.INTERVIEW_QUESTIONS || []).reduce((t, q) => t + q.pontos.length, 0)} pontos de checklist`);
 
 p.fim();

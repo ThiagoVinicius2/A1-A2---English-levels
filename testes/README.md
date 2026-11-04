@@ -20,14 +20,17 @@ que a escreveu.
 
 | Arquivo | O que defende |
 |---|---|
-| `validar.js` | forma dos três bancos: categoria com teste e prática, 4 opções e 4 explicações, `correct` no intervalo, ids únicos, deck existente, `ctx` curto — e que o `getConvPracticeForCategory()` existe e devolve a mesma contagem do banco |
+| `validar.js` | forma dos quatro bancos: categoria com teste e prática, 4 opções e 4 explicações, `correct` no intervalo, ids únicos, deck existente, `ctx` curto — que o `getConvPracticeForCategory()` existe e devolve a mesma contagem do banco, e que toda pergunta de entrevista tem checklist, blocos, faixa de palavras e uma resposta modelo **dentro** dessa faixa |
 | `corretor.js` | o corretor da resposta digitada: nenhum cartão reprova a própria resposta, nenhuma resposta vale em dois cartões, `ctx` nunca é resposta, contração e tipografia nos dois sentidos, apóstrofo sem cobertura, redução sem apóstrofo, `ain't` com as cinco leituras, sinônimos nos dois sentidos, número por extenso, e a contagem por deck contra `contagens.json` |
 | `literal.js [uNN]` | a sonda da tradução literal: para cada cartão, a tradução mais óbvia do português tem de ser corrigida como `certo`. As literais ficam em `literais/uNN.json` — é rede permanente, não só de importação: mexer num cartão e quebrar a tradução óbvia dele falha aqui |
 | `conversa.js` | a trava da resposta curta e a régua da porcentagem **nas duas telas** do módulo da conversa (foi o bug dos 11%) |
+| `entrevista.js` | o módulo da entrevista dirigido pelas funções de verdade: a porcentagem que a **tela** mostra é a mesma da régua e a mesma que fica gravada, pular todas dá 0%, o rascunho sobrevive ao modal de saída, o texto digitado sai escapado e a detecção de bloco casa contração mas não pedaço de palavra |
 | `traducao.js` | a régua do "de primeira" (certo + quase + autoavaliação = acerto), a mescla do histórico entre rodadas, a rodada de correção que **não** grava por cima, e a migração do formato antigo |
 
-O `comum.js` carrega os quatro arquivos de `js/` fora do navegador. O `app.js`
-precisa de DOM, então ele roda com um esqueleto mínimo — é o que permite
+O `comum.js` carrega os cinco arquivos de `js/` fora do navegador. O `app.js`
+precisa de DOM, então ele roda com um esqueleto mínimo — o `getElementById` dele
+devolve sempre o mesmo nó por id, que é o que permite escrever no campo de
+digitação e exercitar o `submit` de verdade — é o que permite
 conferir em node a **porcentagem que a tela mostra**, e não só a régua que a
 calcula. Era exatamente essa diferença que escondia o bug dos 11%.
 
@@ -35,8 +38,8 @@ calcula. Era exatamente essa diferença que escondia o bug dos 11%.
 
 | Arquivo | O que defende |
 |---|---|
-| `unidades.js` | a grade das 15 unidades, só as carregadas com link, e **as duas formas de abrir**: a unidade de um deck só cai direto na rodada, a de vários passa pela escolha — uma por uma, sem deck vazando |
-| `smoke.js` | os três módulos de ponta a ponta, incluindo a prática dirigida da conversa — a tela que já quebrou por o banco novo ter perdido uma função — e **zero erro de JS** |
+| `unidades.js` | a grade das 15 unidades, só as carregadas com link, e cada unidade carregada aberta uma por uma pela tela de escolha de decks — sem deck vazando de uma unidade para outra, e cinco decks de dez nas unidades da série de dados |
+| `smoke.js` | os quatro módulos de ponta a ponta, incluindo a prática dirigida da conversa — a tela que já quebrou por o banco novo ter perdido uma função — e, na entrevista, o `<textarea>` sobrevivendo ao modal de saída e o checklist alternando no clique; e **zero erro de JS** |
 | `smoke_unidade.js NN` | a rodada completa de uma unidade: os quatro vereditos e a porcentagem gravada por deck. É o teste da importação |
 
 O erro de certificado do Google Fonts é do proxy do ambiente e os testes o
