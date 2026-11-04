@@ -139,11 +139,11 @@ Banco de cartões vindo do CSV do deck MemHack do curso (colunas
 
 As unidades estão sendo **refeitas uma a uma** com as mesmas estruturas do
 curso, mas com frases do dia a dia de quem trabalha com dados (dashboard,
-query, pipeline, stakeholder, KPI). As Units 1 a 4 já são essa série; as
+query, pipeline, stakeholder, KPI). As Units 1 a 5 já são essa série; as
 outras ainda são o conteúdo genérico do curso e vão sendo trocadas conforme
 chegar o CSV de cada uma. O CSV da série continua a numeração de uma unidade
-para a outra (Unit 1: 1-50, Unit 2: 51-100, Unit 3: 101-150, Unit 4:
-151-200), então o id do cartão acompanha.
+para a outra (50 por unidade: a Unit 1 foi 1-50 e a Unit 5 foi 201-250),
+então o id do cartão acompanha.
 
 - **A unidade refeita tem CINCO decks de dez cartas**, um por estrutura. A
   primeira versão era um deck só, com as 50 frases juntas e a unidade abrindo
