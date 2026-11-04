@@ -1,16 +1,20 @@
 # Fluent Data — inglês A1-A2 para quem trabalha com Dados
 
 Site estático (HTML + CSS + JS puro, sem build e sem dependências) publicado
-pelo GitHub Pages a partir da branch `main`. São três avaliações independentes:
+pelo GitHub Pages a partir da branch `main`. São quatro módulos independentes:
 
 - **Teste A1-A2** — `js/data.js` (`TEST_QUESTIONS`, `PRACTICE_QUESTIONS`, `CATEGORIES`)
 - **Erros da Conversa Real** — `js/data-conversation.js`, um módulo refeito a cada
   rodada de feedback da aula de conversação, com os erros reais daquela conversa
-- **Do Português para o Inglês** — `js/data-translate.js`, o único com resposta
-  **digitada**: mostra a frase em português e a pessoa escreve o equivalente em inglês
+- **Do Português para o Inglês** — `js/data-translate.js`: mostra a frase em
+  português e a pessoa **digita** o equivalente em inglês
+- **Job Interview** — `js/data-interview.js`, perguntas de entrevista em inglês
+  com a **resposta aberta**, escrita por inteiro; é o único módulo **sem
+  gabarito**, e a nota sai do checklist que a própria pessoa marca
 
-`js/app.js` tem todo o estado e a renderização das três; `index.html` só carrega
-os quatro scripts na ordem data → data-conversation → data-translate → app.
+`js/app.js` tem todo o estado e a renderização dos quatro; `index.html` só carrega
+os cinco scripts na ordem data → data-conversation → data-translate →
+data-interview → app.
 
 ## Fluxo de trabalho (padrão combinado — não precisa perguntar)
 
@@ -502,12 +506,57 @@ vetar alguma coisa se discordar.
   a tela de resultado da correção mostra a porcentagem que **fica valendo** em
   cada deck e deixa "Redo the whole deck" como ação principal. Um aviso genérico
   não basta — foi exatamente assim que a dúvida apareceu na prática.
-- **Cuidado com o campo de digitação:** são os dois `<input>` do projeto
-  (`#trans-input` aqui e `#conv-input` no módulo da conversa), e a regra vale
-  para os dois. Nunca
+- **Cuidado com o campo de digitação:** são os três campos do projeto
+  (`#trans-input` aqui, `#conv-input` no módulo da conversa e o `<textarea>`
+  `#interview-input` na entrevista), e a regra vale para os três. Nunca
   chame `render()` enquanto a pessoa digita (o `innerHTML` é reescrito inteiro e
   leva junto o campo, o foco e o cursor) e nunca coloque texto digitado ou frase
   de cartão dentro de atributo HTML — o `escapeHtml` do projeto não escapa aspas.
+
+## Regras do módulo "Job Interview"
+
+Perguntas de entrevista em inglês (`INTERVIEW_QUESTIONS`, em
+`js/data-interview.js`) com a resposta escrita por inteiro, num `<textarea>`.
+As seis primeiras são as perguntas que caem em toda entrevista: abertura,
+saída do emprego atual, um projeto recente, a ferramenta da vaga, pretensão
+salarial e as perguntas para o entrevistador.
+
+- **Não existe gabarito aqui, e isso é a definição do módulo.** "Tell me about
+  yourself" tem infinitas respostas boas; comparar string com uma resposta
+  modelo reprovaria quase toda resposta certa. Então o que é automático é só o
+  que dá para medir sem errar, e **a nota é a autoavaliação por checklist**.
+- Cada pergunta traz: `question` (em inglês), `tag` (interface, em inglês),
+  `porque` (por que ela é feita — orientação, então **em português**),
+  `pontos[]` (o checklist do que uma resposta forte cobre, **em português**),
+  `frases[]` (blocos de inglês que o app procura no texto digitado),
+  `modelo` (uma resposta inteira, de analista de dados, em inglês) e
+  `palavras: [min, max]` (a faixa que cabe em 30-60 segundos de fala).
+- **A nota é `pontos marcados / pontos possíveis`**, em `interviewScore()`, e
+  vale igual nas duas pontas — a tela de resultado e o que vai para o
+  `localStorage`. Pergunta pulada conta zero e **mantém os pontos no total**,
+  senão pular melhoraria a nota.
+- **Quem procura os blocos de inglês é o `transNormalize()` do módulo de
+  tradução**, chamado pelo `interviewPhrasesFound()`. Reusar foi decisão
+  deliberada, a mesma do módulo da conversa: contração, caixa e pontuação já
+  estão resolvidas lá, e "I've been working" tem de casar com "I have been
+  working" de graça. A comparação prende a frase entre espaços, então bloco
+  não casa pedaço de palavra (`I built` dentro de `rebuilt`).
+- **O bloco de inglês é dica, não nota.** Ele aparece como sugestão de como
+  abrir cada parte da resposta; quem pontua é o checklist.
+- **A resposta modelo tem de caber na faixa de `palavras`** que a tela cobra de
+  quem responde — o validador falha se não couber. Tela pedindo uma coisa e
+  ensinando outra é pior que não ter modelo.
+- **O campo é um `<textarea>`, e a resposta é um parágrafo inteiro.** Por isso
+  o `oninput` guarda o rascunho em `state.interviewDraft` (via
+  `saveInterviewDraft()`, que **nunca** chama `render()`): abrir o modal de
+  saída reescreve o `#app`, e sem o rascunho guardado a pessoa perderia 100
+  palavras. O contador de palavras é atualizado mexendo só no texto do nó
+  `#interview-count`, pelo mesmo motivo.
+- A pergunta 4 traz uma ferramenta concreta (Power BI) em vez de
+  `[ferramenta da vaga]`: o `porque` é que manda trocar pela ferramenta do
+  anúncio. Enunciado com colchete de preencher não dá para responder.
+- Ao trocar o banco de perguntas, suba `INTERVIEW_STORAGE_KEY` em `js/app.js`
+  (`_r1` → `_r2` → …) para o resultado anterior não se misturar.
 
 ## Antes de publicar
 
@@ -529,7 +578,7 @@ carrega o `js/app.js` com um esqueleto de DOM. Isso importa: dá para conferir a
 **porcentagem que a tela mostra**, e não só a régua que a calcula — era
 exatamente essa diferença que escondia o bug dos 11%.
 
-- `node --check` nos quatro arquivos de `js/`
+- `node --check` nos cinco arquivos de `js/`
 - Validar os bancos: toda categoria com teste e prática, 4 opções e 4 explicações,
   `correct` dentro do intervalo, ids únicos; nos cartões de tradução, todo `deck`
   existente e a contagem por deck igual à do CSV **menos os cartões da lista de
@@ -557,6 +606,12 @@ exatamente essa diferença que escondia o bug dos 11%.
   padrão têm de somar o total. Contar quantos exercícios foram respondidos **não
   basta** — era só isso que o smoke conferia, e por isso o resumo da prática
   passou duas rodadas devolvendo 7% com tudo certo
+- **Módulo da entrevista:** a rodada inteira dirigida pelas funções de verdade
+  (campo, submit, checklist, next) — a porcentagem que a **tela** mostra tem de
+  ser a mesma que a régua calcula e a mesma que fica gravada; pular todas dá 0%;
+  o rascunho sobrevive a abrir e fechar o modal de saída; e o texto digitado sai
+  escapado, nunca como HTML. A detecção de bloco é conferida nas duas formas
+  (contraída e longa) e não pode casar pedaço de palavra
 - Teste das unidades: 15 na grade, só as carregadas com link, toda chave de deck
   começando com a chave da sua unidade, nenhum deck vazando de uma unidade para
   outra, e o histórico gravado no formato antigo migrando para a chave com prefixo
@@ -600,5 +655,7 @@ exatamente essa diferença que escondia o bug dos 11%.
   abrir `index.html` por `file://`, responder o teste inteiro, chegar no resultado
   e rodar a prática dirigida; no módulo de tradução, escolher um deck e passar por
   um acerto, um erro de digitação, uma resposta diferente (com a autoavaliação) e
-  um "Não lembro", conferindo que não há erro de JS
+  um "Não lembro"; na entrevista, responder uma pergunta, pular outra, marcar e
+  desmarcar o checklist e conferir que o texto digitado sobrevive ao modal de
+  saída — conferindo que não há erro de JS
   (o erro de certificado do Google Fonts é do proxy do ambiente, pode ignorar)

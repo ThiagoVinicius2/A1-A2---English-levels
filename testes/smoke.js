@@ -1,4 +1,4 @@
-/* Smoke dos três módulos no Chromium, por file://.
+/* Smoke dos quatro módulos no Chromium, por file://.
    É o único teste que exercita o que só existe no navegador: o campo de
    digitação (foco e cursor), os onclick do HTML, o fundo decorativo fora do
    #app e, sobretudo, ERRO DE JS — foi assim que se descobriu que uma rodada
@@ -8,7 +8,7 @@
 const { chromium } = require("/opt/node22/lib/node_modules/playwright");
 const { carregar, criarPlacar, RAIZ } = require("./comum.js");
 const A = carregar();
-const p = criarPlacar("SMOKE DOS TRÊS MÓDULOS");
+const p = criarPlacar("SMOKE DOS QUATRO MÓDULOS");
 
 (async () => {
   const browser = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
@@ -46,7 +46,7 @@ const p = criarPlacar("SMOKE DOS TRÊS MÓDULOS");
   }
 
   /* ---- a tela inicial tem os três cards e o fundo decorativo ---- */
-  p.ok((await page.locator(".module-card").count()) === 3, "a tela inicial mostra os três módulos");
+  p.ok((await page.locator(".module-card").count()) === 4, "a tela inicial mostra os quatro módulos");
   p.ok((await page.locator(".backdrop").count()) === 1, "o fundo decorativo está no ar");
   p.ok((await page.locator("#bg-stars > div").count()) > 0, "initBackdrop() preencheu as estrelas");
 
@@ -216,8 +216,92 @@ const p = criarPlacar("SMOKE DOS TRÊS MÓDULOS");
   p.ok(/%/.test(telaDecks) || (await page.locator(".trans-deck-score").count()) > 0,
        "a tela de decks mostra a porcentagem por deck");
 
+
+  /* ================= Módulo 04: entrevista ================= */
+  /* O campo aqui é um <textarea> — o terceiro campo de digitação do projeto — e
+     a resposta é um parágrafo inteiro. O que este trecho defende é justamente o
+     que só quebra no navegador: o texto digitado sobreviver a um render() (o
+     modal de saída reescreve o #app), e o checklist, que é a nota do módulo,
+     responder ao clique. */
+  await page.goto("file://" + RAIZ + "/index.html");
+  await page.click("button:has-text('Practice the interview')");
+  await page.waitForSelector("#interview-input");
+  const perguntasTela = await page.evaluate(() => state.interviewQuestions.length);
+  p.ok(perguntasTela === A.INTERVIEW_QUESTIONS.length,
+       `a entrevista abriu com as ${A.INTERVIEW_QUESTIONS.length} perguntas (abriu ${perguntasTela})`);
+
+  /* o rascunho não pode ir embora quando o modal de saída reescreve o #app */
+  const rascunho = "I have been working with data for six years.";
+  await page.fill("#interview-input", rascunho);
+  await page.click(".exit-actions button:has-text('Back to start')");
+  await page.waitForSelector(".modal-box");
+  await page.click("button:has-text('Keep going')");
+  await page.waitForSelector("#interview-input");
+  p.ok((await page.inputValue("#interview-input")) === rascunho,
+       "o texto digitado sobreviveu ao modal de saída (render() não pode levar o campo embora)");
+
+  /* campo vazio avisa em vez de revelar a resposta modelo */
+  await page.fill("#interview-input", "   ");
+  await page.click("button:has-text('Check my answer')");
+  await page.waitForTimeout(80);
+  p.ok((await page.locator(".trans-warn").count()) > 0 && (await page.locator(".check-list").count()) === 0,
+       "resposta vazia avisa e não revela o checklist nem o modelo");
+
+  let marcadosSmoke = 0;
+  let totalSmoke = 0;
+  for (let i = 0; i < perguntasTela; i++) {
+    if (!(await page.evaluate(() => state.view === "interview"))) break;
+    await page.waitForSelector("#interview-input");
+    const q = await page.evaluate(() => {
+      const atual = state.interviewQuestions[state.interviewIndex];
+      return { id: atual.id, pontos: atual.pontos.length, modelo: atual.modelo };
+    });
+    totalSmoke += q.pontos;
+    if (i === 1) {                     // a segunda é pulada: vale zero
+      await page.click("button:has-text('Skip this one')");
+      await page.waitForTimeout(60);
+    } else {
+      /* responder com a resposta modelo: é o caminho que também confere a
+         detecção de blocos e a contagem de palavras na tela */
+      await page.fill("#interview-input", q.modelo);
+      await page.click("button:has-text('Check my answer')");
+      await page.waitForSelector(".check-list");
+      p.ok((await page.locator(".phrase-chip.on").count()) > 0,
+           `${q.id}: a resposta modelo devia acender ao menos um bloco de inglês`);
+      p.ok((await page.locator(".explain-box.good").count()) > 0,
+           `${q.id}: a resposta modelo devia cair dentro da faixa de palavras`);
+      /* marca os dois primeiros pontos do checklist, e desmarca e remarca o
+         primeiro — o clique precisa alternar, não só ligar */
+      const linhas = page.locator(".check-row");
+      p.ok((await linhas.count()) === q.pontos, `${q.id}: o checklist mostra os ${q.pontos} pontos`);
+      await linhas.nth(0).click();
+      await page.waitForTimeout(40);
+      await linhas.nth(0).click();
+      await page.waitForTimeout(40);
+      p.ok((await page.locator(".check-row.on").count()) === 0, `${q.id}: clicar duas vezes desmarca o ponto`);
+      await linhas.nth(0).click();
+      await page.waitForTimeout(40);
+      await linhas.nth(1).click();
+      await page.waitForTimeout(40);
+      marcadosSmoke += 2;
+    }
+    if (!(await avancar())) break;
+  }
+  await page.waitForTimeout(250);
+  p.ok(await page.evaluate(() => state.view === "interviewResults"), "a entrevista chegou na tela de resultado");
+  const esperadoEntrevista = Math.round((marcadosSmoke / totalSmoke) * 100);
+  const telaEntrevista = await page.locator("#app").innerText();
+  p.ok(telaEntrevista.indexOf(esperadoEntrevista + "%") !== -1,
+       `a entrevista devia mostrar ${esperadoEntrevista}% (${marcadosSmoke} de ${totalSmoke} pontos)`);
+  p.ok(telaEntrevista.indexOf(`${marcadosSmoke} of ${totalSmoke} checklist points`) !== -1,
+       "a tela mostra os pontos marcados sobre o total");
+  const gravadoEntrevista = await page.evaluate(k => localStorage.getItem(k), "enCheckInterviewResults_r1");
+  p.ok(!!gravadoEntrevista && JSON.parse(gravadoEntrevista).overall === esperadoEntrevista,
+       "o resultado da entrevista foi gravado com a mesma porcentagem da tela");
+  p.nota(`entrevista: ${marcadosSmoke} de ${totalSmoke} pontos = ${esperadoEntrevista}%`);
+
   p.ok(errosJs.length === 0, `erros de JS: ${errosJs.join(" | ")}`);
-  if (!errosJs.length) p.nota("nenhum erro de JS nos três módulos");
+  if (!errosJs.length) p.nota("nenhum erro de JS nos quatro módulos");
   await browser.close();
   p.fim();
 })();

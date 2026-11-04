@@ -1,4 +1,4 @@
-/* Carrega os quatro arquivos de js/ fora do navegador.
+/* Carrega os cinco arquivos de js/ fora do navegador.
 
    Os bancos e o corretor são funções puras, então dá para exercitá-los só com
    o node — e é por isso que os testes de dado rodam em menos de um segundo.
@@ -8,7 +8,7 @@ const fs = require("fs"), vm = require("vm"), path = require("path");
 
 const RAIZ = path.resolve(__dirname, "..");
 
-function carregar(arquivos = ["data.js", "data-conversation.js", "data-translate.js"]) {
+function carregar(arquivos = ["data.js", "data-conversation.js", "data-translate.js", "data-interview.js"]) {
   const ctx = {};
   vm.createContext(ctx);
   arquivos.forEach(a => vm.runInContext(fs.readFileSync(path.join(RAIZ, "js", a), "utf8"), ctx, { filename: a }));
@@ -35,6 +35,10 @@ function carregar(arquivos = ["data.js", "data-conversation.js", "data-translate
     getTransCardsForDeck: typeof getTransCardsForDeck !== "undefined" ? getTransCardsForDeck : null,
     getTransDecksForUnit: typeof getTransDecksForUnit !== "undefined" ? getTransDecksForUnit : null,
     countTransCardsForUnit: typeof countTransCardsForUnit !== "undefined" ? countTransCardsForUnit : null,
+    INTERVIEW_QUESTIONS: typeof INTERVIEW_QUESTIONS !== "undefined" ? INTERVIEW_QUESTIONS : null,
+    interviewPhrasesFound: typeof interviewPhrasesFound !== "undefined" ? interviewPhrasesFound : null,
+    interviewWordCount: typeof interviewWordCount !== "undefined" ? interviewWordCount : null,
+    getInterviewQuestionById: typeof getInterviewQuestionById !== "undefined" ? getInterviewQuestionById : null,
   };`, ctx);
   return ctx.API;
 }
@@ -74,6 +78,11 @@ function carregarApp() {
   const vazio = () => {
     const el = {
       innerHTML: "", textContent: "", style: {}, childElementCount: 0, dataset: {},
+      /* `value` existe porque os módulos de resposta digitada leem o campo pelo
+         id antes de mexer no estado (submitTransAnswer, submitInterviewAnswer).
+         Com getElementById memoizado abaixo, o teste escreve em
+         campo("interview-input").value e exercita a função de verdade. */
+      value: "", setSelectionRange() {},
       classList: { add() {}, remove() {}, toggle() {}, contains() { return false; } },
       appendChild() {}, addEventListener() {}, removeEventListener() {},
       setAttribute() {}, getAttribute() { return null; }, focus() {}, scrollIntoView() {},
@@ -82,9 +91,11 @@ function carregarApp() {
     return el;
   };
   const guardado = {};
+  const nos = {};   // um nó por id, estável entre chamadas
   const ctx = {
     document: {
-      getElementById: () => vazio(), querySelector: () => vazio(), querySelectorAll: () => [],
+      getElementById: id => (nos[id] = nos[id] || vazio()),
+      querySelector: () => vazio(), querySelectorAll: () => [],
       createElement: () => vazio(), addEventListener() {}, body: vazio(),
     },
     localStorage: {
@@ -98,7 +109,7 @@ function carregarApp() {
   ctx.window = ctx;
   ctx.globalThis = ctx;
   vm.createContext(ctx);
-  ["data.js", "data-conversation.js", "data-translate.js", "app.js"].forEach(a =>
+  ["data.js", "data-conversation.js", "data-translate.js", "data-interview.js", "app.js"].forEach(a =>
     vm.runInContext(fs.readFileSync(path.join(RAIZ, "js", a), "utf8"), ctx, { filename: a }));
   /* O "app" é o nó que as funções de render escrevem: devolvê-lo é o que
      permite conferir, em node, a PORCENTAGEM que a tela mostra — foi um erro
@@ -111,9 +122,15 @@ function carregarApp() {
     transIsHit, pct, shuffle,
     startTransRound, startTransRetry, finishTransRound, renderTransResults, renderTransDecks,
     loadTransDeckStats, saveTransDeckStats, openTransDecks,
-    CONV_STORAGE_KEY, TRANS_STORAGE_KEY,
+    startInterview, submitInterviewAnswer, skipInterviewQuestion, toggleInterviewPoint,
+    nextInterviewQuestion, prevInterviewQuestion, finishInterview, interviewScore,
+    saveInterviewDraft, renderInterview, renderInterviewResults, renderInterviewLandingCard,
+    requestExitInterview, cancelExitInterview, interviewResultLabel,
+    interviewWordCount, interviewPhrasesFound,
+    CONV_STORAGE_KEY, TRANS_STORAGE_KEY, INTERVIEW_STORAGE_KEY,
   };`, ctx);
   ctx.APP.localStorage = ctx.localStorage;
+  ctx.APP.campo = id => ctx.document.getElementById(id);
   ctx.APP.telaHtml = () => ctx.APP.app.innerHTML;
   return ctx.APP;
 }
