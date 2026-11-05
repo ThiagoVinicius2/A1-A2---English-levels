@@ -148,6 +148,8 @@ p.nota(`sinônimos: ${nSin} trocas conferidas sobre as respostas do banco`);
   [{ en: "My favorite color is blue." }, "My favourite colour is blue."],
   [{ en: "We hug everyone!" }, "We hug everybody!"],
   [{ en: "Do me a favor." }, "Do me a favour."],
+  /* "maths" entrou com a Unit 7 da série de dados ("eu amava matemática") */
+  [{ en: "I loved math at school." }, "I loved maths at school."],
 ].forEach(([card, txt]) => p.ok(certo(card, txt), `par de sinônimo: "${txt}" devia dar certo`));
 
 /* ---- 8. número por extenso vale pelo algarismo até 99 ---- */
