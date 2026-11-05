@@ -46,6 +46,42 @@
    misturam no mesmo intervalo. O conteúdo antigo continua no histórico do
    git, se um dia fizer falta.
 
+   REGISTRO (jeito de falar): o banco é para produzir inglês de TRABALHO, e
+   uma varredura das Units 1 a 8 da série de dados tirou o que não cabe num
+   ambiente formal. Onze cartões foram REESCRITOS — não podados, porque a
+   lição de cada um continua; o que mudou foi o registro:
+   - d-20    "Do you guys work with SQL?" -> "Do you work with SQL?" ("you
+             guys" é informal e marca gênero; a note explica que o inglês tem
+             um you só para singular e plural)
+   - d-100   "Obrigado, cara!" / "Thanks, man!" -> "Obrigado por avisar." /
+             "Thanks for letting me know." (o accept ainda trazia "dude" e
+             "bro"). O deck de agradecer ganhou uma frase que se usa no
+             trabalho em vez de uma que não se usa
+   - d-114   "This is weird" -> "This is odd" (weird continua em accept: a
+             ideia é ensinar a forma neutra, não reprovar a outra)
+   - d-172   "I don't mean to be rude, but..." -> "I don't mean to sound
+             critical, but..." — é a ressalva que se faz numa revisão; a
+             lição (verbo + to) é a mesma
+   - d-174   "Stop sending me the old file!" -> "Could you stop sending the
+             old version, please?" — ordem seca vira pedido, e o stop + -ing
+             continua lá
+   - d-188   "Gotcha!" -> "Understood!" (gíria falada; "Got it!" continua em
+             accept e a note diz que gotcha é só fala)
+   - d-211   "The client gets mad" -> "The client gets frustrated"
+   - d-213   "Corre e manda o arquivo" -> "Nós precisamos correr e mandar o
+             arquivo" — some a ordem dada a um colega
+   - d-275   "Couldn't you send it earlier?" -> "Couldn't we deliver it
+             earlier?" — a cobrança no "você" vira pergunta de time
+   - d-278   "Wanna join the call?" -> "Would you like to join the call?" — é
+             um deck de CONVITE, e convite se faz na forma polida; a redução
+             "wanna" continua ensinada no d-297
+   - d-315   "You didn't send what I asked for." -> "I didn't get what I
+             asked for." — a acusação no "você" vira o que de fato se escreve
+   O deck de fala reduzida da Unit 6 (d-296 a d-300: gonna, wanna, gotta,
+   lemme, gimme) FICA como está: ele existe para a pessoa ENTENDER o que
+   ouve. Cada um desses cartões ganhou uma note dizendo que é forma falada e
+   qual é a forma de escrever.
+
    Repetição (a mesma prática, perguntada de novo):
    - t-30, t-31, t-32  despedidas intercambiáveis: "Later!" e "See you
                        later!" passavam igual em quatro cartões. Ficaram
@@ -429,8 +465,10 @@ const TRANS_CARDS = [
   { id:"d-20",
     deck:"u01-have",
     pt:"Vocês trabalham com SQL?",
-    en:"Do you guys work with SQL?",
-    accept:["Do you work with SQL?", "Do y'all work with SQL?"] },
+    en:"Do you work with SQL?",
+    accept:["Do you all work with SQL?",
+            "Do you work with SQL on your team?"],
+    note:"English has one you for singular and plural." },
   { id:"d-21",
     deck:"u01-doquestions",
     pt:"Nós temos tempo de terminar esta sprint?",
@@ -856,9 +894,10 @@ const TRANS_CARDS = [
     note:"Also: Thanks a bunch! / Thanks a ton!" },
   { id:"d-100",
     deck:"u02-thanks",
-    pt:"Obrigado, cara!",
-    en:"Thanks, man!",
-    accept:["Thanks, dude!", "Thanks, bro!"] },
+    pt:"Obrigado por avisar.",
+    en:"Thanks for letting me know.",
+    accept:["Thank you for the heads up.",
+            "Thanks for letting me know about it."] },
 
   /* ==================== UNIT 3 — SÉRIE DE DADOS ====================
      O verbo "to be" (am / is / are), o presente contínuo, as formas de
@@ -942,9 +981,11 @@ const TRANS_CARDS = [
   { id:"d-114",
     deck:"u03-tobe2",
     pt:"Isso está estranho, o total está diferente.",
-    en:"This is weird, the total is different.",
-    accept:["That's weird, the total is different.",
-            "This is strange, the total is different."] },
+    en:"This is odd, the total is different.",
+    accept:["That's odd, the total is different.",
+            "This is strange, the total is different.",
+            "This is weird, the total is different.",
+            "That's strange, the total is different."] },
   { id:"d-129",
     deck:"u03-tobe2",
     pt:"Sem problema.",
@@ -1273,10 +1314,11 @@ const TRANS_CARDS = [
             "I'm beginning to think the source is wrong."] },
   { id:"d-172",
     deck:"u04-gerund",
-    pt:"Não quero ser rude, mas este gráfico está confuso.",
-    en:"I don't mean to be rude, but this chart is confusing.",
-    accept:["I don't want to be rude, but this chart is confusing.",
-            "I don't mean to be rude, but this graph is confusing."] },
+    pt:"Não quero soar crítico, mas este gráfico está confuso.",
+    en:"I don't mean to sound critical, but this chart is confusing.",
+    accept:["I don't want to sound critical, but this chart is confusing.",
+            "I don't mean to sound critical, but this graph is confusing.",
+            "I don't want to sound critical, but this graph is confusing."] },
 
   /* ---- Deck 5 (primeira ponta): stop e agree ---- */
   { id:"d-173",
@@ -1286,9 +1328,11 @@ const TRANS_CARDS = [
     accept:["He doesn't agree with changing the metric."] },
   { id:"d-174",
     deck:"u04-tips",
-    pt:"Pare de me mandar o arquivo antigo!",
-    en:"Stop sending me the old file!",
-    accept:["Stop sending me that old file!"] },
+    pt:"Você poderia parar de mandar a versão antiga, por favor?",
+    en:"Could you stop sending the old version, please?",
+    accept:["Could you please stop sending the old version?",
+            "Could you stop sending me the old version, please?",
+            "Could you please stop sending me the old version?"] },
   { id:"d-175",
     deck:"u04-tips",
     pt:"Nós temos que parar para revisar os números.",
@@ -1373,9 +1417,9 @@ const TRANS_CARDS = [
   { id:"d-188",
     deck:"u04-tips",
     pt:"Entendi!",
-    en:"Gotcha!",
-    accept:["Got it!", "Understood!", "I get it!"],
-    note:"Gotcha is the spoken form of Got you." },
+    en:"Understood!",
+    accept:["Got it!", "I understand!", "I see!"],
+    note:"Understood works in writing too. Gotcha is spoken only." },
 
   /* ---- Deck 4: som ligado ---- */
   { id:"d-189",
@@ -1511,11 +1555,11 @@ const TRANS_CARDS = [
             "We need to prepare for the presentation."] },
   { id:"d-211",
     deck:"u05-take",
-    pt:"O cliente fica nervoso quando o painel está lento.",
-    en:"The client gets mad when the dashboard is slow.",
-    accept:["The client gets angry when the dashboard is slow.",
-            "The customer gets mad when the dashboard is slow.",
-            "The client gets upset when the dashboard is slow."] },
+    pt:"O cliente fica frustrado quando o painel está lento.",
+    en:"The client gets frustrated when the dashboard is slow.",
+    accept:["The customer gets frustrated when the dashboard is slow.",
+            "The client gets upset when the dashboard is slow.",
+            "The customer gets upset when the dashboard is slow."] },
 
   /* ---- Deck 4 (a ponta do bloco I): "Do you have time?" ---- */
   { id:"d-206",
@@ -1533,10 +1577,10 @@ const TRANS_CARDS = [
     accept:["I wake up early to study English."] },
   { id:"d-213",
     deck:"u05-share",
-    pt:"Corre e manda o arquivo antes da call.",
-    en:"Hurry up and send the file before the call.",
-    accept:["Hurry and send the file before the call.",
-            "Hurry up and send the file before the meeting."] },
+    pt:"Nós precisamos correr e mandar o arquivo antes da call.",
+    en:"We need to hurry up and send the file before the call.",
+    accept:["We need to hurry and send the file before the call.",
+            "We need to hurry up and send the file before the meeting."] },
   { id:"d-214",
     deck:"u05-share",
     pt:"Primeiro de tudo, nós precisamos pegar os dados brutos.",
@@ -1895,10 +1939,11 @@ const TRANS_CARDS = [
   /* ---- Deck 5 (a ponta do bloco II): couldn't ---- */
   { id:"d-275",
     deck:"u06-reduced",
-    pt:"Você não poderia mandar isso mais cedo?",
-    en:"Couldn't you send it earlier?",
-    accept:["Couldn't you send this earlier?",
-            "Couldn't you have sent it earlier?"] },
+    pt:"Nós não poderíamos entregar isso mais cedo?",
+    en:"Couldn't we deliver it earlier?",
+    accept:["Couldn't we deliver this earlier?",
+            "Couldn't we have delivered it earlier?",
+            "Couldn't we send it earlier?"] },
   { id:"d-276",
     deck:"u06-reduced",
     pt:"Eu não consegui achar o arquivo no servidor.",
@@ -1913,9 +1958,10 @@ const TRANS_CARDS = [
   /* ---- Deck 3: convidar e aceitar ---- */
   { id:"d-278",
     deck:"u06-invite",
-    pt:"Quer entrar na call?",
-    en:"Wanna join the call?",
-    accept:["Do you want to join the call?", "Want to join the call?"] },
+    pt:"Você gostaria de entrar na call?",
+    en:"Would you like to join the call?",
+    accept:["Would you like to join the meeting?",
+            "Do you want to join the call?"] },
   { id:"d-279",
     deck:"u06-invite",
     pt:"Quer uma ajuda com essa query?",
@@ -2014,29 +2060,34 @@ const TRANS_CARDS = [
     deck:"u06-reduced",
     pt:"Vai ser uma sprint longa.",
     en:"It's gonna be a long sprint.",
-    accept:["It's going to be a long sprint.", "It'll be a long sprint."] },
+    accept:["It's going to be a long sprint.", "It'll be a long sprint."],
+    note:"Spoken form. In writing, use going to." },
   { id:"d-297",
     deck:"u06-reduced",
     pt:"Por onde você quer começar?",
     en:"Where do you wanna start?",
-    accept:["Where do you want to begin?"] },
+    accept:["Where do you want to begin?"],
+    note:"Spoken form. In writing, use want to." },
   { id:"d-298",
     deck:"u06-reduced",
     pt:"Eu tenho que terminar este relatório hoje.",
     en:"I gotta finish this report today.",
     accept:["I have to finish this report today.",
-            "I've got to finish this report today."] },
+            "I've got to finish this report today."],
+    note:"Spoken form. In writing, use have to." },
   { id:"d-299",
     deck:"u06-reduced",
     pt:"Deixa eu te ajudar com isso.",
     en:"Lemme help you with that.",
-    accept:["Let me help you with this."] },
+    accept:["Let me help you with this."],
+    note:"Spoken form. In writing, use let me." },
   { id:"d-300",
     deck:"u06-reduced",
     pt:"Você pode me dar uma mãozinha com esta tabela?",
     en:"Can you gimme a hand with this table?",
     accept:["Can you give me a hand with that table?",
-            "Could you give me a hand with this table?"] },
+            "Could you give me a hand with this table?"],
+    note:"Spoken form. In writing, use give me." },
 
   /* ==================== UNIT 7 — SÉRIE DE DADOS ====================
      O passado simples inteiro: afirmativa, negativa com didn't e pergunta com
@@ -2141,10 +2192,10 @@ const TRANS_CARDS = [
     en:"I didn't like the first version." },
   { id:"d-315",
     deck:"u07-didnt",
-    pt:"Você não mandou o que eu pedi.",
-    en:"You didn't send what I asked for.",
-    accept:["You didn't send me what I asked for.",
-            "You didn't send what I asked."] },
+    pt:"Eu não recebi o que eu pedi.",
+    en:"I didn't get what I asked for.",
+    accept:["I didn't receive what I asked for.",
+            "I didn't get what I had asked for."] },
   { id:"d-316",
     deck:"u07-didnt",
     pt:"Ela não testou o modelo.",

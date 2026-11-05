@@ -176,6 +176,21 @@ então o id do cartão acompanha.
   (`button.btn.block:has-text('Start')`), não no rótulo: teste não deve
   depender de texto solto. Se escrever um seletor por texto, prenda-o na
   classe.
+- **O registro é de trabalho, e isso vale para cada frase.** O banco existe
+  para a pessoa produzir inglês numa reunião, num e-mail e numa entrevista,
+  então não entra gíria de bar (`Thanks, man!`, `dude`, `bro`, `Gotcha!`),
+  tratamento informal de plural (`you guys`, `y'all`), ordem seca a um colega
+  (`Stop sending me the old file!`, `Hurry up and send the file`), cobrança na
+  segunda pessoa (`Couldn't you send it earlier?`, `You didn't send what I
+  asked for`) nem julgamento com palavra forte (`The client gets mad`). A
+  mesma lição cabe numa frase educada — pedido no lugar da ordem, "nós" no
+  lugar do "você" acusatório, `frustrated` no lugar de `mad`. Quando a forma
+  informal é boa de **entender** mas ruim de escrever, ela fica no cartão com
+  uma `note` dizendo isso: é o caso do deck de fala reduzida da Unit 6
+  (`gonna`, `wanna`, `gotta`, `lemme`, `gimme`), que existe para a pessoa
+  reconhecer o que ouve. Palavra neutra na resposta, informal no `accept`:
+  assim quem escreve `weird` não é reprovado, mas quem estuda o cartão aprende
+  `odd`.
 - **O id da série tem prefixo próprio** (`d-1` … `d-50`). O CSV da série
   recomeça a numeração em 1, e sem o prefixo colidiria com os `t-N` do curso —
   e o registro de poda no topo do `js/data-translate.js`, que cita id, deixaria
