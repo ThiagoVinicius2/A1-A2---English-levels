@@ -561,11 +561,15 @@ são os `pontos`, que agora servem de roteiro de escrita, não de nota.
   onde veio, o que te puxou para dados, o que construiu, o que procura —, e o
   `modelo` guarda a resposta inteira emendada. Cada bloco tem `topic` (o rótulo
   que a tela mostra, em inglês) e `en` (o que tem de ser escrito).
-- **Duas formas já foram tentadas e descartadas, nesta ordem:** treze partes de
-  uma frase cada (picado demais) e a resposta inteira numa caixa só (210
-  palavras de memória é demais nesta etapa). Cinco blocos é o meio-termo que o
-  dono pediu. Se mudar de novo, lembre que o `modelo` precisa continuar sendo a
-  emenda exata dos blocos.
+- **Cada bloco é praticado como um DECK**, com tela de escolha e histórico
+  próprio, igual ao módulo de tradução. O combinado é levar um bloco a 100%
+  antes de pegar o próximo, então a tela de escolha mostra a nota de cada um e
+  a rodada é a lista de blocos marcados. Dá para marcar mais de um e encadear.
+- **Três formas já foram tentadas e descartadas, nesta ordem:** treze partes de
+  uma frase cada (picado demais), a resposta inteira numa caixa só (210
+  palavras de memória é demais nesta etapa) e os cinco blocos numa fila
+  obrigatória (não dá para treinar um só). Se mudar de novo, lembre que o
+  `modelo` precisa continuar sendo a emenda exata dos blocos.
 - **A tela não dá deixa em português**: mostra a pergunta na etiqueta, o
   **tópico** do bloco como enunciado e o campo. Houve uma versão com a frase em
   português acima do campo e ela saiu: ali a deixa entrega a resposta.
@@ -580,24 +584,28 @@ são os `pontos`, que agora servem de roteiro de escrita, não de nota.
   ESTA resposta. A `note` da tela avisa isso, para a marca não parecer bug.
 - **Só dá 100% quando não falta nada** (`interviewPct()`): 209 de 210 arredonda
   para 100 e anunciar isso seria mentira num módulo cuja graça é a palavra
-  exata, então o resto trava em 99.
+  exata, então o resto trava em 99. Com o 100% virando o critério para passar
+  de bloco, esse arredondamento não é detalhe.
 - **Não cadastre `accept` com outra formulação**, pelo mesmo motivo.
 - O validador confere que cada bloco conta 100% de si mesmo, que nenhum tem
   campo `pt`, que o bloco cabe numa tela (15 a 70 palavras), que o `modelo` é a
   emenda dos blocos e que a soma deles é o total que a tela anuncia.
 
-### A nota
+### A nota e o histórico
 
-- Por bloco e por pergunta: palavras reproduzidas / palavras da resposta
-  padrão. O denominador é a resposta inteira, então **pular ("I don't
-  remember") conta zero e não tira palavras do total**. A tela de resultado
-  abre o placar **bloco a bloco**, que é o que diz onde a memória falha.
-- Do módulo: **a soma das palavras** de todas as perguntas da rodada. Uma
-  palavra é uma palavra, então somar é honesto — foi o que permitiu tirar a
-  média de porcentagens que existiu enquanto a rodada misturava formas
-  diferentes de pergunta.
-- A régua é o `interviewScore()`, e ela vale nas duas pontas — a tela de
-  resultado e o que vai para o `localStorage`.
+- Por bloco: palavras reproduzidas / palavras do bloco. Pular ("I don't
+  remember") conta zero e **não tira palavras do denominador**.
+- Da rodada: a soma dos blocos escolhidos. Com um bloco só, a tela de resultado
+  esconde o placar por bloco, que seria uma linha repetindo o total.
+- **O histórico é por bloco e MESCLA**, como o `TRANS_STORAGE_KEY` do módulo de
+  tradução: `{ date, blocos: { blockKey: { pct, acertos, total, date } } }`.
+  Praticar o bloco 2 não pode apagar a nota do bloco 1 — é isso que sustenta o
+  "leve um a 100% antes de ir para o próximo", e o teste trava a mescla.
+- **A chave do bloco é prefixada pela pergunta** (`i-1-b1`): o "bloco 1" da
+  próxima resposta não é este, e sem o prefixo as notas se misturariam. Mesma
+  razão das chaves de deck serem prefixadas pela unidade.
+- Ao trocar o banco de perguntas ou o formato do histórico, suba
+  `INTERVIEW_STORAGE_KEY` em `js/app.js` (`_r1` → `_r2` → …).
 
 ### A tela
 
@@ -606,11 +614,13 @@ são os `pontos`, que agora servem de roteiro de escrita, não de nota.
   `saveInterviewDraft()`, que **nunca** chama `render()`: abrir o modal de
   saída reescreve o `#app`, e sem o rascunho guardado a pessoa perderia o que
   escreveu.
-- O progresso conta os blocos ("Block 2 of 5"). Com duas ou mais perguntas na
-  rodada, ele passa a mostrar também "Question 1 of 2".
-- O campo tem 6 linhas, que é o tamanho de um bloco.
-- Ao trocar o banco de perguntas ou a régua, suba `INTERVIEW_STORAGE_KEY` em
-  `js/app.js` (`_r1` → `_r2` → …) para o resultado anterior não se misturar.
+- A navegação é: card da página inicial → **escolha dos blocos** → rodada →
+  resultado. O resultado oferece refazer os mesmos blocos, **ir para o próximo
+  bloco** (o primeiro que ainda não está em 100%) ou voltar à escolha.
+- A tela de escolha reusa as classes do módulo de tradução (`.trans-deck-list`,
+  `.trans-deck-option`, `.trans-deck-score`): é a mesma tarefa, e duplicar CSS
+  por módulo só cria divergência visual.
+- O progresso da rodada só aparece com mais de um bloco escolhido.
 
 ## Antes de publicar
 
@@ -660,14 +670,15 @@ exatamente essa diferença que escondia o bug dos 11%.
   padrão têm de somar o total. Contar quantos exercícios foram respondidos **não
   basta** — era só isso que o smoke conferia, e por isso o resumo da prática
   passou duas rodadas devolvendo 7% com tudo certo
-- **Módulo da entrevista:** a rodada inteira dirigida pelas funções de verdade
-  (campo, submit, next) — a porcentagem que a **tela** mostra tem de ser a mesma
-  que a régua calcula e a mesma que fica gravada; pular dá 0% e não tira
-  palavras do denominador; o rascunho sobrevive a abrir e fechar o modal de
-  saída; e o texto digitado sai escapado, nunca como HTML. Na contagem: a
-  própria resposta dá 100%, trocar uma palavra custa exatamente uma, a
-  contração por extenso custa uma sem desalinhar o resto do diff, e 209 de 210
-  mostra 99%, não 100%. As palavras dos blocos somam a resposta inteira. O teste ainda registra **por que** a régua é por
+- **Módulo da entrevista:** a escolha de blocos e a rodada dirigidas pelas
+  funções de verdade (marcar, começar, campo, submit, next) — a porcentagem que
+  a **tela** mostra tem de ser a mesma que a régua calcula e a mesma que fica
+  gravada; pular dá 0% e não tira palavras do denominador; o rascunho sobrevive
+  a abrir e fechar o modal de saída; e o texto digitado sai escapado, nunca como
+  HTML. Na contagem: o próprio bloco dá 100%, trocar uma palavra custa
+  exatamente uma, e 209 de 210 mostra 99%, não 100%. **O histórico por bloco
+  mescla:** praticar o bloco 2 não pode apagar a nota do bloco 1, e a tela de
+  escolha mostra as duas. As palavras dos blocos somam a resposta inteira O teste ainda registra **por que** a régua é por
   palavra: o veredito inteiro do corretor dá "diferente" tanto para uma palavra
   trocada quanto para uma resposta inventada. **Nenhuma pergunta sem resposta
   padrão pode entrar na rodada** — nem no `getInterviewRound()` nem na tela

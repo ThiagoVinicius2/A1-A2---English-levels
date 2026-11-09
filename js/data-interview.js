@@ -250,6 +250,29 @@ function interviewTotalWords(q) {
   return q.partes.reduce((t, parte) => t + interviewPartTotal(parte), 0);
 }
 
+/* A chave do bloco, que é o que o histórico guarda. Prefixada pela pergunta
+   porque o "bloco 1" da próxima resposta não é este — a mesma razão das
+   chaves de deck do módulo de tradução serem prefixadas pela unidade. */
+function interviewBlockKey(q, i) {
+  return q.id + "-b" + (i + 1);
+}
+
+/* Todos os blocos praticáveis, de todas as perguntas que já têm resposta
+   padrão, na ordem. É o que a tela de escolha lista. */
+function getInterviewBlocks() {
+  const blocos = [];
+  getInterviewRound().forEach(q => {
+    q.partes.forEach((parte, i) => {
+      blocos.push({ key: interviewBlockKey(q, i), q, i, parte, total: interviewPartTotal(parte) });
+    });
+  });
+  return blocos;
+}
+
+function getInterviewBlockByKey(key) {
+  return getInterviewBlocks().filter(b => b.key === key)[0] || null;
+}
+
 /* Quantas palavras tem um texto. Serve para a tela inicial dizer o tamanho da
    resposta padrão ("your 210-word answer"). */
 function interviewWordCount(texto) {
