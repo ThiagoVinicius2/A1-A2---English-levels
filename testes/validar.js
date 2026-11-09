@@ -119,35 +119,66 @@ p.nota(`tradução: ${A.TRANS_CARDS.length} cartões em ${Object.keys(A.TRANS_DE
         `${Object.keys(A.TRANS_UNITS).filter(u => A.getTransDecksForUnit(u).length).length} unidades carregadas`);
 
 /* ============ 4. Entrevista (js/data-interview.js) ============ */
-/* Aqui não há gabarito para conferir — o que o validador defende é a FORMA de
-   que a tela depende: sem `pontos` não há nota (ela é o checklist), sem
-   `frases` a detecção de blocos imprime lista vazia, e `palavras` é lido
-   desestruturado em [min, max]. */
+/* A forma segue o kind, e é dela que a tela depende:
+   - mirror: a resposta padrão vive em partes[], e a tela compara cada parte
+     com o que a pessoa escreve. Sem partes não há nota;
+   - open:   sem `pontos` não há nota (ela é o checklist), sem `frases` a
+     detecção de blocos imprime lista vazia, e `palavras` é lido
+     desestruturado em [min, max]. */
 const idsEntrevista = {};
 p.ok(Array.isArray(A.INTERVIEW_QUESTIONS) && A.INTERVIEW_QUESTIONS.length > 0,
      "INTERVIEW_QUESTIONS existe e não está vazio");
 (A.INTERVIEW_QUESTIONS || []).forEach(q => {
   p.ok(!idsEntrevista[q.id], `entrevista ${q.id}: id repetido`);
   idsEntrevista[q.id] = true;
+  p.ok(q.kind === "mirror" || q.kind === "open", `entrevista ${q.id}: kind precisa ser mirror ou open (é "${q.kind}")`);
   p.ok(typeof q.question === "string" && q.question.trim(), `entrevista ${q.id}: question vazia`);
   p.ok(typeof q.tag === "string" && q.tag.trim(), `entrevista ${q.id}: tag vazia`);
   p.ok(typeof q.porque === "string" && q.porque.trim().length > 40, `entrevista ${q.id}: porque curto demais`);
   p.ok(typeof q.modelo === "string" && q.modelo.trim(), `entrevista ${q.id}: modelo vazio`);
-  p.ok(Array.isArray(q.pontos) && q.pontos.length >= 3 && q.pontos.every(x => typeof x === "string" && x.trim()),
-       `entrevista ${q.id}: pontos precisa ter 3+ strings não vazias (a nota do módulo sai daqui)`);
-  p.ok(Array.isArray(q.frases) && q.frases.length > 0 && q.frases.every(x => typeof x === "string" && x.trim()),
-       `entrevista ${q.id}: frases precisa ter strings não vazias`);
-  p.ok(Array.isArray(q.palavras) && q.palavras.length === 2 &&
-       Number.isInteger(q.palavras[0]) && Number.isInteger(q.palavras[1]) && q.palavras[0] < q.palavras[1],
-       `entrevista ${q.id}: palavras precisa ser [min, max] com min < max`);
-  /* A resposta modelo tem de caber na faixa que a tela cobra de quem responde:
-     modelo fora da faixa é a tela pedindo uma coisa e ensinando outra. */
-  const n = A.interviewWordCount(q.modelo);
-  p.ok(n >= q.palavras[0] && n <= q.palavras[1],
-       `entrevista ${q.id}: o modelo tem ${n} palavras, fora da faixa ${q.palavras.join("-")} que a tela cobra`);
   p.ok(A.getInterviewQuestionById(q.id) === q, `entrevista ${q.id}: getInterviewQuestionById não devolve a pergunta`);
+
+  if (A.interviewIsMirror(q)) {
+    p.ok(Array.isArray(q.partes) && q.partes.length >= 2, `entrevista ${q.id}: mirror precisa de partes[]`);
+    (q.partes || []).forEach((parte, i) => {
+      p.ok(typeof parte.pt === "string" && parte.pt.trim(), `entrevista ${q.id} parte ${i + 1}: pt vazio (é a deixa na tela)`);
+      p.ok(typeof parte.en === "string" && parte.en.trim(), `entrevista ${q.id} parte ${i + 1}: en vazio`);
+      /* a mesma rede do módulo de tradução: nenhuma parte pode nascer
+         reprovando a própria resposta */
+      p.ok(A.interviewGradePart(parte, parte.en).level === "certo",
+           `entrevista ${q.id} parte ${i + 1}: a própria resposta foi reprovada ("${parte.en}")`);
+      (parte.accept || []).forEach(a =>
+        p.ok(A.interviewGradePart(parte, a).level === "certo",
+             `entrevista ${q.id} parte ${i + 1}: accept reprovado ("${a}")`));
+    });
+    /* O modelo mostrado no fim da pergunta TEM de ser a emenda das partes: se
+       alguém editar uma parte e esquecer o modelo, a tela ensina uma resposta
+       e cobra outra. */
+    const palavras = t => String(t).replace(/\s+/g, " ").trim();
+    p.ok(palavras(q.partes.map(x => x.en).join(" ")) === palavras(q.modelo),
+         `entrevista ${q.id}: o modelo não é a emenda das partes — editou uma e esqueceu o outro?`);
+    p.ok(q.pontos === undefined && q.frases === undefined,
+         `entrevista ${q.id}: mirror não usa pontos nem frases`);
+  } else {
+    p.ok(Array.isArray(q.pontos) && q.pontos.length >= 3 && q.pontos.every(x => typeof x === "string" && x.trim()),
+         `entrevista ${q.id}: pontos precisa ter 3+ strings não vazias (a nota do módulo sai daqui)`);
+    p.ok(Array.isArray(q.frases) && q.frases.length > 0 && q.frases.every(x => typeof x === "string" && x.trim()),
+         `entrevista ${q.id}: frases precisa ter strings não vazias`);
+    p.ok(Array.isArray(q.palavras) && q.palavras.length === 2 &&
+         Number.isInteger(q.palavras[0]) && Number.isInteger(q.palavras[1]) && q.palavras[0] < q.palavras[1],
+         `entrevista ${q.id}: palavras precisa ser [min, max] com min < max`);
+    /* A resposta modelo tem de caber na faixa que a tela cobra de quem
+       responde: tela pedindo uma coisa e ensinando outra é pior que não ter
+       modelo. */
+    const n = A.interviewWordCount(q.modelo);
+    p.ok(n >= q.palavras[0] && n <= q.palavras[1],
+         `entrevista ${q.id}: o modelo tem ${n} palavras, fora da faixa ${q.palavras.join("-")} que a tela cobra`);
+  }
 });
-p.nota(`entrevista: ${(A.INTERVIEW_QUESTIONS || []).length} perguntas, ` +
-       `${(A.INTERVIEW_QUESTIONS || []).reduce((t, q) => t + q.pontos.length, 0)} pontos de checklist`);
+const espelho = (A.INTERVIEW_QUESTIONS || []).filter(A.interviewIsMirror);
+p.nota(`entrevista: ${(A.INTERVIEW_QUESTIONS || []).length} perguntas — ${espelho.length} com resposta padrão ` +
+       `(${espelho.reduce((t, q) => t + q.partes.length, 0)} partes), ` +
+       `${(A.INTERVIEW_QUESTIONS || []).length - espelho.length} abertas ` +
+       `(${(A.INTERVIEW_QUESTIONS || []).filter(q => !A.interviewIsMirror(q)).reduce((t, q) => t + q.pontos.length, 0)} pontos de checklist)`);
 
 p.fim();

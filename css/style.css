@@ -714,6 +714,19 @@ p { margin: 0 0 16px; color: var(--ink-75); }
   letter-spacing: .04em;
 }
 
+/* Na pergunta-espelho o enunciado é a deixa em português, então a pergunta da
+   entrevista fica acima dela, menor, só para lembrar o que está sendo
+   respondido. */
+.interview-question {
+  margin: 0 0 10px;
+  color: var(--ink-75);
+  font-size: 1.02rem;
+  font-weight: 600;
+}
+
+/* Campo de uma parte da resposta: uma ou duas frases, não um parágrafo. */
+.interview-input.short { min-height: 92px; }
+
 /* Por que a pergunta é feita: orientação, em português, acima do campo. */
 .interview-why {
   margin: 0 0 4px;

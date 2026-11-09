@@ -1,158 +1,170 @@
-/* Módulo "Job Interview": a régua é o checklist, e ela precisa valer igual nas
-   duas pontas — a tela de resultado e o que fica gravado.
+/* Módulo "Job Interview": duas formas de pergunta e uma régua só por pergunta.
 
-   É o mesmo bug que o módulo da conversa teve: lá o resumo da prática comparava
-   a resposta digitada com q.correct e devolvia 7% com tudo certo. Aqui a régua
-   é interviewScore(), e quem a usa é o finishInterview(); este teste dirige o
-   módulo pelas funções de verdade (campo, submit, checklist, next) e confere a
-   porcentagem que a TELA mostra, não só a que a régua calcula. */
+   O que este teste defende:
+   1. Na pergunta-espelho, quem corrige é o corretor do módulo de tradução —
+      "I am" tem de valer por "I'm" de graça, e a parte certa tem de contar.
+   2. A nota do módulo é a MÉDIA das porcentagens das perguntas, não a soma das
+      unidades: a pergunta-espelho tem 13 partes e as abertas têm 4 pontos, e
+      somar unidade com unidade faria a primeira valer três vezes as outras.
+   3. A porcentagem que a TELA mostra é a mesma da régua e a mesma que fica
+      gravada. É o bug que o módulo da conversa teve (7% com tudo certo), e ele
+      só aparece quando o teste olha a tela, não só a função. */
 const { carregar, carregarApp, criarPlacar } = require("./comum.js");
 const A = carregar();
 const P = carregarApp();
 const p = criarPlacar("MÓDULO DA ENTREVISTA");
+
+const espelho = A.INTERVIEW_QUESTIONS.filter(A.interviewIsMirror);
+const abertas = A.INTERVIEW_QUESTIONS.filter(q => !A.interviewIsMirror(q));
+p.ok(espelho.length >= 1, "existe ao menos uma pergunta com resposta padrão");
+p.ok(abertas.length >= 1, "existe ao menos uma pergunta aberta");
 
 /* ---- 1. contagem de palavras ---- */
 [["", 0], ["   ", 0], ["one", 1], ["  two   words ", 2], ["a\nb\tc", 3]]
   .forEach(([texto, n]) =>
     p.ok(A.interviewWordCount(texto) === n, `interviewWordCount(${JSON.stringify(texto)}) devia ser ${n}`));
 
-/* ---- 2. detecção de bloco: quem normaliza é o corretor da tradução ----
-   Reusar o transNormalize() é o que faz a contração valer de graça. Se alguém
-   trocar por uma comparação de string crua, estes casos falham. */
-const q1 = A.INTERVIEW_QUESTIONS[0];
+/* ---- 2. a correção da parte é a do módulo de tradução ---- */
+const q1 = espelho[0];
+const parte1 = q1.partes[0];
+p.ok(A.interviewGradePart(parte1, parte1.en).level === "certo", "a própria parte é corrigida como certo");
+p.ok(A.interviewGradePart(parte1, parte1.en.replace("I'm", "I am")).level === "certo",
+     "a forma longa da contração vale igual (é o transNormalize fazendo o trabalho)");
+p.ok(A.interviewGradePart(parte1, "Something completely different.").level === "diferente",
+     "resposta diferente precisa ser reprovada — aqui existe gabarito");
+p.ok(A.interviewGradePart(parte1, "").level === "vazio", "campo vazio não é veredito");
+/* o espelho é espelho: a parte seguinte não pode passar no lugar desta */
+p.ok(A.interviewGradePart(parte1, q1.partes[1].en).level !== "certo",
+     "a parte vizinha não pode ser aceita no lugar desta");
+
+/* ---- 3. detecção de bloco nas perguntas abertas ---- */
+const qa = abertas[0];
 const achou = (q, texto, frase) => A.interviewPhrasesFound(q, texto).filter(b => b.frase === frase)[0].achou;
+p.ok(achou(qa, qa.frases[0] + " something", qa.frases[0]), "o bloco é achado no texto digitado");
+p.ok(!achou(qa, "nothing like that here", qa.frases[0]), "bloco ausente não pode ser marcado como achado");
+p.ok(abertas.every(q => A.interviewPhrasesFound(q, q.modelo).some(b => b.achou)),
+     "a resposta modelo de cada pergunta aberta contém ao menos um dos seus blocos");
 
-p.ok(achou(q1, "I've been working with data for six years.", "I've been working with data for"),
-     "o bloco precisa ser achado na forma contraída");
-p.ok(achou(q1, "I have been working with data for six years.", "I've been working with data for"),
-     "o bloco contraído precisa ser achado na forma longa (é o transNormalize fazendo o trabalho)");
-p.ok(achou(q1, "right now i'm an analyst", "Right now I'm"),
-     "a detecção precisa ignorar caixa e pontuação");
-p.ok(!achou(q1, "I work with dashboards.", "My main tools are"),
-     "bloco ausente não pode ser marcado como achado");
-/* Palavra inteira, não substring: senão "I built" casaria dentro de "rebuilt"
-   e o módulo diria que a pessoa usou um bloco que ela não usou. */
-const q3 = A.INTERVIEW_QUESTIONS[2];
-p.ok(!achou(q3, "Then I rebuilt the model in dbt.", "What I did was"),
-     "a detecção não pode casar pedaço de palavra");
-p.ok(A.INTERVIEW_QUESTIONS.every(q => A.interviewPhrasesFound(q, q.modelo).some(b => b.achou)),
-     "a resposta modelo de cada pergunta precisa conter ao menos um dos seus próprios blocos");
-
-/* ---- 3. a rodada inteira, pelas funções de verdade ---- */
-function responder(texto, quantosPontos) {
-  const q = P.state.interviewQuestions[P.state.interviewIndex];
-  P.campo("interview-input").value = texto;
-  P.submitInterviewAnswer();
-  for (let i = 0; i < quantosPontos; i++) P.toggleInterviewPoint(i);
-  return q;
-}
-
+/* ---- 4. a rodada inteira, pelas funções de verdade ---- */
 P.startInterview();
 p.ok(P.state.view === "interview", "startInterview abre a tela da entrevista");
-p.ok(P.state.interviewQuestions.length === A.INTERVIEW_QUESTIONS.length,
-     "a rodada traz todas as perguntas");
-p.ok(P.state.interviewQuestions[0].id === A.INTERVIEW_QUESTIONS[0].id,
-     "ordem fixa: a entrevista abre em 'Tell me about yourself'");
+p.ok(P.interviewIsMirror(P.interviewCurrentQuestion()), "a entrevista abre na pergunta-espelho");
 
-/* campo vazio não revela nada — avisa e espera */
+/* campo vazio avisa em vez de revelar a resposta */
 P.campo("interview-input").value = "   ";
-P.submitInterviewAnswer();
-p.ok(P.state.interviewEmptyWarn === true && !P.state.interviewRevealed[P.state.interviewQuestions[0].id],
-     "campo vazio avisa em vez de revelar a resposta modelo");
+P.submitInterviewPart();
+p.ok(P.state.interviewEmptyWarn === true && !P.state.interviewPartRevealed[q1.id][0],
+     "parte vazia avisa em vez de revelar a resposta padrão");
 
-const marcados = [5, 2, 0, 1, 1, 1];   // a 3ª é pulada
-const perguntas = P.state.interviewQuestions;
-responder("I've been working with data for six years as an analyst.", marcados[0]);
-p.ok(P.interviewScore(perguntas[0]).marcados === 5, "os 5 pontos marcados na 1ª pergunta contam 5");
+/* 10 das 13 partes certas (uma delas escrita na forma longa), 1 typo, 2 "não lembro" */
+const qEspelho = P.state.interviewQuestions[0];
+const typo = t => t.slice(0, 3) + t[3] + t.slice(3);   // uma letra dobrada
+let certas = 0;
+qEspelho.partes.forEach((parte, i) => {
+  if (i === 10) {                                   // typo: conta como acerto
+    P.campo("interview-input").value = typo(parte.en);
+    P.submitInterviewPart();
+  } else if (i === 11 || i === 12) {                // não lembro: não conta
+    P.skipInterviewPart();
+  } else {
+    P.campo("interview-input").value = i === 0 ? parte.en.replace("I'm", "I am") : parte.en;
+    P.submitInterviewPart();
+    certas++;
+  }
+  if (i < qEspelho.partes.length - 1) P.nextInterviewPart();
+});
+const notas = P.state.interviewPartGrades[qEspelho.id];
+p.ok(notas.filter(n => n === "certo").length === certas,
+     `as ${certas} partes escritas certas viraram "certo" (deu ${notas.filter(n => n === "certo").length})`);
+p.ok(notas[10] === "quase", `a parte com typo devia virar "quase" (deu "${notas[10]}")`);
+p.ok(notas[11] === "naoLembro" && notas[12] === "naoLembro", "as duas puladas viraram naoLembro");
+
+const sEspelho = P.interviewScore(qEspelho);
+p.ok(sEspelho.acertos === certas + 1 && sEspelho.total === qEspelho.partes.length,
+     `a pergunta-espelho devia valer ${certas + 1} de ${qEspelho.partes.length} (o typo conta, o "não lembro" não) — deu ${sEspelho.acertos} de ${sEspelho.total}`);
+
+/* a última parte mostra a resposta inteira, que é o fecho da pergunta */
+p.ok(P.telaHtml().indexOf("The whole answer") !== -1,
+     "a última parte mostra a resposta padrão inteira");
+
+/* ---- 5. as perguntas abertas, com checklist ---- */
+P.nextInterviewPart();                               // sai da pergunta-espelho
+const marcados = [2, 0, 1, 1, 1];                    // a segunda aberta é pulada
+P.state.interviewQuestions.slice(1).forEach((q, k) => {
+  p.ok(!P.interviewIsMirror(q), `${q.id}: é pergunta aberta`);
+  if (marcados[k] === 0) {
+    P.skipInterviewQuestion();
+  } else {
+    P.campo("interview-input").value = q.modelo;
+    P.submitInterviewAnswer();
+    for (let i = 0; i < marcados[k]; i++) P.toggleInterviewPoint(i);
+  }
+  if (k < 4) P.nextInterviewQuestion();
+});
 P.toggleInterviewPoint(0);
-p.ok(P.interviewScore(perguntas[0]).marcados === 4, "clicar de novo no mesmo ponto desmarca");
-P.toggleInterviewPoint(0);
+P.toggleInterviewPoint(0);                           // marca e desmarca: tem de alternar
+p.ok(P.interviewScore(P.state.interviewQuestions[5]).acertos === marcados[4],
+     "clicar duas vezes no mesmo ponto desmarca");
 
-P.nextInterviewQuestion();
-responder("What I'm looking for now is more engineering work.", marcados[1]);
+/* ---- 6. a nota: média das perguntas, nas duas pontas ---- */
+const esperado = Math.round(
+  P.state.interviewQuestions.reduce((t, q) => {
+    const s = P.interviewScore(q);
+    return t + P.pct(s.acertos, s.total);
+  }, 0) / P.state.interviewQuestions.length);
 
-P.nextInterviewQuestion();
-P.skipInterviewQuestion();     // pular vale zero, mas os pontos continuam no total
-p.ok(P.state.interviewRevealed[perguntas[2].id] && P.interviewScore(perguntas[2]).marcados === 0,
-     "pergunta pulada fica revelada e vale zero ponto");
-
-P.nextInterviewQuestion();
-responder("I've used it for four years, almost every day.", marcados[3]);
-P.nextInterviewQuestion();
-responder("I'm looking for something in the range of X to Y.", marcados[4]);
-P.nextInterviewQuestion();
-responder("Yes, a couple. How is the data team organized today?", marcados[5]);
-
-const totalPontos = perguntas.reduce((t, q) => t + q.pontos.length, 0);
-const totalMarcados = marcados.reduce((a, b) => a + b, 0);
-const esperado = P.pct(totalMarcados, totalPontos);
-
-P.nextInterviewQuestion();     // último: fecha a rodada
+P.nextInterviewQuestion();                           // última pergunta: fecha a rodada
 p.ok(P.state.view === "interviewResults", "a última pergunta leva à tela de resultado");
-p.ok(P.state.interviewResults.marcados === totalMarcados && P.state.interviewResults.total === totalPontos,
-     `o resultado devia somar ${totalMarcados} de ${totalPontos} (deu ${P.state.interviewResults.marcados} de ${P.state.interviewResults.total})`);
 p.ok(P.state.interviewResults.overallPct === esperado,
      `a régua devia dar ${esperado}% (deu ${P.state.interviewResults.overallPct}%)`);
 
-/* A TELA, não só a régua: é a diferença que escondeu o bug dos 7% na conversa. */
 const tela = P.telaHtml();
 p.ok(tela.indexOf(esperado + "%") !== -1, `a tela de resultado devia mostrar ${esperado}%`);
-p.ok(tela.indexOf(`${totalMarcados} of ${totalPontos} checklist points`) !== -1,
-     `a tela devia mostrar "${totalMarcados} of ${totalPontos} checklist points"`);
-p.ok(tela.indexOf("5/5") !== -1 && tela.indexOf("2/4") !== -1,
-     "a tela devia mostrar a fração por pergunta (5/5 na 1ª, 2/4 na 2ª)");
-p.ok(P.state.interviewResults.respondidas === 5,
-     `5 perguntas respondidas e uma pulada (deu ${P.state.interviewResults.respondidas})`);
+p.ok(tela.indexOf(`${sEspelho.acertos}/${sEspelho.total}`) !== -1,
+     `a tela devia mostrar a fração da pergunta-espelho (${sEspelho.acertos}/${sEspelho.total})`);
+p.ok(tela.indexOf("Average across the") !== -1,
+     "a tela diz que a nota é a média das perguntas, senão a soma parece errada");
 
-/* o que fica gravado tem de bater com o que a tela mostrou */
 const guardado = JSON.parse(P.localStorage.getItem(P.INTERVIEW_STORAGE_KEY));
 p.ok(guardado && guardado.overall === esperado,
      `o histórico devia gravar ${esperado}% (gravou ${guardado && guardado.overall})`);
-p.ok(guardado.perguntas[perguntas[0].id].pct === 100 && guardado.perguntas[perguntas[2].id].pct === 0,
-     "o histórico grava 100% na pergunta com tudo marcado e 0% na pulada");
-p.ok(P.renderInterviewLandingCard().indexOf(esperado + "%") !== -1,
-     "o card da página inicial mostra a porcentagem da última rodada");
+p.ok(guardado.perguntas[qEspelho.id].acertos === sEspelho.acertos &&
+     guardado.perguntas[qEspelho.id].kind === "mirror",
+     "o histórico guarda a fração da pergunta-espelho e o kind dela");
 
-/* ---- 3b. o contador de palavras anda enquanto se digita ----
-   Ele é atualizado direto no nó, sem render(): se alguém trocar por render(),
-   o campo e o cursor somem a cada tecla. */
-P.startInterview();
-P.saveInterviewDraft("one two three");
-p.ok(P.campo("interview-count").textContent.indexOf("3 words") === 0,
-     `o contador devia mostrar "3 words" (mostrou "${P.campo("interview-count").textContent}")`);
-P.saveInterviewDraft("one");
-p.ok(P.campo("interview-count").textContent.indexOf("1 word ") === 0,
-     "uma palavra só vira singular no contador");
+/* a média é mesmo média: a pergunta-espelho (13 partes) não pode pesar mais
+   que uma aberta (4 pontos) */
+const soma = P.state.interviewQuestions.reduce((t, q) => {
+  const s = P.interviewScore(q); return { a: t.a + s.acertos, b: t.b + s.total };
+}, { a: 0, b: 0 });
+p.ok(P.pct(soma.a, soma.b) !== esperado || soma.b === 0,
+     "a nota não pode ser a soma das unidades (seria a pergunta-espelho pesando três vezes)");
 
-/* ---- 4. pular tudo não melhora a nota ---- */
+/* ---- 7. pular tudo dá 0% ---- */
 P.startInterview();
-P.state.interviewQuestions.forEach((q, i) => {
-  P.skipInterviewQuestion();
-  if (i < P.state.interviewQuestions.length - 1) P.nextInterviewQuestion();
+const qs = P.state.interviewQuestions;
+qs.forEach((q, i) => {
+  P.skipInterviewQuestion();                         // na espelho, marca todas as partes
+  if (P.state.view === "interview" && P.state.interviewIndex === i && i < qs.length - 1) P.nextInterviewQuestion();
 });
-P.finishInterview();
+if (P.state.view === "interview") P.finishInterview();
 p.ok(P.state.interviewResults.overallPct === 0, "pular todas as perguntas dá 0%");
 
-/* ---- 5. o texto digitado não pode ser perdido nem virar HTML ----
-   São as duas regras dos campos do projeto, e aqui o campo é um parágrafo
-   inteiro: perder o rascunho num render() seria grave. */
+/* ---- 8. o texto digitado não se perde nem vira HTML ---- */
 P.startInterview();
 const rascunho = 'I said "hello" & <b>built</b> a dashboard';
 P.saveInterviewDraft(rascunho);
 P.campo("interview-input").value = rascunho;
 P.requestExitInterview();      // abre o modal, e o render leva o campo embora
 P.cancelExitInterview();       // volta para a pergunta
-p.ok(P.telaHtml().indexOf("I said &quot;hello&quot;") !== -1 ||
-     P.telaHtml().indexOf('I said "hello"') !== -1,
-     "o rascunho precisa voltar no campo depois de abrir e fechar o modal de saída");
 p.ok(P.telaHtml().indexOf("&lt;b&gt;built&lt;/b&gt;") !== -1 && P.telaHtml().indexOf("<b>built</b>") === -1,
-     "o texto digitado precisa ser escapado no campo (nunca virar HTML)");
+     "o rascunho volta no campo depois do modal de saída, e escapado");
 
 P.campo("interview-input").value = rascunho;
-P.submitInterviewAnswer();
-const telaResposta = P.telaHtml();
-p.ok(telaResposta.indexOf("&lt;b&gt;built&lt;/b&gt;") !== -1 && telaResposta.indexOf("<b>built</b>") === -1,
-     "o texto digitado precisa ser escapado também na resposta mostrada");
-p.ok(telaResposta.indexOf("&amp;") !== -1, "o & do texto digitado precisa sair escapado");
+P.submitInterviewPart();
+const telaParte = P.telaHtml();
+p.ok(telaParte.indexOf("&lt;b&gt;built&lt;/b&gt;") !== -1 && telaParte.indexOf("<b>built</b>") === -1,
+     "o texto digitado sai escapado também no diff da parte");
+p.ok(telaParte.indexOf("&amp;") !== -1, "o & do texto digitado sai escapado");
 
 p.fim();
