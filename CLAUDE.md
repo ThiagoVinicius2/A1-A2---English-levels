@@ -530,30 +530,36 @@ vetar alguma coisa se discordar.
 
 ## Regras do módulo "Job Interview"
 
-Perguntas de entrevista em inglês (`INTERVIEW_QUESTIONS`, em
-`js/data-interview.js`) com a resposta escrita por inteiro, num `<textarea>`.
-As seis são as perguntas que caem em toda entrevista: abertura, saída do
-emprego atual, um projeto recente, a ferramenta da vaga, pretensão salarial e
-as perguntas para o entrevistador.
+As perguntas que caem em toda entrevista (`INTERVIEW_QUESTIONS`, em
+`js/data-interview.js`), com **as respostas do próprio dono** — não respostas
+genéricas. O exercício é reproduzir a resposta padrão dele até sair sem pensar.
 
-**Toda pergunta declara o seu `kind`, e a forma segue a tarefa** — a mesma
-ideia do módulo da conversa:
+**Toda pergunta declara o seu `kind`:**
 
-- **`kind:"mirror"`** — o dono **já tem** a resposta padrão dele para esta
-  pergunta, escrita por ele, e o exercício é reproduzi-la até sair sem pensar.
-  Aqui **existe gabarito**: o texto digitado é comparado com o da resposta.
-- **`kind:"open"`** — ainda não há resposta padrão, então **não existe
-  gabarito**: a nota é a autoavaliação por checklist, e o automático é só o
-  tamanho da resposta e quais blocos de inglês apareceram.
+- **`kind:"mirror"`** — a resposta padrão já foi escrita. **Só estas entram na
+  rodada.** Existe gabarito: o texto digitado é comparado com o da resposta.
+- **`kind:"soon"`** — a resposta padrão ainda não existe. A pergunta fica
+  **fora da rodada** e aparece na tela inicial (e no fim da rodada) como o que
+  falta escrever. O que ela guarda é o material para escrever essa resposta:
+  `porque` (por que o entrevistador pergunta) e `pontos[]` (o que a resposta
+  precisa cobrir). O `modelo` dela é só um exemplo de ponto de partida.
 
-Quando chegar a resposta padrão de uma pergunta aberta, ela vira `mirror`:
-troque `pontos`/`frases`/`palavras` por `partes[]` e mantenha o `modelo`.
+**O combinado é um espelho por vez:** o dono pratica uma pergunta até ela sair
+inteira, então escreve a resposta padrão da próxima. Quando ela chegar, a
+pergunta vira `mirror` — troque `pontos` por `partes[]` e ponha a resposta
+inteira no `modelo`.
+
+**Já houve um `kind:"open"`** (responder livre e marcar um checklist de
+autoavaliação) e ele **saiu**: com todas as perguntas indo virar espelho, a
+tela dele era caminho morto, e caminho morto no `app.js` é o que o projeto
+tira. Está no histórico do git se um dia a ideia voltar. O que ficou da época
+são os `pontos`, que agora servem de roteiro de escrita, não de nota.
 
 ### A pergunta-espelho
 
 - A resposta mora em **`partes[]`**, uma frase (ou duas curtas) por vez, cada
   parte com `pt` (a deixa, em português) e `en` (o que tem de ser escrito).
-  **Mandar escrever 270 palavras de uma vez não ensina nada**: o erro
+  **Mandar escrever 210 palavras de uma vez não ensina nada**: o erro
   apareceria todo junto no fim, sem dizer qual frase escapou.
 - **Não cadastre `accept` com outra formulação.** O objetivo é dizer **esta**
   resposta, não uma parecida. Contração, caixa, pontuação e erro de digitação
@@ -566,31 +572,20 @@ troque `pontos`/`frases`/`palavras` por `partes[]` e mantenha o `modelo`.
   última parte mostra a **resposta inteira** emendada.
 - **Não há autoavaliação aqui.** No módulo de tradução ela existe porque pode
   haver outra tradução certa; no espelho não há: ou saiu o que está na
-  resposta, ou não saiu. `certo` e `quase` contam (o inglês estava certo, só a
-  digitação escorregou), `diferente` e `naoLembro` não — é o `transIsHit()`.
+  resposta, ou não saiu. `certo` e `quase` contam, `diferente` e `naoLembro`
+  não — é o `transIsHit()`.
 - **O `modelo` tem de ser a emenda das `partes`.** O validador falha se não
   for: editar uma parte e esquecer o modelo faria a tela ensinar uma resposta
   e cobrar outra.
 
-### A pergunta aberta
-
-- Traz `porque` (por que ela é feita — orientação, então **em português**),
-  `pontos[]` (o checklist, **em português**), `frases[]` (blocos de inglês que
-  o app procura no texto digitado), `modelo` e `palavras: [min, max]`.
-- **A resposta modelo tem de caber na faixa de `palavras`** que a tela cobra de
-  quem responde — o validador falha se não couber.
-- **O bloco de inglês é dica, não nota.** Quem pontua é o checklist.
-
 ### A nota
 
-- Por pergunta: espelho → partes reproduzidas / partes; aberta → pontos
-  marcados / pontos. Nos dois casos o denominador é a pergunta inteira, então
-  **pular não melhora nada**.
-- Do módulo: **a MÉDIA das porcentagens das perguntas**, não a soma das
-  unidades. A pergunta-espelho tem 13 partes e uma aberta tem 4 pontos de
-  checklist: somar unidade com unidade faria a primeira pergunta valer três
-  vezes as outras. A tela diz isso ("Average across the 6 questions"), senão a
-  conta parece quebrada.
+- Por pergunta: partes reproduzidas / partes. O denominador é a pergunta
+  inteira, então **pular não melhora nada**.
+- Do módulo: **a soma das partes** de todas as perguntas da rodada. Uma parte
+  é uma parte, então somar é honesto — foi o que permitiu tirar a média de
+  porcentagens que existiu enquanto a rodada misturava espelho (13 partes) com
+  checklist (4 pontos), que não são a mesma unidade.
 - A régua é o `interviewScore()`, e ela vale nas duas pontas — a tela de
   resultado e o que vai para o `localStorage`.
 
@@ -600,11 +595,10 @@ troque `pontos`/`frases`/`palavras` por `partes[]` e mantenha o `modelo`.
   projeto). O `oninput` guarda o rascunho em `state.interviewDraft` via
   `saveInterviewDraft()`, que **nunca** chama `render()`: abrir o modal de
   saída reescreve o `#app`, e sem o rascunho guardado a pessoa perderia o que
-  escreveu. O contador de palavras (só na pergunta aberta, que tem faixa) é
-  atualizado mexendo só no texto do nó `#interview-count`, pelo mesmo motivo.
-- A pergunta 4 traz uma ferramenta concreta (Power BI) em vez de
-  `[ferramenta da vaga]`: o `porque` é que manda trocar pela ferramenta do
-  anúncio. Enunciado com colchete de preencher não dá para responder.
+  escreveu.
+- Com uma pergunta só na rodada, o progresso mostra "Part 3 of 13" e some o
+  "Question 1 of 1", que não diz nada. Com duas ou mais, volta a mostrar as
+  duas contagens.
 - Ao trocar o banco de perguntas ou a régua, suba `INTERVIEW_STORAGE_KEY` em
   `js/app.js` (`_r1` → `_r2` → …) para o resultado anterior não se misturar.
 
@@ -657,17 +651,15 @@ exatamente essa diferença que escondia o bug dos 11%.
   basta** — era só isso que o smoke conferia, e por isso o resumo da prática
   passou duas rodadas devolvendo 7% com tudo certo
 - **Módulo da entrevista:** a rodada inteira dirigida pelas funções de verdade
-  (campo, submit, checklist, next) — a porcentagem que a **tela** mostra tem de
-  ser a mesma que a régua calcula e a mesma que fica gravada; pular todas dá 0%;
-  o rascunho sobrevive a abrir e fechar o modal de saída; e o texto digitado sai
-  escapado, nunca como HTML. Na pergunta-espelho, a forma longa da contração
-  vale, a resposta diferente é reprovada, a parte vizinha não passa no lugar
-  desta, o typo conta como acerto e o "não lembro" não — e a nota do módulo
-  **não** pode ser a soma das unidades, só a média das perguntas. Nas abertas, a
-  detecção de bloco é conferida nas duas formas (contraída e longa) e não pode
-  casar pedaço de palavra. O validador ainda confere que o `modelo` da
-  pergunta-espelho é a emenda das `partes`, e que nenhuma parte reprova a
-  própria resposta
+  (campo, submit, next) — a porcentagem que a **tela** mostra tem de ser a mesma
+  que a régua calcula e a mesma que fica gravada; pular dá 0% e não tira as
+  partes do denominador; o rascunho sobrevive a abrir e fechar o modal de saída;
+  e o texto digitado sai escapado, nunca como HTML. Na correção, a forma longa
+  da contração vale, a resposta diferente é reprovada, a parte vizinha não passa
+  no lugar desta, o typo conta como acerto e o "não lembro" não. **Nenhuma
+  pergunta sem resposta padrão pode entrar na rodada** — nem no `getInterviewRound()`
+  nem na tela. O validador ainda confere que o `modelo` é a emenda das `partes` e
+  que nenhuma parte reprova a própria resposta
 - Teste das unidades: 15 na grade, só as carregadas com link, toda chave de deck
   começando com a chave da sua unidade, nenhum deck vazando de uma unidade para
   outra, e o histórico gravado no formato antigo migrando para a chave com prefixo
