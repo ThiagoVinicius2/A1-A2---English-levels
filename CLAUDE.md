@@ -557,42 +557,37 @@ são os `pontos`, que agora servem de roteiro de escrita, não de nota.
 
 ### A pergunta-espelho
 
-- A resposta mora em **`partes[]`**, uma frase (ou duas curtas) por vez, e cada
-  parte guarda **só o `en`**. **Mandar escrever 210 palavras de uma vez não
-  ensina nada**: o erro apareceria todo junto no fim, sem dizer qual frase
-  escapou.
-- **A tela não dá deixa nenhuma: só a pergunta e o campo.** Houve uma versão
-  com a frase em português acima do campo, como no módulo de tradução, e o
-  dono pediu para tirar — ali a deixa entrega a resposta, e o exercício é
-  justamente lembrar dela na ordem, que é o que acontece na entrevista. Quem
-  travar usa o "I don't remember", que revela a frase e conta como erro, então
-  dá para ver depois onde voltar. O validador falha se uma parte voltar a ter
-  campo `pt`.
-- **Não cadastre `accept` com outra formulação.** O objetivo é dizer **esta**
-  resposta, não uma parecida. Contração, caixa, pontuação e erro de digitação
-  já saem de graça no corretor; o resto é diferença de verdade.
-- **Quem corrige é o `gradeTransAnswer()` do módulo de tradução**, chamado pelo
-  `interviewGradePart()`. Terceira vez que esse corretor é reusado (conversa,
-  entrevista) e pela mesma razão: um segundo corretor duplicaria a parte mais
-  delicada do site.
-- A tela mostra o **diff palavra por palavra** (`renderTransDiff()`), e na
-  última parte mostra a **resposta inteira** emendada.
-- **Não há autoavaliação aqui.** No módulo de tradução ela existe porque pode
-  haver outra tradução certa; no espelho não há: ou saiu o que está na
-  resposta, ou não saiu. `certo` e `quase` contam, `diferente` e `naoLembro`
-  não — é o `transIsHit()`.
-- **O `modelo` tem de ser a emenda das `partes`.** O validador falha se não
-  for: editar uma parte e esquecer o modelo faria a tela ensinar uma resposta
-  e cobrar outra.
+- A resposta padrão inteira vive no **`modelo`**, e a pessoa a escreve **de uma
+  vez só** — como ela vai sair na entrevista. Houve uma versão que quebrava a
+  resposta em treze partes, uma frase por vez; o dono pediu a resposta inteira,
+  e o caminho das partes saiu.
+- **A tela não dá deixa nenhuma: a pergunta e o campo.** Houve também uma
+  versão com a frase em português acima do campo, como no módulo de tradução,
+  e ela saiu pelo mesmo motivo: ali a deixa entrega a resposta.
+- **A nota é por PALAVRA, e essa é a decisão central do módulo.** Numa resposta
+  de 210 palavras, o veredito inteiro do `gradeTransAnswer()` não serve de
+  nota: uma palavra trocada e uma resposta inventada dão as duas "diferente".
+  Quem conta é o **`transDiffWords()`** (o mesmo diff do módulo de tradução),
+  dentro do `interviewCheckAnswer()`: a nota é quantas palavras da resposta
+  saíram, e a tela marca em verde o que faltou e risca o que sobrou.
+- **Contração escrita por extenso e typo custam uma palavra, de propósito.**
+  "I am" onde a resposta tem "I'm" aparece marcado: num espelho a meta é dizer
+  ESTA resposta, e uma palavra em 210 custa meio ponto percentual. A `note` da
+  tela avisa isso, para a marca não parecer bug.
+- **Não cadastre `accept` com outra formulação**, pelo mesmo motivo.
+- O validador confere que a própria resposta padrão conta 100% das palavras e
+  é reconhecida pelo corretor, e que uma pergunta `mirror` não tem `partes`
+  nem `pontos` — se tiver, alguém reintroduziu um caminho que saiu.
 
 ### A nota
 
-- Por pergunta: partes reproduzidas / partes. O denominador é a pergunta
-  inteira, então **pular não melhora nada**.
-- Do módulo: **a soma das partes** de todas as perguntas da rodada. Uma parte
-  é uma parte, então somar é honesto — foi o que permitiu tirar a média de
-  porcentagens que existiu enquanto a rodada misturava espelho (13 partes) com
-  checklist (4 pontos), que não são a mesma unidade.
+- Por pergunta: palavras reproduzidas / palavras da resposta padrão. O
+  denominador é a resposta inteira, então **pular ("I don't remember") conta
+  zero e não tira palavras do total**.
+- Do módulo: **a soma das palavras** de todas as perguntas da rodada. Uma
+  palavra é uma palavra, então somar é honesto — foi o que permitiu tirar a
+  média de porcentagens que existiu enquanto a rodada misturava formas
+  diferentes de pergunta.
 - A régua é o `interviewScore()`, e ela vale nas duas pontas — a tela de
   resultado e o que vai para o `localStorage`.
 
@@ -603,9 +598,10 @@ são os `pontos`, que agora servem de roteiro de escrita, não de nota.
   `saveInterviewDraft()`, que **nunca** chama `render()`: abrir o modal de
   saída reescreve o `#app`, e sem o rascunho guardado a pessoa perderia o que
   escreveu.
-- Com uma pergunta só na rodada, o progresso mostra "Part 3 of 13" e some o
-  "Question 1 of 1", que não diz nada. Com duas ou mais, volta a mostrar as
-  duas contagens.
+- Com uma pergunta só na rodada, **não há barra de progresso**: "Question 1 of
+  1" não diz nada. Com duas ou mais, ela volta.
+- O campo tem 14 linhas, porque a resposta inteira cabe nele sem rolagem no
+  desktop.
 - Ao trocar o banco de perguntas ou a régua, suba `INTERVIEW_STORAGE_KEY` em
   `js/app.js` (`_r1` → `_r2` → …) para o resultado anterior não se misturar.
 
@@ -659,14 +655,15 @@ exatamente essa diferença que escondia o bug dos 11%.
   passou duas rodadas devolvendo 7% com tudo certo
 - **Módulo da entrevista:** a rodada inteira dirigida pelas funções de verdade
   (campo, submit, next) — a porcentagem que a **tela** mostra tem de ser a mesma
-  que a régua calcula e a mesma que fica gravada; pular dá 0% e não tira as
-  partes do denominador; o rascunho sobrevive a abrir e fechar o modal de saída;
-  e o texto digitado sai escapado, nunca como HTML. Na correção, a forma longa
-  da contração vale, a resposta diferente é reprovada, a parte vizinha não passa
-  no lugar desta, o typo conta como acerto e o "não lembro" não. **Nenhuma
-  pergunta sem resposta padrão pode entrar na rodada** — nem no `getInterviewRound()`
-  nem na tela. O validador ainda confere que o `modelo` é a emenda das `partes` e
-  que nenhuma parte reprova a própria resposta
+  que a régua calcula e a mesma que fica gravada; pular dá 0% e não tira
+  palavras do denominador; o rascunho sobrevive a abrir e fechar o modal de
+  saída; e o texto digitado sai escapado, nunca como HTML. Na contagem: a
+  própria resposta dá 100%, trocar uma palavra custa exatamente uma, tirar uma
+  frase de cinco palavras custa cinco, e a contração por extenso custa uma sem
+  desalinhar o resto do diff. O teste ainda registra **por que** a régua é por
+  palavra: o veredito inteiro do corretor dá "diferente" tanto para uma palavra
+  trocada quanto para uma resposta inventada. **Nenhuma pergunta sem resposta
+  padrão pode entrar na rodada** — nem no `getInterviewRound()` nem na tela
 - Teste das unidades: 15 na grade, só as carregadas com link, toda chave de deck
   começando com a chave da sua unidade, nenhum deck vazando de uma unidade para
   outra, e o histórico gravado no formato antigo migrando para a chave com prefixo

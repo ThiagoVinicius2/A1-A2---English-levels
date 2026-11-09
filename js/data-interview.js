@@ -9,11 +9,9 @@
      na rodada.** Aqui existe gabarito: o texto digitado é comparado com o da
      resposta, parte por parte, pelo mesmo corretor do módulo de tradução
      (contração, caixa, pontuação e erro de digitação já resolvidos lá). A
-     resposta mora em `partes[]`, uma frase por vez — mandar escrever 210
-     palavras de uma vez esconderia qual frase escapou. **A tela não dá deixa
-     nenhuma**: só a pergunta e o campo. O exercício é lembrar a resposta na
-     ordem, que é o que acontece na entrevista de verdade; quem travar usa o
-     "I don't remember", que revela a frase e conta como erro.
+     resposta inteira vive no `modelo`, e a pessoa a escreve **de uma vez
+     só** — como ela vai sair na entrevista. A tela não dá deixa nenhuma: a
+     pergunta e o campo, e mais nada.
    - `kind:"soon"` — a resposta padrão ainda não foi escrita. A pergunta fica
      **fora da rodada**, e o que ela guarda (`porque` e `pontos`) é o material
      para escrever essa resposta: por que o entrevistador faz a pergunta e o
@@ -39,38 +37,22 @@ const INTERVIEW_QUESTIONS = [
      270 palavras de uma vez não ensina nada: o erro apareceria todo junto no
      fim, sem dizer qual frase escapou.
 
-     Cada parte guarda só o `en`: não há deixa em português na tela, porque
-     ela entregaria a resposta — o dono pediu "apenas a caixa para escrever em
-     inglês". Não cadastre `accept` com outra formulação aqui: o objetivo é
-     dizer ESTA resposta, não uma parecida. */
+     A nota não é um veredito só: numa resposta de 210 palavras, "certo ou
+     errado" seria inútil — uma palavra trocada já derruba a comparação
+     inteira. Quem conta é o `transDiffWords()` do módulo de tradução, palavra
+     por palavra: a nota é quantas palavras da resposta saíram, e a tela
+     mostra quais faltaram e quais sobraram.
+
+     Não cadastre `accept` com outra formulação: o objetivo é dizer ESTA
+     resposta, não uma parecida. */
   { id: "i-1",
     kind: "mirror",
     tag: "Opening",
     question: "Tell me about yourself.",
     porque: "É a primeira pergunta e serve para você escolher a história que o resto da "
-          + "entrevista vai seguir. Esta é a sua resposta padrão, e ela vem em treze partes, "
-          + "na ordem: escreva cada frase de memória. Se travar numa, use o \u201cI don\u2019t "
-          + "remember\u201d — ela aparece, e conta como erro para você saber onde voltar.",
-    partes: [
-      { en: "I'm a Data and BI Analyst, currently at Basis, a technology company in Brazil." },
-      { en: "My work is SQL, Python and BI — I build the data models behind the reports, "
-          + "and the dashboards on top of them, in Power BI and Qlik Sense." },
-      { en: "I didn't start in data." },
-      { en: "I spent ten years in industry — Volkswagen, Bosch, Sumitomo — and in my last "
-          + "years there I worked as a process analyst." },
-      { en: "I had to collect production data, organize it, and turn it into numbers the team "
-          + "could use." },
-      { en: "And that was the part of the job I liked the most." },
-      { en: "So I went deeper: first Excel, then BI tools, then SQL and Python." },
-      { en: "From there I studied data analysis, did a postgraduate degree, and moved step by step." },
-      { en: "First ETL routines from an ERP system, with SQL." },
-      { en: "Then analytical models on BigQuery, and automation with Python." },
-      { en: "Today I work with datasets up to twenty million rows, and I use Python to automate "
-          + "the data quality checks — one routine went from four hours a week to fifteen minutes." },
-      { en: "What I'm looking for now is an international team, working in English, where I can "
-          + "keep doing analysis and BI — and keep growing on the technical side." },
-      { en: "That's why I'm here." },
-    ],
+          + "entrevista vai seguir. Escreva a sua resposta padrão inteira, de memória, como "
+          + "você diria em voz alta. No fim a tela marca palavra por palavra o que saiu, o "
+          + "que faltou e o que sobrou.",
     modelo: "I'm a Data and BI Analyst, currently at Basis, a technology company in Brazil. "
           + "My work is SQL, Python and BI — I build the data models behind the reports, and "
           + "the dashboards on top of them, in Power BI and Qlik Sense.\n\n"
@@ -204,18 +186,29 @@ function getInterviewRound() {
   return INTERVIEW_QUESTIONS.filter(interviewIsMirror);
 }
 
-/* Quantas unidades a pergunta vale: as partes da resposta padrão. É o
-   denominador da nota, e quem o lê é o interviewScore(). */
-function interviewUnits(q) {
-  return interviewIsMirror(q) ? q.partes.length : 0;
-}
+/* Confere a resposta inteira contra a padrão, palavra por palavra. Quem
+   compara é o transDiffWords() do módulo de tradução, carregado antes deste
+   arquivo — a mesma decisão do módulo da conversa: um segundo corretor
+   duplicaria a parte mais delicada do site. A chamada só acontece em tempo de
+   execução, nunca na carga.
 
-/* Corrige uma parte da resposta padrão. Quem corrige é o gradeTransAnswer() do
-   módulo de tradução, carregado antes deste arquivo — a mesma decisão do
-   módulo da conversa: um segundo corretor duplicaria a parte mais delicada do
-   site. A chamada só acontece em tempo de execução, nunca na carga. */
-function interviewGradePart(parte, digitado) {
-  return gradeTransAnswer({ en: parte.en, accept: parte.accept }, digitado || "");
+   Devolve as palavras que saíram, o total da resposta padrão, quantas
+   sobraram e o próprio diff, que a tela desenha.
+
+   Por que palavra, e não o veredito inteiro do gradeTransAnswer(): numa
+   resposta de 210 palavras, uma trocada já derruba tudo para "diferente", e
+   a nota não diria nada sobre o que a pessoa de fato lembrou. A régua é uma
+   só — conta palavra —, e por isso escrever "I am" onde a resposta tem "I'm"
+   aparece como diferença: num espelho, a meta é dizer ESTA resposta, e uma
+   palavra em 210 custa meio ponto percentual. */
+function interviewCheckAnswer(q, digitado) {
+  const diff = transDiffWords(q.modelo, digitado || "");
+  return {
+    acertos: diff.expected.filter(w => w.state === "same").length,
+    total: diff.expected.length,
+    sobraram: diff.typed.filter(w => w.state !== "same").length,
+    diff,
+  };
 }
 
 /* Quantas palavras tem um texto. Serve para a tela inicial dizer o tamanho da
