@@ -138,21 +138,34 @@ p.ok(Array.isArray(A.INTERVIEW_QUESTIONS) && A.INTERVIEW_QUESTIONS.length > 0,
   p.ok(A.getInterviewQuestionById(q.id) === q, `entrevista ${q.id}: getInterviewQuestionById não devolve a pergunta`);
 
   if (A.interviewIsMirror(q)) {
-    /* A resposta padrão inteira é o gabarito: ela tem de ser reconhecida como
-       certa por ela mesma, senão a pergunta nasce reprovando quem acerta. */
-    p.ok(A.interviewWordCount(q.modelo) >= 40,
-         `entrevista ${q.id}: a resposta padrão tem ${A.interviewWordCount(q.modelo)} palavras — curta demais para uma resposta de entrevista`);
-    const propria = A.interviewCheckAnswer(q, q.modelo);
-    p.ok(A.gradeTransAnswer({ en: q.modelo }, q.modelo).level === "certo",
-         `entrevista ${q.id}: a própria resposta padrão foi reprovada pelo corretor`);
-    p.ok(propria.acertos === propria.total && propria.sobraram === 0,
-         `entrevista ${q.id}: a própria resposta devia contar ${propria.total} de ${propria.total} palavras (deu ${propria.acertos})`);
-    /* a contagem da tela e a do diff têm de ser a mesma, senão o denominador
-       da nota não bate com o que o card anuncia */
-    p.ok(propria.total === A.interviewWordCount(q.modelo),
-         `entrevista ${q.id}: o diff conta ${propria.total} palavras e o card anuncia ${A.interviewWordCount(q.modelo)}`);
-    p.ok(q.partes === undefined && q.pontos === undefined,
-         `entrevista ${q.id}: mirror não usa partes nem pontos — a resposta é o modelo inteiro`);
+    /* A resposta vem em blocos temáticos, e o modelo é a emenda deles. */
+    p.ok(Array.isArray(q.partes) && q.partes.length >= 2,
+         `entrevista ${q.id}: mirror precisa de partes[] (os blocos da resposta)`);
+    (q.partes || []).forEach((parte, i) => {
+      p.ok(typeof parte.topic === "string" && parte.topic.trim(),
+           `entrevista ${q.id} bloco ${i + 1}: topic vazio (é o que a tela mostra no lugar da deixa)`);
+      p.ok(typeof parte.en === "string" && parte.en.trim(), `entrevista ${q.id} bloco ${i + 1}: en vazio`);
+      p.ok(parte.pt === undefined, `entrevista ${q.id} bloco ${i + 1}: bloco não leva pt — a tela não dá deixa em português`);
+      /* a mesma rede do módulo de tradução: nenhum bloco pode nascer
+         reprovando a própria resposta */
+      const propria = A.interviewCheckText(parte.en, parte.en);
+      p.ok(propria.acertos === propria.total && propria.sobraram === 0,
+           `entrevista ${q.id} bloco ${i + 1}: a própria resposta não contou 100%`);
+      p.ok(A.gradeTransAnswer({ en: parte.en }, parte.en).level === "certo",
+           `entrevista ${q.id} bloco ${i + 1}: a própria resposta foi reprovada pelo corretor`);
+      const n = A.interviewWordCount(parte.en);
+      p.ok(n >= 15 && n <= 70,
+           `entrevista ${q.id} bloco ${i + 1}: ${n} palavras — fora da faixa que cabe numa tela (15 a 70)`);
+    });
+    /* O modelo mostrado no fim TEM de ser a emenda dos blocos: editar um bloco
+       e esquecer o modelo faria a tela ensinar uma resposta e cobrar outra. */
+    const junta = t => String(t).replace(/\s+/g, " ").trim();
+    p.ok(junta(q.partes.map(x => x.en).join(" ")) === junta(q.modelo),
+         `entrevista ${q.id}: o modelo não é a emenda dos blocos — editou um e esqueceu o outro?`);
+    /* e a soma das palavras dos blocos é o denominador que a tela anuncia */
+    p.ok(A.interviewTotalWords(q) === A.interviewCheckText(q.modelo, "").total,
+         `entrevista ${q.id}: a soma dos blocos (${A.interviewTotalWords(q)}) não bate com a resposta inteira`);
+    p.ok(q.pontos === undefined, `entrevista ${q.id}: mirror não usa pontos`);
   } else {
     /* Pergunta ainda sem resposta padrão: fica fora da rodada, e o que ela
        guarda é o material para escrever a resposta. */
@@ -168,7 +181,8 @@ p.ok(A.getInterviewRound().every(A.interviewIsMirror),
      "nenhuma pergunta sem resposta padrão pode entrar na rodada");
 p.ok(espelho.length >= 1, "ao menos uma pergunta tem resposta padrão, senão não há rodada");
 p.nota(`entrevista: ${(A.INTERVIEW_QUESTIONS || []).length} perguntas — ${espelho.length} na rodada ` +
-       `(${espelho.reduce((t, q) => t + A.interviewWordCount(q.modelo), 0)} palavras), ` +
+       `(${espelho.reduce((t, q) => t + A.interviewWordCount(q.modelo), 0)} palavras em ` +
+       `${espelho.reduce((t, q) => t + q.partes.length, 0)} blocos), ` +
        `${(A.INTERVIEW_QUESTIONS || []).length - espelho.length} esperando a resposta padrão`);
 
 p.fim();

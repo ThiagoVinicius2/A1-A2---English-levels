@@ -9,9 +9,12 @@
      na rodada.** Aqui existe gabarito: o texto digitado é comparado com o da
      resposta, parte por parte, pelo mesmo corretor do módulo de tradução
      (contração, caixa, pontuação e erro de digitação já resolvidos lá). A
-     resposta inteira vive no `modelo`, e a pessoa a escreve **de uma vez
-     só** — como ela vai sair na entrevista. A tela não dá deixa nenhuma: a
-     pergunta e o campo, e mais nada.
+     resposta vive em `partes[]`, **cinco blocos temáticos** — quem você é,
+     de onde veio, o que te puxou para dados, o que construiu e o que
+     procura —, e o `modelo` guarda a resposta inteira emendada. A tela não
+     dá deixa em português: mostra a pergunta, o **tópico** do bloco e o
+     campo. A resposta inteira numa caixa só já foi tentada e não funcionou
+     nesta etapa: são 210 palavras de memória, e o dono pediu para separar.
    - `kind:"soon"` — a resposta padrão ainda não foi escrita. A pergunta fica
      **fora da rodada**, e o que ela guarda (`porque` e `pontos`) é o material
      para escrever essa resposta: por que o entrevistador faz a pergunta e o
@@ -38,11 +41,12 @@ const INTERVIEW_QUESTIONS = [
      270 palavras de uma vez não ensina nada: o erro apareceria todo junto no
      fim, sem dizer qual frase escapou.
 
-     A nota não é um veredito só: numa resposta de 210 palavras, "certo ou
+     A nota não é um veredito só: mesmo num bloco de 40 palavras, "certo ou
      errado" seria inútil — uma palavra trocada já derruba a comparação
      inteira. Quem conta é o `transDiffWords()` do módulo de tradução, palavra
      por palavra: a nota é quantas palavras da resposta saíram, e a tela
-     mostra quais faltaram e quais sobraram.
+     mostra quais faltaram e quais sobraram. As palavras dos cinco blocos
+     somam as 210 da resposta, então a porcentagem é a mesma coisa que antes.
 
      Não cadastre `accept` com outra formulação: o objetivo é dizer ESTA
      resposta, não uma parecida. */
@@ -51,9 +55,32 @@ const INTERVIEW_QUESTIONS = [
     tag: "Opening",
     question: "Tell me about yourself.",
     porque: "É a primeira pergunta e serve para você escolher a história que o resto da "
-          + "entrevista vai seguir. Escreva a sua resposta padrão inteira, de memória, como "
-          + "você diria em voz alta. No fim a tela marca palavra por palavra o que saiu, o "
-          + "que faltou e o que sobrou.",
+          + "entrevista vai seguir. A sua resposta padrão vem em cinco blocos: escreva cada "
+          + "um de memória, e a tela marca palavra por palavra o que saiu, o que faltou e o "
+          + "que sobrou. No fim do quinto você lê a resposta inteira.",
+    partes: [
+      { topic: "Who you are and what you do",
+        en: "I'm a Data and BI Analyst, currently at Basis, a technology company in Brazil. "
+          + "My work is SQL, Python and BI — I build the data models behind the reports, and "
+          + "the dashboards on top of them, in Power BI and Qlik Sense." },
+      { topic: "Where you came from",
+        en: "I didn't start in data. I spent ten years in industry — Volkswagen, Bosch, "
+          + "Sumitomo — and in my last years there I worked as a process analyst. I had to "
+          + "collect production data, organize it, and turn it into numbers the team could use." },
+      { topic: "What pulled you into data",
+        en: "And that was the part of the job I liked the most. So I went deeper: first "
+          + "Excel, then BI tools, then SQL and Python. From there I studied data analysis, "
+          + "did a postgraduate degree, and moved step by step." },
+      { topic: "What you have built since",
+        en: "First ETL routines from an ERP system, with SQL. Then analytical models on "
+          + "BigQuery, and automation with Python. Today I work with datasets up to twenty "
+          + "million rows, and I use Python to automate the data quality checks — one routine "
+          + "went from four hours a week to fifteen minutes." },
+      { topic: "What you are looking for",
+        en: "What I'm looking for now is an international team, working in English, where I "
+          + "can keep doing analysis and BI — and keep growing on the technical side. That's "
+          + "why I'm here." },
+    ],
     modelo: "I'm a Data and BI Analyst, currently at Basis, a technology company in Brazil. "
           + "My work is SQL, Python and BI — I build the data models behind the reports, and "
           + "the dashboards on top of them, in Power BI and Qlik Sense.\n\n"
@@ -202,14 +229,25 @@ function getInterviewRound() {
    só — conta palavra —, e por isso escrever "I am" onde a resposta tem "I'm"
    aparece como diferença: num espelho, a meta é dizer ESTA resposta, e uma
    palavra em 210 custa meio ponto percentual. */
-function interviewCheckAnswer(q, digitado) {
-  const diff = transDiffWords(q.modelo, digitado || "");
+function interviewCheckText(esperado, digitado) {
+  const diff = transDiffWords(esperado, digitado || "");
   return {
     acertos: diff.expected.filter(w => w.state === "same").length,
     total: diff.expected.length,
     sobraram: diff.typed.filter(w => w.state !== "same").length,
     diff,
   };
+}
+
+/* Quantas palavras cada bloco cobra, e quantas a pergunta inteira cobra. É o
+   denominador da nota, e sai do mesmo diff que conta os acertos — se saísse de
+   outra contagem, o total da tela poderia não bater com a soma dos blocos. */
+function interviewPartTotal(parte) {
+  return interviewCheckText(parte.en, "").total;
+}
+
+function interviewTotalWords(q) {
+  return q.partes.reduce((t, parte) => t + interviewPartTotal(parte), 0);
 }
 
 /* Quantas palavras tem um texto. Serve para a tela inicial dizer o tamanho da
