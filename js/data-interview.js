@@ -9,8 +9,11 @@
      na rodada.** Aqui existe gabarito: o texto digitado é comparado com o da
      resposta, parte por parte, pelo mesmo corretor do módulo de tradução
      (contração, caixa, pontuação e erro de digitação já resolvidos lá). A
-     resposta mora em `partes[]`, uma frase por vez, com a deixa em português
-     — mandar escrever 210 palavras de uma vez esconderia qual frase escapou.
+     resposta mora em `partes[]`, uma frase por vez — mandar escrever 210
+     palavras de uma vez esconderia qual frase escapou. **A tela não dá deixa
+     nenhuma**: só a pergunta e o campo. O exercício é lembrar a resposta na
+     ordem, que é o que acontece na entrevista de verdade; quem travar usa o
+     "I don't remember", que revela a frase e conta como erro.
    - `kind:"soon"` — a resposta padrão ainda não foi escrita. A pergunta fica
      **fora da rodada**, e o que ela guarda (`porque` e `pontos`) é o material
      para escrever essa resposta: por que o entrevistador faz a pergunta e o
@@ -36,55 +39,37 @@ const INTERVIEW_QUESTIONS = [
      270 palavras de uma vez não ensina nada: o erro apareceria todo junto no
      fim, sem dizer qual frase escapou.
 
-     O `pt` de cada parte é a deixa, como no módulo de tradução: ele diz o que
-     dizer, e quem produz o inglês é a pessoa. Não cadastre `accept` com outra
-     formulação aqui — o objetivo é dizer ESTA resposta, não uma parecida. */
+     Cada parte guarda só o `en`: não há deixa em português na tela, porque
+     ela entregaria a resposta — o dono pediu "apenas a caixa para escrever em
+     inglês". Não cadastre `accept` com outra formulação aqui: o objetivo é
+     dizer ESTA resposta, não uma parecida. */
   { id: "i-1",
     kind: "mirror",
     tag: "Opening",
     question: "Tell me about yourself.",
     porque: "É a primeira pergunta e serve para você escolher a história que o resto da "
-          + "entrevista vai seguir. Esta é a sua resposta padrão: treine até ela sair "
-          + "inteira, sem pensar. Cada parte aparece em português, e você escreve em inglês.",
+          + "entrevista vai seguir. Esta é a sua resposta padrão, e ela vem em treze partes, "
+          + "na ordem: escreva cada frase de memória. Se travar numa, use o \u201cI don\u2019t "
+          + "remember\u201d — ela aparece, e conta como erro para você saber onde voltar.",
     partes: [
-      { pt: "Eu sou analista de dados e BI, hoje na Basis, uma empresa de tecnologia no Brasil.",
-        en: "I'm a Data and BI Analyst, currently at Basis, a technology company in Brazil." },
-      { pt: "Meu trabalho é SQL, Python e BI — eu construo os modelos de dados por trás dos "
-          + "relatórios, e os painéis em cima deles, no Power BI e no Qlik Sense.",
-        en: "My work is SQL, Python and BI — I build the data models behind the reports, "
+      { en: "I'm a Data and BI Analyst, currently at Basis, a technology company in Brazil." },
+      { en: "My work is SQL, Python and BI — I build the data models behind the reports, "
           + "and the dashboards on top of them, in Power BI and Qlik Sense." },
-      { pt: "Eu não comecei em dados.",
-        en: "I didn't start in data." },
-      { pt: "Eu passei dez anos na indústria — Volkswagen, Bosch, Sumitomo — e nos meus "
-          + "últimos anos lá eu trabalhei como analista de processos.",
-        en: "I spent ten years in industry — Volkswagen, Bosch, Sumitomo — and in my last "
+      { en: "I didn't start in data." },
+      { en: "I spent ten years in industry — Volkswagen, Bosch, Sumitomo — and in my last "
           + "years there I worked as a process analyst." },
-      { pt: "Eu tinha que coletar dados de produção, organizá-los e transformá-los em números "
-          + "que o time pudesse usar.",
-        en: "I had to collect production data, organize it, and turn it into numbers the team "
+      { en: "I had to collect production data, organize it, and turn it into numbers the team "
           + "could use." },
-      { pt: "E essa era a parte do trabalho de que eu mais gostava.",
-        en: "And that was the part of the job I liked the most." },
-      { pt: "Então eu fui mais fundo: primeiro Excel, depois ferramentas de BI, depois SQL e Python.",
-        en: "So I went deeper: first Excel, then BI tools, then SQL and Python." },
-      { pt: "A partir daí eu estudei análise de dados, fiz uma pós-graduação e fui avançando "
-          + "passo a passo.",
-        en: "From there I studied data analysis, did a postgraduate degree, and moved step by step." },
-      { pt: "Primeiro rotinas de ETL a partir de um sistema ERP, com SQL.",
-        en: "First ETL routines from an ERP system, with SQL." },
-      { pt: "Depois modelos analíticos no BigQuery, e automação com Python.",
-        en: "Then analytical models on BigQuery, and automation with Python." },
-      { pt: "Hoje eu trabalho com bases de até vinte milhões de linhas, e eu uso Python para "
-          + "automatizar as checagens de qualidade dos dados — uma rotina passou de quatro "
-          + "horas por semana para quinze minutos.",
-        en: "Today I work with datasets up to twenty million rows, and I use Python to automate "
+      { en: "And that was the part of the job I liked the most." },
+      { en: "So I went deeper: first Excel, then BI tools, then SQL and Python." },
+      { en: "From there I studied data analysis, did a postgraduate degree, and moved step by step." },
+      { en: "First ETL routines from an ERP system, with SQL." },
+      { en: "Then analytical models on BigQuery, and automation with Python." },
+      { en: "Today I work with datasets up to twenty million rows, and I use Python to automate "
           + "the data quality checks — one routine went from four hours a week to fifteen minutes." },
-      { pt: "O que eu estou buscando agora é um time internacional, trabalhando em inglês, onde "
-          + "eu possa continuar fazendo análise e BI — e continuar crescendo no lado técnico.",
-        en: "What I'm looking for now is an international team, working in English, where I can "
+      { en: "What I'm looking for now is an international team, working in English, where I can "
           + "keep doing analysis and BI — and keep growing on the technical side." },
-      { pt: "É por isso que eu estou aqui.",
-        en: "That's why I'm here." },
+      { en: "That's why I'm here." },
     ],
     modelo: "I'm a Data and BI Analyst, currently at Basis, a technology company in Brazil. "
           + "My work is SQL, Python and BI — I build the data models behind the reports, and "

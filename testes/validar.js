@@ -140,8 +140,10 @@ p.ok(Array.isArray(A.INTERVIEW_QUESTIONS) && A.INTERVIEW_QUESTIONS.length > 0,
   if (A.interviewIsMirror(q)) {
     p.ok(Array.isArray(q.partes) && q.partes.length >= 2, `entrevista ${q.id}: mirror precisa de partes[]`);
     (q.partes || []).forEach((parte, i) => {
-      p.ok(typeof parte.pt === "string" && parte.pt.trim(), `entrevista ${q.id} parte ${i + 1}: pt vazio (é a deixa na tela)`);
       p.ok(typeof parte.en === "string" && parte.en.trim(), `entrevista ${q.id} parte ${i + 1}: en vazio`);
+      /* A tela não dá deixa: a parte é só o inglês a reproduzir. Campo em
+         português aqui seria a resposta entregue. */
+      p.ok(parte.pt === undefined, `entrevista ${q.id} parte ${i + 1}: parte não leva pt — a tela não dá deixa`);
       /* a mesma rede do módulo de tradução: nenhuma parte pode nascer
          reprovando a própria resposta */
       p.ok(A.interviewGradePart(parte, parte.en).level === "certo",

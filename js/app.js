@@ -1951,10 +1951,14 @@ function renderTransMistakesReview(mistakes) {
    (`kind:"mirror"`); as outras ficam na tela inicial como o que ainda falta
    escrever. Ver o topo do js/data-interview.js.
 
-   O exercício é reproduzir a resposta: cada parte é comparada com o texto dela
-   pelo gradeTransAnswer() do módulo de tradução, e a tela mostra o diff
-   palavra por palavra. A nota é partes reproduzidas / partes — uma unidade só,
-   somada entre as perguntas da rodada. */
+   O exercício é reproduzir a resposta de memória: a tela mostra a PERGUNTA e o
+   campo, e mais nada — sem deixa em português, que entregaria a frase. Quem
+   travar usa o "I don't remember", que revela a parte e conta como erro.
+
+   Cada parte é comparada com o texto dela pelo gradeTransAnswer() do módulo de
+   tradução, e a tela mostra o diff palavra por palavra. A nota é partes
+   reproduzidas / partes — uma unidade só, somada entre as perguntas da
+   rodada. */
 
 function toggleInterviewLandingDetails() {
   state.interviewLandingDetailsOpen = !state.interviewLandingDetailsOpen;
@@ -2272,16 +2276,15 @@ function renderInterview() {
         <div class="progress-bar"><div class="progress-fill" style="width:${(i / total) * 100}%"></div></div>
       </div>
 
-      <span class="q-level">${escapeHtml(q.tag)} &middot; your standard answer</span>
-      <p class="interview-question">${escapeHtml(q.question)}</p>
+      <span class="q-level">${escapeHtml(q.tag)} &middot; part ${i + 1} of your answer</span>
+      <div class="q-prompt">${escapeHtml(q.question)}</div>
       ${i === 0 && !revelada ? `<p class="interview-why">${escapeHtml(q.porque)}</p>` : ""}
-      <div class="q-prompt">${escapeHtml(parte.pt)}</div>
 
       ${revelada ? "" : `
         <textarea id="interview-input" class="interview-input short" rows="3"
           autocomplete="off" autocapitalize="sentences" spellcheck="false"
           oninput="saveInterviewDraft(this.value)"
-          placeholder="Write this part of your answer in English">${escapeHtml(state.interviewDraft)}</textarea>
+          placeholder="Write it from memory">${escapeHtml(state.interviewDraft)}</textarea>
         ${state.interviewEmptyWarn ? `<p class="trans-warn">Write something before checking — or use “I don’t remember”.</p>` : ""}
         <div class="actions">
           <button class="btn" onclick="submitInterviewPart()">Check</button>
@@ -2387,10 +2390,7 @@ function renderInterviewReview() {
           <div class="trans-review-item">
             <div class="trans-review-pt">${escapeHtml(q.question)}</div>
             ${erradas.length
-              ? erradas.map(pr => `
-                  <p class="interview-tag">${escapeHtml(pr.pt)}</p>
-                  <div class="interview-model">${escapeHtml(pr.en)}</div>
-                `).join("")
+              ? erradas.map(pr => `<div class="interview-model">${escapeHtml(pr.en)}</div>`).join("")
               : `<p class="trans-note">Every part came out right.</p>`}
           </div>
         `;

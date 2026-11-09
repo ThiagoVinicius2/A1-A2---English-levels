@@ -557,10 +557,17 @@ são os `pontos`, que agora servem de roteiro de escrita, não de nota.
 
 ### A pergunta-espelho
 
-- A resposta mora em **`partes[]`**, uma frase (ou duas curtas) por vez, cada
-  parte com `pt` (a deixa, em português) e `en` (o que tem de ser escrito).
-  **Mandar escrever 210 palavras de uma vez não ensina nada**: o erro
-  apareceria todo junto no fim, sem dizer qual frase escapou.
+- A resposta mora em **`partes[]`**, uma frase (ou duas curtas) por vez, e cada
+  parte guarda **só o `en`**. **Mandar escrever 210 palavras de uma vez não
+  ensina nada**: o erro apareceria todo junto no fim, sem dizer qual frase
+  escapou.
+- **A tela não dá deixa nenhuma: só a pergunta e o campo.** Houve uma versão
+  com a frase em português acima do campo, como no módulo de tradução, e o
+  dono pediu para tirar — ali a deixa entrega a resposta, e o exercício é
+  justamente lembrar dela na ordem, que é o que acontece na entrevista. Quem
+  travar usa o "I don't remember", que revela a frase e conta como erro, então
+  dá para ver depois onde voltar. O validador falha se uma parte voltar a ter
+  campo `pt`.
 - **Não cadastre `accept` com outra formulação.** O objetivo é dizer **esta**
   resposta, não uma parecida. Contração, caixa, pontuação e erro de digitação
   já saem de graça no corretor; o resto é diferença de verdade.
