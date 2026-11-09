@@ -40,7 +40,9 @@ function carregar(arquivos = ["data.js", "data-conversation.js", "data-translate
     interviewWordCount: typeof interviewWordCount !== "undefined" ? interviewWordCount : null,
     getInterviewQuestionById: typeof getInterviewQuestionById !== "undefined" ? getInterviewQuestionById : null,
     interviewIsMirror: typeof interviewIsMirror !== "undefined" ? interviewIsMirror : null,
-    interviewCheckAnswer: typeof interviewCheckAnswer !== "undefined" ? interviewCheckAnswer : null,
+    interviewCheckText: typeof interviewCheckText !== "undefined" ? interviewCheckText : null,
+    interviewPartTotal: typeof interviewPartTotal !== "undefined" ? interviewPartTotal : null,
+    interviewTotalWords: typeof interviewTotalWords !== "undefined" ? interviewTotalWords : null,
   };`, ctx);
   return ctx.API;
 }
@@ -124,9 +126,10 @@ function carregarApp() {
     transIsHit, pct, shuffle,
     startTransRound, startTransRetry, finishTransRound, renderTransResults, renderTransDecks,
     loadTransDeckStats, saveTransDeckStats, openTransDecks,
-    startInterview, submitInterviewAnswer, skipInterviewQuestion, finishInterview, interviewScore,
+    startInterview, skipInterviewQuestion, finishInterview, interviewScore, interviewPartScore, interviewPct,
+    submitInterviewPart, skipInterviewPart, nextInterviewPart, prevInterviewPart,
     nextInterviewQuestion, prevInterviewQuestion,
-    interviewCurrentQuestion, interviewAnswered, interviewCheckAnswer,
+    interviewCurrentQuestion, interviewCurrentPart, interviewAnswered,
     saveInterviewDraft, renderInterview, renderInterviewResults, renderInterviewLandingCard,
     requestExitInterview, cancelExitInterview, interviewResultLabel,
     CONV_STORAGE_KEY, TRANS_STORAGE_KEY, INTERVIEW_STORAGE_KEY,
