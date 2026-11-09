@@ -57,11 +57,9 @@ const state = {
   // --- Módulo "Job Interview" (resposta aberta: não há gabarito) ---
   interviewQuestions: [],
   interviewIndex: 0,
+  interviewAnswers: {},     // { questionId: a resposta inteira digitada }
+  interviewRevealed: {},    // { questionId: true } assim que a resposta é conferida
   interviewDraft: "",       // o que está no campo agora; guardado a cada tecla para render() não levar embora
-  interviewPartIndex: 0,    // parte corrente da resposta-espelho
-  interviewPartAnswers: {}, // { questionId: [texto por parte] }
-  interviewPartGrades: {},  // { questionId: ["certo"|"quase"|"diferente"|"naoLembro"] } — a nota da pergunta-espelho
-  interviewPartRevealed: {},// { questionId: [bool por parte] }
   interviewResults: null,
   interviewEmptyWarn: false,
   interviewLandingDetailsOpen: false,
@@ -1951,14 +1949,14 @@ function renderTransMistakesReview(mistakes) {
    (`kind:"mirror"`); as outras ficam na tela inicial como o que ainda falta
    escrever. Ver o topo do js/data-interview.js.
 
-   O exercício é reproduzir a resposta de memória: a tela mostra a PERGUNTA e o
-   campo, e mais nada — sem deixa em português, que entregaria a frase. Quem
-   travar usa o "I don't remember", que revela a parte e conta como erro.
+   O exercício é escrever a resposta INTEIRA de memória, de uma vez só — como
+   ela vai sair na entrevista. A tela mostra a pergunta e o campo, e mais nada.
 
-   Cada parte é comparada com o texto dela pelo gradeTransAnswer() do módulo de
-   tradução, e a tela mostra o diff palavra por palavra. A nota é partes
-   reproduzidas / partes — uma unidade só, somada entre as perguntas da
-   rodada. */
+   A nota é por PALAVRA, não um veredito só: numa resposta de 210 palavras,
+   "certo ou errado" não diria nada — uma palavra trocada derrubaria tudo. Quem
+   conta é o interviewCheckAnswer(), que chama o transDiffWords() do módulo de
+   tradução, e a tela desenha o mesmo diff do módulo de tradução: verde o que
+   faltou, riscado o que sobrou. */
 
 function toggleInterviewLandingDetails() {
   state.interviewLandingDetailsOpen = !state.interviewLandingDetailsOpen;
@@ -1969,18 +1967,11 @@ function interviewCurrentQuestion() {
   return state.interviewQuestions[state.interviewIndex];
 }
 
-function interviewCurrentPart() {
-  const q = interviewCurrentQuestion();
-  return q ? q.partes[state.interviewPartIndex] : null;
-}
-
 function startInterview() {
   state.interviewQuestions = getInterviewRound();
   state.interviewIndex = 0;
-  state.interviewPartIndex = 0;
-  state.interviewPartAnswers = {};
-  state.interviewPartGrades = {};
-  state.interviewPartRevealed = {};
+  state.interviewAnswers = {};
+  state.interviewRevealed = {};
   state.interviewDraft = "";
   state.interviewEmptyWarn = false;
   state.interviewResults = null;
@@ -1989,103 +1980,44 @@ function startInterview() {
 }
 
 /* Guarda o que está sendo digitado a cada tecla. É o que impede o rascunho de
-   ir embora quando algo chama render() (abrir o modal de saída, por exemplo).
-   Esta função NUNCA chama render() — rescrever o #app no meio da digitação
-   levaria o campo, o foco e o cursor. */
+   ir embora quando algo chama render() (abrir o modal de saída, por exemplo) —
+   e aqui são 200 palavras em jogo. Esta função NUNCA chama render(): rescrever
+   o #app no meio da digitação levaria o campo, o foco e o cursor. */
 function saveInterviewDraft(valor) {
   state.interviewDraft = valor;
 }
 
-function interviewPartState(q) {
-  if (!state.interviewPartGrades[q.id]) {
-    state.interviewPartGrades[q.id] = q.partes.map(() => null);
-    state.interviewPartAnswers[q.id] = q.partes.map(() => "");
-    state.interviewPartRevealed[q.id] = q.partes.map(() => false);
-  }
-  return {
-    grades: state.interviewPartGrades[q.id],
-    answers: state.interviewPartAnswers[q.id],
-    revealed: state.interviewPartRevealed[q.id],
-  };
-}
-
-function submitInterviewPart() {
+function submitInterviewAnswer() {
   const q = interviewCurrentQuestion();
-  const parte = interviewCurrentPart();
-  if (!parte) return;
-  const st = interviewPartState(q);
-  const i = state.interviewPartIndex;
-  if (st.revealed[i]) return;
+  if (!q || state.interviewRevealed[q.id]) return;
   const campo = document.getElementById("interview-input");
   const digitado = campo ? campo.value : state.interviewDraft;
-  const nota = interviewGradePart(parte, digitado);
-  if (nota.level === "vazio") {
+  if (!digitado.trim()) {
     state.interviewDraft = digitado;
     state.interviewEmptyWarn = true;
     render();
     return;
   }
   state.interviewEmptyWarn = false;
-  st.answers[i] = digitado;
-  st.grades[i] = nota.level;
-  st.revealed[i] = true;
+  state.interviewAnswers[q.id] = digitado;
+  state.interviewRevealed[q.id] = true;
   render();
 }
 
-/* "Não lembro": revela a parte e conta como erro, igual ao módulo de tradução. */
-function skipInterviewPart() {
-  const q = interviewCurrentQuestion();
-  const parte = interviewCurrentPart();
-  if (!parte) return;
-  const st = interviewPartState(q);
-  const i = state.interviewPartIndex;
-  if (st.revealed[i]) return;
-  state.interviewEmptyWarn = false;
-  st.answers[i] = "";
-  st.grades[i] = "naoLembro";
-  st.revealed[i] = true;
-  render();
-}
-
-function nextInterviewPart() {
-  const q = interviewCurrentQuestion();
-  state.interviewEmptyWarn = false;
-  if (state.interviewPartIndex < q.partes.length - 1) {
-    state.interviewPartIndex++;
-    state.interviewDraft = "";
-    render();
-  } else {
-    nextInterviewQuestion();
-  }
-}
-
-function prevInterviewPart() {
-  state.interviewEmptyWarn = false;
-  if (state.interviewPartIndex > 0) {
-    state.interviewPartIndex--;
-    render();
-  } else if (state.interviewIndex > 0) {
-    prevInterviewQuestion();
-  }
-}
-
-/* Pular a pergunta inteira: as partes que faltam entram como "não lembro",
-   para a nota não premiar quem passou direto. */
+/* "Não lembro": revela a resposta e conta zero, igual ao módulo de tradução. */
 function skipInterviewQuestion() {
   const q = interviewCurrentQuestion();
-  if (!q) return;
-  const st = interviewPartState(q);
-  q.partes.forEach((_, i) => {
-    if (!st.revealed[i]) { st.revealed[i] = true; st.grades[i] = "naoLembro"; st.answers[i] = ""; }
-  });
-  nextInterviewQuestion();
+  if (!q || state.interviewRevealed[q.id]) return;
+  state.interviewEmptyWarn = false;
+  state.interviewAnswers[q.id] = "";
+  state.interviewRevealed[q.id] = true;
+  render();
 }
 
 function nextInterviewQuestion() {
   state.interviewEmptyWarn = false;
   if (state.interviewIndex < state.interviewQuestions.length - 1) {
     state.interviewIndex++;
-    state.interviewPartIndex = 0;
     state.interviewDraft = "";
     render();
   } else {
@@ -2097,7 +2029,6 @@ function prevInterviewQuestion() {
   state.interviewEmptyWarn = false;
   if (state.interviewIndex > 0) {
     state.interviewIndex--;
-    state.interviewPartIndex = interviewCurrentQuestion().partes.length - 1;
     state.interviewDraft = "";
     render();
   }
@@ -2121,24 +2052,26 @@ function confirmExitInterview() {
 }
 
 /* ---------- A régua ---------- */
-/* Partes reproduzidas / partes. O "quase" conta, porque o inglês produzido
-   estava certo e só a digitação escorregou — a mesma régua do módulo de
-   tradução (transIsHit). O denominador é a pergunta inteira: pular não melhora
-   nada. */
+/* Palavras da resposta padrão que saíram / palavras da resposta padrão. Vale
+   para a tela da pergunta, para o resultado e para o histórico — uma régua
+   só. Pular conta zero e mantém o total no denominador. */
 function interviewScore(q) {
-  const notas = state.interviewPartGrades[q.id] || [];
-  return { acertos: notas.filter(transIsHit).length, total: q.partes.length };
+  const typed = state.interviewAnswers[q.id];
+  if (!state.interviewRevealed[q.id] || !typed || !typed.trim()) {
+    return { acertos: 0, total: interviewCheckAnswer(q, "").total, sobraram: 0 };
+  }
+  return interviewCheckAnswer(q, typed);
 }
 
 function interviewAnswered(q) {
-  return (state.interviewPartAnswers[q.id] || []).some(t => (t || "").trim());
+  return !!(state.interviewAnswers[q.id] || "").trim();
 }
 
 function interviewResultLabel(overall) {
-  if (overall >= 90) return "Your answer comes out the way you prepared it";
-  if (overall >= 70) return "Solid — a few parts still slip";
-  if (overall >= 40) return "Half of it is there; the other half needs another round";
-  return "Worth going through it again with the answer in front of you";
+  if (overall >= 95) return "Your answer comes out the way you prepared it";
+  if (overall >= 80) return "Almost all of it — a few words still slip";
+  if (overall >= 50) return "Half of it is there; the other half needs another round";
+  return "Worth reading it out loud a few times before trying again";
 }
 
 function finishInterview() {
@@ -2152,10 +2085,6 @@ function finishInterview() {
     total += s.total;
   });
 
-  /* Soma das partes, não média das perguntas: agora todas as perguntas da
-     rodada são do mesmo tipo e valem na mesma unidade — uma parte é uma parte.
-     (Enquanto havia pergunta de checklist na rodada isso não valia, porque 13
-     partes e 4 pontos não são a mesma coisa.) */
   const overallPct = pct(acertos, total);
   state.interviewResults = {
     overallPct,
@@ -2183,20 +2112,19 @@ function renderInterviewLandingCard() {
   const detailsOpen = state.interviewLandingDetailsOpen;
   const prontas = getInterviewRound();
   const faltam = INTERVIEW_QUESTIONS.filter(q => !interviewIsMirror(q));
-  const partes = prontas.reduce((t, q) => t + q.partes.length, 0);
   const palavras = prontas.reduce((t, q) => t + interviewWordCount(q.modelo), 0);
 
   const details = detailsOpen ? `
     <div class="info-box">
       This module is your own answers, not generic ones. For each question you write your standard
-      answer once; the round then gives it back to you one sentence at a time, with the Portuguese
-      cue, and compares what you write with it word by word — the same checker as the translation
-      module, so contractions and typos are handled. ${prontas.length === 1
-        ? `<strong>One question is ready so far.</strong>`
-        : `<strong>${prontas.length} questions are ready so far.</strong>`}
+      answer once; the round then asks the question and gives you an empty box — you write the whole
+      answer from memory, the way you would say it out loud. What you write is compared with your
+      answer <strong>word by word</strong>: the screen marks what came out, what was missing and
+      what you added, and the score is how much of the answer you reproduced.
+      ${prontas.length === 1 ? `<strong>One question is ready so far.</strong>` : `<strong>${prontas.length} questions are ready so far.</strong>`}
       <ul class="conv-pattern-list">
         ${prontas.map(q => `<li><strong>${escapeHtml(q.tag)}:</strong> ${escapeHtml(q.question)}
-          — your answer, ${q.partes.length} parts</li>`).join("")}
+          — your answer, ${interviewWordCount(q.modelo)} words</li>`).join("")}
       </ul>
       ${faltam.length ? `
         <p style="margin:10px 0 0;"><strong>${faltam.length} still waiting for your standard
@@ -2218,7 +2146,7 @@ function renderInterviewLandingCard() {
     kind: "Speaking prep",
     title: "Job interview",
     text: `Your own interview answers, learned by heart: ${prontas.length} of ${INTERVIEW_QUESTIONS.length}
-    questions ready, ${palavras} words in ${partes} parts${
+    questions ready, ${palavras} words to reproduce${
       last && typeof last.overall === "number" ? ` — last round: <strong>${last.overall}%</strong>` : ""}.`,
     accent2: true,
     details,
@@ -2226,69 +2154,61 @@ function renderInterviewLandingCard() {
   });
 }
 
-/* ---------- A tela da parte ---------- */
+/* ---------- A tela da pergunta ---------- */
 function renderInterview() {
   const q = interviewCurrentQuestion();
-  const st = interviewPartState(q);
-  const total = q.partes.length;
-  const i = state.interviewPartIndex;
-  const parte = q.partes[i];
-  const revelada = st.revealed[i];
-  const nota = st.grades[i];
-  const digitado = st.answers[i] || "";
-  const ultima = i === total - 1;
-  const ultimaPergunta = state.interviewIndex === state.interviewQuestions.length - 1;
-  const varias = state.interviewQuestions.length > 1;
-  const s = interviewScore(q);
+  const total = state.interviewQuestions.length;
+  const revelada = !!state.interviewRevealed[q.id];
+  const digitado = state.interviewAnswers[q.id] || "";
+  const ultima = state.interviewIndex === total - 1;
+  const varias = total > 1;
 
   let feedback = "";
   if (revelada) {
-    const caixa = {
-      certo:     { cls: "good", texto: "✅ Word for word." },
-      quase:     { cls: "warn", texto: "🟡 So close — the sentence is right, only the typing slipped." },
-      diferente: { cls: "bad",  texto: "❌ Not what your answer says — compare below." },
-      naoLembro: { cls: "bad",  texto: "👀 Answer revealed. This part counts as a miss." },
-    }[nota] || { cls: "bad", texto: "" };
+    const r = interviewScore(q);
+    const p = pct(r.acertos, r.total);
+    const caixa = !digitado.trim()
+      ? { cls: "bad", texto: "👀 Answer revealed. This round counts as zero." }
+      : r.acertos === r.total
+        ? { cls: "good", texto: `✅ Word for word — all ${r.total} of them.` }
+        : { cls: p >= 80 ? "warn" : "bad",
+            texto: `${p >= 80 ? "🟡" : "❌"} ${r.acertos} of ${r.total} words came out — ${p}%.` };
 
     feedback = `
       <div class="explain-box ${caixa.cls}">${caixa.texto}</div>
-      ${nota === "certo"
-        ? `<div class="trans-answer-row">
-             <span class="trans-answer-tag">Your answer</span>
-             <span class="trans-answer-text">${escapeHtml(parte.en)}</span>
-           </div>`
-        : renderTransDiff(parte.en, digitado, "Your answer")}
-      ${ultima ? `
-        <div class="section-title">The whole answer, start to finish</div>
-        <div class="interview-model">${escapeHtml(q.modelo)}</div>
-        <p class="trans-note">${s.acertos} of ${s.total} parts came out right this round.</p>
-      ` : ""}
+      ${renderTransDiff(q.modelo, digitado, "Your answer")}
+      <p class="trans-note">In <strong>Your answer</strong>, the highlighted words are the ones that
+      did not come out. In <strong>You wrote</strong>, the struck-through ones are not in your
+      answer — a typo or a contraction written in full shows up here too, because the goal is this
+      exact answer.</p>
     `;
   }
 
   app.innerHTML = `
     <div class="card">
-      <div class="progress-wrap">
-        <div class="progress-label">
-          <span>${varias ? `Question ${state.interviewIndex + 1} of ${state.interviewQuestions.length} &middot; part` : "Part"} ${i + 1} of ${total}</span>
-          <span>${Math.round((i / total) * 100)}%</span>
+      ${varias ? `
+        <div class="progress-wrap">
+          <div class="progress-label">
+            <span>Question ${state.interviewIndex + 1} of ${total}</span>
+            <span>${Math.round((state.interviewIndex / total) * 100)}%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${(state.interviewIndex / total) * 100}%"></div></div>
         </div>
-        <div class="progress-bar"><div class="progress-fill" style="width:${(i / total) * 100}%"></div></div>
-      </div>
+      ` : ""}
 
-      <span class="q-level">${escapeHtml(q.tag)} &middot; part ${i + 1} of your answer</span>
+      <span class="q-level">${escapeHtml(q.tag)} &middot; your standard answer</span>
       <div class="q-prompt">${escapeHtml(q.question)}</div>
-      ${i === 0 && !revelada ? `<p class="interview-why">${escapeHtml(q.porque)}</p>` : ""}
+      ${revelada ? "" : `<p class="interview-why">${escapeHtml(q.porque)}</p>`}
 
       ${revelada ? "" : `
-        <textarea id="interview-input" class="interview-input short" rows="3"
+        <textarea id="interview-input" class="interview-input" rows="14"
           autocomplete="off" autocapitalize="sentences" spellcheck="false"
           oninput="saveInterviewDraft(this.value)"
-          placeholder="Write it from memory">${escapeHtml(state.interviewDraft)}</textarea>
+          placeholder="Write the whole answer from memory">${escapeHtml(state.interviewDraft)}</textarea>
         ${state.interviewEmptyWarn ? `<p class="trans-warn">Write something before checking — or use “I don’t remember”.</p>` : ""}
         <div class="actions">
-          <button class="btn" onclick="submitInterviewPart()">Check</button>
-          <button class="btn secondary" onclick="skipInterviewPart()">I don’t remember</button>
+          <button class="btn" onclick="submitInterviewAnswer()">Check my answer</button>
+          <button class="btn secondary" onclick="skipInterviewQuestion()">I don’t remember</button>
         </div>
       `}
 
@@ -2296,22 +2216,19 @@ function renderInterview() {
 
       ${revelada ? `
         <div class="actions">
-          ${i > 0 || state.interviewIndex > 0 ? `<button class="btn secondary" onclick="prevInterviewPart()">Back</button>` : ""}
-          <button class="btn" id="interview-next" onclick="nextInterviewPart()">${
-            ultima ? (ultimaPergunta ? "See results" : "Next question") : "Next part"}</button>
+          ${state.interviewIndex > 0 ? `<button class="btn secondary" onclick="prevInterviewQuestion()">Back</button>` : ""}
+          <button class="btn" id="interview-next" onclick="nextInterviewQuestion()">${ultima ? "See results" : "Next question"}</button>
         </div>
       ` : ""}
 
       <div class="exit-actions">
-        ${ultima ? "" : `<button class="btn secondary block" onclick="skipInterviewQuestion()">${
-          ultimaPergunta ? "Skip the rest and see results" : "Skip to the next question"}</button>`}
         <button class="btn secondary block" onclick="requestExitInterview()">Back to start</button>
       </div>
     </div>
     ${state.interviewExitConfirmOpen ? renderConfirmModal({
       title: "Leave the interview?",
-      message: "You have not finished it. If you leave now, the answers you have written are lost.",
-      confirmLabel: "Leave and lose answers",
+      message: "You have not finished it. If you leave now, the answer you have written is lost.",
+      confirmLabel: "Leave and lose it",
       cancelLabel: "Keep going",
       onConfirm: "confirmExitInterview()",
       onCancel: "cancelExitInterview()",
@@ -2344,7 +2261,7 @@ function renderInterviewResults() {
       <div class="score-hero">
         <div class="score-number">${r.overallPct}%</div>
         <div class="score-level">${escapeHtml(r.label)}</div>
-        <p style="margin-top:8px;">${r.acertos} of ${r.total} parts reproduced${
+        <p style="margin-top:8px;">${r.acertos} of ${r.total} words reproduced${
           varias ? `, across ${state.interviewQuestions.length} questions` : ""}</p>
       </div>
 
@@ -2354,7 +2271,7 @@ function renderInterviewResults() {
           <div class="cat-row">
             <div class="cat-name">${escapeHtml(q.question)}</div>
             <div class="cat-bar-wrap"><div class="cat-bar-fill ${barClass(r.porPergunta[q.id].pct)}" style="width:${r.porPergunta[q.id].pct}%"></div></div>
-            <div class="cat-pct">${r.porPergunta[q.id].acertos}/${r.porPergunta[q.id].total}</div>
+            <div class="cat-pct">${r.porPergunta[q.id].pct}%</div>
           </div>
         `).join("")}
       ` : ""}
@@ -2378,23 +2295,18 @@ function renderInterviewResults() {
   `;
 }
 
-/* Revisão: as partes que escaparam, que é o que vale reler em voz alta. */
+/* Revisão: a resposta padrão inteira, para ler em voz alta antes da próxima
+   rodada. */
 function renderInterviewReview() {
   return `
-    <div class="section-title">Parts to go over again</div>
+    <div class="section-title">Your answer, to read out loud</div>
     <div class="card" style="box-shadow:none; border-color:var(--border);">
-      ${state.interviewQuestions.map(q => {
-        const st = interviewPartState(q);
-        const erradas = q.partes.filter((_, i) => !transIsHit(st.grades[i]));
-        return `
-          <div class="trans-review-item">
-            <div class="trans-review-pt">${escapeHtml(q.question)}</div>
-            ${erradas.length
-              ? erradas.map(pr => `<div class="interview-model">${escapeHtml(pr.en)}</div>`).join("")
-              : `<p class="trans-note">Every part came out right.</p>`}
-          </div>
-        `;
-      }).join("")}
+      ${state.interviewQuestions.map(q => `
+        <div class="trans-review-item">
+          <div class="trans-review-pt">${escapeHtml(q.question)}</div>
+          <div class="interview-model">${escapeHtml(q.modelo)}</div>
+        </div>
+      `).join("")}
     </div>
   `;
 }

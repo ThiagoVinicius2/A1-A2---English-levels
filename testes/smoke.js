@@ -218,10 +218,9 @@ const p = criarPlacar("SMOKE DOS QUATRO MÓDULOS");
 
 
   /* ================= Módulo 04: entrevista ================= */
-  /* A rodada é só das perguntas com resposta padrão, e ela anda parte por
-     parte. O que só quebra no navegador: o <textarea> sobreviver a um
-     render() (o modal de saída reescreve o #app) e a tela andar de uma parte
-     para a outra. */
+  /* A rodada é só das perguntas com resposta padrão, e a resposta é escrita de
+     uma vez só. O que só quebra no navegador: o <textarea> sobreviver a um
+     render() (o modal de saída reescreve o #app) e o diff aparecer na tela. */
   await page.goto("file://" + RAIZ + "/index.html");
   await page.click("button:has-text('Practice your answer')");
   await page.waitForSelector("#interview-input");
@@ -230,6 +229,8 @@ const p = criarPlacar("SMOKE DOS QUATRO MÓDULOS");
   p.ok(naRodada === prontas, `a rodada abriu com as ${prontas} perguntas prontas (abriu ${naRodada})`);
   p.ok(await page.evaluate(() => state.interviewQuestions.every(q => q.kind === "mirror")),
        "nenhuma pergunta sem resposta padrão entrou na rodada");
+  p.ok((await page.locator("#app").innerText()).indexOf(A.getInterviewRound()[0].question) !== -1,
+       "a tela mostra a pergunta");
 
   /* o rascunho não pode ir embora quando o modal de saída reescreve o #app */
   const rascunho = "I have been working with data for six years.";
@@ -243,60 +244,37 @@ const p = criarPlacar("SMOKE DOS QUATRO MÓDULOS");
 
   /* campo vazio avisa em vez de revelar a resposta padrão */
   await page.fill("#interview-input", "   ");
-  await page.click("button:has-text('Check')");
+  await page.click("button:has-text('Check my answer')");
   await page.waitForTimeout(80);
   p.ok((await page.locator(".trans-warn").count()) > 0,
-       "parte vazia avisa em vez de revelar a resposta");
+       "resposta vazia avisa em vez de revelar a resposta padrão");
 
-  const qEspelho = await page.evaluate(() => {
-    const q = state.interviewQuestions[0];
-    return { id: q.id, partes: q.partes.map(x => x.en) };
-  });
-  let acertos = 0;
-  for (let i = 0; i < qEspelho.partes.length; i++) {
-    await page.waitForSelector("#interview-input");
-    const atual = await page.evaluate(() => state.interviewPartIndex);
-    p.ok(atual === i, `a tela está na parte ${i + 1} (está na ${atual + 1})`);
-    if (i === 1) {                                  // uma parte com erro de verdade
-      await page.fill("#interview-input", "Something completely different from my answer.");
-      await page.click("button:has-text('Check')");
-      await page.waitForTimeout(80);
-      p.ok((await page.locator(".explain-box.bad").count()) > 0,
-           "resposta diferente da padrão é reprovada — aqui existe gabarito");
-      p.ok((await page.locator(".diff-miss").count()) > 0,
-           "a tela mostra, palavra por palavra, o que faltou");
-    } else if (i === 2) {                           // não lembro
-      await page.click("button:has-text(\"I don’t remember\")");
-      await page.waitForTimeout(80);
-    } else {
-      await page.fill("#interview-input", qEspelho.partes[i]);
-      await page.click("button:has-text('Check')");
-      await page.waitForTimeout(80);
-      acertos++;
-    }
-    if (i === qEspelho.partes.length - 1) {
-      p.ok((await page.locator("#app").innerText()).indexOf("The whole answer") !== -1,
-           "a última parte mostra a resposta padrão inteira");
-    }
-    if (!(await avancar())) break;
-  }
-  await page.waitForTimeout(250);
+  /* responde com a resposta quase inteira: uma palavra trocada e uma frase fora */
+  const qEspelho = A.getInterviewRound()[0];
+  const resposta = qEspelho.modelo.replace("technology", "tech").replace("I didn't start in data.", "");
+  const contaEntrevista = A.interviewCheckAnswer(qEspelho, resposta);
+  await page.fill("#interview-input", resposta);
+  await page.click("button:has-text('Check my answer')");
+  await page.waitForTimeout(150);
+  p.ok((await page.locator(".diff-miss").count()) > 0, "a tela marca as palavras que não saíram");
+  p.ok((await page.locator(".diff-extra").count()) > 0, "a tela risca as palavras que não são da resposta");
+  const telaPergunta = await page.locator("#app").innerText();
+  p.ok(telaPergunta.indexOf(`${contaEntrevista.acertos} of ${contaEntrevista.total} words came out`) !== -1,
+       `a tela devia mostrar "${contaEntrevista.acertos} of ${contaEntrevista.total} words came out"`);
+
+  await page.click("button:has-text('See results')");
+  await page.waitForTimeout(200);
   p.ok(await page.evaluate(() => state.view === "interviewResults"), "a entrevista chegou na tela de resultado");
-  const notasEspelho = await page.evaluate(id => state.interviewPartGrades[id], qEspelho.id);
-  p.ok(notasEspelho.filter(n => n === "certo").length === acertos,
-       `as ${acertos} partes escritas certas contaram (contaram ${notasEspelho.filter(n => n === "certo").length})`);
-  p.ok(notasEspelho[1] === "diferente" && notasEspelho[2] === "naoLembro",
-       "a parte errada e a pulada ficaram registradas");
-  const esperadoEntrevista = Math.round((acertos / qEspelho.partes.length) * 100);
+  const esperadoEntrevista = Math.round((contaEntrevista.acertos / contaEntrevista.total) * 100);
   const telaEntrevista = await page.locator("#app").innerText();
   p.ok(telaEntrevista.indexOf(esperadoEntrevista + "%") !== -1,
-       `a entrevista devia mostrar ${esperadoEntrevista}% (${acertos} de ${qEspelho.partes.length} partes)`);
-  p.ok(telaEntrevista.indexOf("parts reproduced") !== -1,
-       "a tela mostra as partes reproduzidas sobre o total");
+       `a entrevista devia mostrar ${esperadoEntrevista}% (${contaEntrevista.acertos} de ${contaEntrevista.total} palavras)`);
+  p.ok(telaEntrevista.indexOf("words reproduced") !== -1,
+       "a tela mostra as palavras reproduzidas sobre o total");
   const gravadoEntrevista = await page.evaluate(k => localStorage.getItem(k), "enCheckInterviewResults_r2");
   p.ok(!!gravadoEntrevista && JSON.parse(gravadoEntrevista).overall === esperadoEntrevista,
        "o resultado da entrevista foi gravado com a mesma porcentagem da tela");
-  p.nota(`entrevista: ${acertos} de ${qEspelho.partes.length} partes = ${esperadoEntrevista}%`);
+  p.nota(`entrevista: ${contaEntrevista.acertos} de ${contaEntrevista.total} palavras = ${esperadoEntrevista}%`);
 
   p.ok(errosJs.length === 0, `erros de JS: ${errosJs.join(" | ")}`);
   if (!errosJs.length) p.nota("nenhum erro de JS nos quatro módulos");
