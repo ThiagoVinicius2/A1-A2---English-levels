@@ -532,46 +532,81 @@ vetar alguma coisa se discordar.
 
 Perguntas de entrevista em inglês (`INTERVIEW_QUESTIONS`, em
 `js/data-interview.js`) com a resposta escrita por inteiro, num `<textarea>`.
-As seis primeiras são as perguntas que caem em toda entrevista: abertura,
-saída do emprego atual, um projeto recente, a ferramenta da vaga, pretensão
-salarial e as perguntas para o entrevistador.
+As seis são as perguntas que caem em toda entrevista: abertura, saída do
+emprego atual, um projeto recente, a ferramenta da vaga, pretensão salarial e
+as perguntas para o entrevistador.
 
-- **Não existe gabarito aqui, e isso é a definição do módulo.** "Tell me about
-  yourself" tem infinitas respostas boas; comparar string com uma resposta
-  modelo reprovaria quase toda resposta certa. Então o que é automático é só o
-  que dá para medir sem errar, e **a nota é a autoavaliação por checklist**.
-- Cada pergunta traz: `question` (em inglês), `tag` (interface, em inglês),
-  `porque` (por que ela é feita — orientação, então **em português**),
-  `pontos[]` (o checklist do que uma resposta forte cobre, **em português**),
-  `frases[]` (blocos de inglês que o app procura no texto digitado),
-  `modelo` (uma resposta inteira, de analista de dados, em inglês) e
-  `palavras: [min, max]` (a faixa que cabe em 30-60 segundos de fala).
-- **A nota é `pontos marcados / pontos possíveis`**, em `interviewScore()`, e
-  vale igual nas duas pontas — a tela de resultado e o que vai para o
-  `localStorage`. Pergunta pulada conta zero e **mantém os pontos no total**,
-  senão pular melhoraria a nota.
-- **Quem procura os blocos de inglês é o `transNormalize()` do módulo de
-  tradução**, chamado pelo `interviewPhrasesFound()`. Reusar foi decisão
-  deliberada, a mesma do módulo da conversa: contração, caixa e pontuação já
-  estão resolvidas lá, e "I've been working" tem de casar com "I have been
-  working" de graça. A comparação prende a frase entre espaços, então bloco
-  não casa pedaço de palavra (`I built` dentro de `rebuilt`).
-- **O bloco de inglês é dica, não nota.** Ele aparece como sugestão de como
-  abrir cada parte da resposta; quem pontua é o checklist.
+**Toda pergunta declara o seu `kind`, e a forma segue a tarefa** — a mesma
+ideia do módulo da conversa:
+
+- **`kind:"mirror"`** — o dono **já tem** a resposta padrão dele para esta
+  pergunta, escrita por ele, e o exercício é reproduzi-la até sair sem pensar.
+  Aqui **existe gabarito**: o texto digitado é comparado com o da resposta.
+- **`kind:"open"`** — ainda não há resposta padrão, então **não existe
+  gabarito**: a nota é a autoavaliação por checklist, e o automático é só o
+  tamanho da resposta e quais blocos de inglês apareceram.
+
+Quando chegar a resposta padrão de uma pergunta aberta, ela vira `mirror`:
+troque `pontos`/`frases`/`palavras` por `partes[]` e mantenha o `modelo`.
+
+### A pergunta-espelho
+
+- A resposta mora em **`partes[]`**, uma frase (ou duas curtas) por vez, cada
+  parte com `pt` (a deixa, em português) e `en` (o que tem de ser escrito).
+  **Mandar escrever 270 palavras de uma vez não ensina nada**: o erro
+  apareceria todo junto no fim, sem dizer qual frase escapou.
+- **Não cadastre `accept` com outra formulação.** O objetivo é dizer **esta**
+  resposta, não uma parecida. Contração, caixa, pontuação e erro de digitação
+  já saem de graça no corretor; o resto é diferença de verdade.
+- **Quem corrige é o `gradeTransAnswer()` do módulo de tradução**, chamado pelo
+  `interviewGradePart()`. Terceira vez que esse corretor é reusado (conversa,
+  entrevista) e pela mesma razão: um segundo corretor duplicaria a parte mais
+  delicada do site.
+- A tela mostra o **diff palavra por palavra** (`renderTransDiff()`), e na
+  última parte mostra a **resposta inteira** emendada.
+- **Não há autoavaliação aqui.** No módulo de tradução ela existe porque pode
+  haver outra tradução certa; no espelho não há: ou saiu o que está na
+  resposta, ou não saiu. `certo` e `quase` contam (o inglês estava certo, só a
+  digitação escorregou), `diferente` e `naoLembro` não — é o `transIsHit()`.
+- **O `modelo` tem de ser a emenda das `partes`.** O validador falha se não
+  for: editar uma parte e esquecer o modelo faria a tela ensinar uma resposta
+  e cobrar outra.
+
+### A pergunta aberta
+
+- Traz `porque` (por que ela é feita — orientação, então **em português**),
+  `pontos[]` (o checklist, **em português**), `frases[]` (blocos de inglês que
+  o app procura no texto digitado), `modelo` e `palavras: [min, max]`.
 - **A resposta modelo tem de caber na faixa de `palavras`** que a tela cobra de
-  quem responde — o validador falha se não couber. Tela pedindo uma coisa e
-  ensinando outra é pior que não ter modelo.
-- **O campo é um `<textarea>`, e a resposta é um parágrafo inteiro.** Por isso
-  o `oninput` guarda o rascunho em `state.interviewDraft` (via
-  `saveInterviewDraft()`, que **nunca** chama `render()`): abrir o modal de
-  saída reescreve o `#app`, e sem o rascunho guardado a pessoa perderia 100
-  palavras. O contador de palavras é atualizado mexendo só no texto do nó
-  `#interview-count`, pelo mesmo motivo.
+  quem responde — o validador falha se não couber.
+- **O bloco de inglês é dica, não nota.** Quem pontua é o checklist.
+
+### A nota
+
+- Por pergunta: espelho → partes reproduzidas / partes; aberta → pontos
+  marcados / pontos. Nos dois casos o denominador é a pergunta inteira, então
+  **pular não melhora nada**.
+- Do módulo: **a MÉDIA das porcentagens das perguntas**, não a soma das
+  unidades. A pergunta-espelho tem 13 partes e uma aberta tem 4 pontos de
+  checklist: somar unidade com unidade faria a primeira pergunta valer três
+  vezes as outras. A tela diz isso ("Average across the 6 questions"), senão a
+  conta parece quebrada.
+- A régua é o `interviewScore()`, e ela vale nas duas pontas — a tela de
+  resultado e o que vai para o `localStorage`.
+
+### A tela
+
+- **O campo é um `<textarea>`** (`#interview-input`, o terceiro campo do
+  projeto). O `oninput` guarda o rascunho em `state.interviewDraft` via
+  `saveInterviewDraft()`, que **nunca** chama `render()`: abrir o modal de
+  saída reescreve o `#app`, e sem o rascunho guardado a pessoa perderia o que
+  escreveu. O contador de palavras (só na pergunta aberta, que tem faixa) é
+  atualizado mexendo só no texto do nó `#interview-count`, pelo mesmo motivo.
 - A pergunta 4 traz uma ferramenta concreta (Power BI) em vez de
   `[ferramenta da vaga]`: o `porque` é que manda trocar pela ferramenta do
   anúncio. Enunciado com colchete de preencher não dá para responder.
-- Ao trocar o banco de perguntas, suba `INTERVIEW_STORAGE_KEY` em `js/app.js`
-  (`_r1` → `_r2` → …) para o resultado anterior não se misturar.
+- Ao trocar o banco de perguntas ou a régua, suba `INTERVIEW_STORAGE_KEY` em
+  `js/app.js` (`_r1` → `_r2` → …) para o resultado anterior não se misturar.
 
 ## Antes de publicar
 
@@ -625,8 +660,14 @@ exatamente essa diferença que escondia o bug dos 11%.
   (campo, submit, checklist, next) — a porcentagem que a **tela** mostra tem de
   ser a mesma que a régua calcula e a mesma que fica gravada; pular todas dá 0%;
   o rascunho sobrevive a abrir e fechar o modal de saída; e o texto digitado sai
-  escapado, nunca como HTML. A detecção de bloco é conferida nas duas formas
-  (contraída e longa) e não pode casar pedaço de palavra
+  escapado, nunca como HTML. Na pergunta-espelho, a forma longa da contração
+  vale, a resposta diferente é reprovada, a parte vizinha não passa no lugar
+  desta, o typo conta como acerto e o "não lembro" não — e a nota do módulo
+  **não** pode ser a soma das unidades, só a média das perguntas. Nas abertas, a
+  detecção de bloco é conferida nas duas formas (contraída e longa) e não pode
+  casar pedaço de palavra. O validador ainda confere que o `modelo` da
+  pergunta-espelho é a emenda das `partes`, e que nenhuma parte reprova a
+  própria resposta
 - Teste das unidades: 15 na grade, só as carregadas com link, toda chave de deck
   começando com a chave da sua unidade, nenhum deck vazando de uma unidade para
   outra, e o histórico gravado no formato antigo migrando para a chave com prefixo

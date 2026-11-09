@@ -1,12 +1,22 @@
 /* ============================================================
    MÓDULO 04 — "Job Interview" (entrevista em inglês)
 
-   A pergunta vem em inglês e a pessoa escreve a resposta inteira, em inglês.
-   É o único módulo em que NÃO existe resposta certa: "Tell me about yourself"
-   tem infinitas respostas boas, e um corretor por comparação de string não
-   serve para nada aqui.
+   A pergunta vem em inglês e a pessoa escreve a resposta, em inglês. Cada
+   pergunta declara o seu `kind`, e a forma segue a tarefa:
 
-   Então a régua é outra, e é honesta sobre o que dá para medir sem IA:
+   - `kind:"mirror"` — a pessoa JÁ TEM a resposta padrão dela para esta
+     pergunta, escrita por ela, e o exercício é reproduzi-la até sair sem
+     pensar. Aqui existe gabarito: o texto digitado é comparado com o da
+     resposta, parte por parte, pelo mesmo corretor do módulo de tradução
+     (contração, caixa, pontuação e erro de digitação já resolvidos lá). A
+     resposta mora em `partes[]`, uma frase por vez, com a deixa em português
+     — mandar escrever 270 palavras de uma vez esconderia qual frase escapou.
+   - `kind:"open"` — ainda não há resposta padrão, então NÃO existe gabarito:
+     "Why are you looking to leave your current role?" tem infinitas respostas
+     boas, e comparar string reprovaria quase toda resposta certa.
+
+   Na pergunta aberta a régua é esta, e é honesta sobre o que dá para medir
+   sem IA:
 
    1. **Checklist** (`pontos`) — o que uma resposta forte tem. A pessoa marca
       o que cobriu, e a porcentagem do módulo é isso: pontos marcados sobre
@@ -31,36 +41,83 @@
    ============================================================ */
 
 const INTERVIEW_QUESTIONS = [
+  /* ---- Pergunta 1: resposta-espelho ----
+     Esta é a resposta padrão do dono, escrita por ele. O exercício é
+     reproduzi-la: o texto digitado é comparado parte por parte com o que está
+     aqui, e o corretor é o mesmo do módulo de tradução. Por isso a resposta é
+     guardada em PEDAÇOS — uma frase (ou duas curtas) por vez. Mandar escrever
+     270 palavras de uma vez não ensina nada: o erro apareceria todo junto no
+     fim, sem dizer qual frase escapou.
+
+     O `pt` de cada parte é a deixa, como no módulo de tradução: ele diz o que
+     dizer, e quem produz o inglês é a pessoa. Não cadastre `accept` com outra
+     formulação aqui — o objetivo é dizer ESTA resposta, não uma parecida. */
   { id: "i-1",
+    kind: "mirror",
     tag: "Opening",
     question: "Tell me about yourself.",
     porque: "É a primeira pergunta e serve para você escolher a história que o resto da "
-          + "entrevista vai seguir. Não é a sua biografia: são 60 a 90 segundos sobre o que "
-          + "você faz hoje, o que fez antes e por que está nesta conversa.",
-    pontos: [
-      "quanto tempo você trabalha com dados",
-      "o que você faz hoje, em uma frase",
-      "uma ou duas ferramentas que você usa de verdade",
-      "um resultado concreto, com número se der",
-      "por que esta vaga, fechando a resposta",
+          + "entrevista vai seguir. Esta é a sua resposta padrão: treine até ela sair "
+          + "inteira, sem pensar. Cada parte aparece em português, e você escreve em inglês.",
+    partes: [
+      { pt: "Eu sou analista de dados e BI, hoje na Basis, uma empresa de tecnologia no Brasil.",
+        en: "I'm a Data and BI Analyst, currently at Basis, a technology company in Brazil." },
+      { pt: "Meu trabalho é SQL, Python e BI — eu construo os modelos de dados por trás dos "
+          + "relatórios, e os painéis em cima deles, no Power BI e no Qlik Sense.",
+        en: "My work is SQL, Python and BI — I build the data models behind the reports, "
+          + "and the dashboards on top of them, in Power BI and Qlik Sense." },
+      { pt: "Eu não comecei em dados.",
+        en: "I didn't start in data." },
+      { pt: "Eu passei dez anos na indústria — Volkswagen, Bosch, Sumitomo — e nos meus "
+          + "últimos anos lá eu trabalhei como analista de processos.",
+        en: "I spent ten years in industry — Volkswagen, Bosch, Sumitomo — and in my last "
+          + "years there I worked as a process analyst." },
+      { pt: "Eu tinha que coletar dados de produção, organizá-los e transformá-los em números "
+          + "que o time pudesse usar.",
+        en: "I had to collect production data, organize it, and turn it into numbers the team "
+          + "could use." },
+      { pt: "E essa era a parte do trabalho de que eu mais gostava.",
+        en: "And that was the part of the job I liked the most." },
+      { pt: "Então eu fui mais fundo: primeiro Excel, depois ferramentas de BI, depois SQL e Python.",
+        en: "So I went deeper: first Excel, then BI tools, then SQL and Python." },
+      { pt: "A partir daí eu estudei análise de dados, fiz uma pós-graduação e fui avançando "
+          + "passo a passo.",
+        en: "From there I studied data analysis, did a postgraduate degree, and moved step by step." },
+      { pt: "Primeiro rotinas de ETL a partir de um sistema ERP, com SQL.",
+        en: "First ETL routines from an ERP system, with SQL." },
+      { pt: "Depois modelos analíticos no BigQuery, e automação com Python.",
+        en: "Then analytical models on BigQuery, and automation with Python." },
+      { pt: "Hoje eu trabalho com bases de até vinte milhões de linhas, e eu uso Python para "
+          + "automatizar as checagens de qualidade dos dados — uma rotina passou de quatro "
+          + "horas por semana para quinze minutos.",
+        en: "Today I work with datasets up to twenty million rows, and I use Python to automate "
+          + "the data quality checks — one routine went from four hours a week to fifteen minutes." },
+      { pt: "O que eu estou buscando agora é um time internacional, trabalhando em inglês, onde "
+          + "eu possa continuar fazendo análise e BI — e continuar crescendo no lado técnico.",
+        en: "What I'm looking for now is an international team, working in English, where I can "
+          + "keep doing analysis and BI — and keep growing on the technical side." },
+      { pt: "É por isso que eu estou aqui.",
+        en: "That's why I'm here." },
     ],
-    frases: [
-      "I've been working with data for",
-      "Right now I'm",
-      "My main tools are",
-      "What I enjoy most is",
-      "That's why I'm interested in",
-    ],
-    modelo: "Sure. I've been working with data for about six years. Right now I'm a data "
-          + "analyst at a retail company, where I build dashboards in Power BI and maintain "
-          + "the SQL models behind them. Last year I rebuilt our sales reporting, and the "
-          + "team went from waiting two days for the numbers to having them every morning. "
-          + "What I enjoy most is sitting with the business and turning a vague question "
-          + "into a metric. That's why I'm interested in this role — you're building the "
-          + "data team from the ground up, and that's the work I like best.",
-    palavras: [70, 140] },
+    modelo: "I'm a Data and BI Analyst, currently at Basis, a technology company in Brazil. "
+          + "My work is SQL, Python and BI — I build the data models behind the reports, and "
+          + "the dashboards on top of them, in Power BI and Qlik Sense.\n\n"
+          + "I didn't start in data. I spent ten years in industry — Volkswagen, Bosch, "
+          + "Sumitomo — and in my last years there I worked as a process analyst. I had to "
+          + "collect production data, organize it, and turn it into numbers the team could "
+          + "use. And that was the part of the job I liked the most. So I went deeper: first "
+          + "Excel, then BI tools, then SQL and Python.\n\n"
+          + "From there I studied data analysis, did a postgraduate degree, and moved step by "
+          + "step. First ETL routines from an ERP system, with SQL. Then analytical models on "
+          + "BigQuery, and automation with Python. Today I work with datasets up to twenty "
+          + "million rows, and I use Python to automate the data quality checks — one routine "
+          + "went from four hours a week to fifteen minutes.\n\n"
+          + "What I'm looking for now is an international team, working in English, where I "
+          + "can keep doing analysis and BI — and keep growing on the technical side. That's "
+          + "why I'm here." },
 
   { id: "i-2",
+    kind: "open",
     tag: "Your move",
     question: "Why are you looking to leave your current role?",
     porque: "Eles querem saber se você está fugindo de um problema ou indo atrás de algo. "
@@ -88,6 +145,7 @@ const INTERVIEW_QUESTIONS = [
     palavras: [50, 120] },
 
   { id: "i-3",
+    kind: "open",
     tag: "Project story",
     question: "Walk me through a recent project.",
     porque: "Aqui eles medem como você pensa, não o tamanho do projeto. Use uma estrutura "
@@ -119,6 +177,7 @@ const INTERVIEW_QUESTIONS = [
     palavras: [80, 160] },
 
   { id: "i-4",
+    kind: "open",
     tag: "Tools",
     question: "What's your experience with Power BI?",
     porque: "A pergunta é sobre a ferramenta que o anúncio pede — troque Power BI pela que "
@@ -148,6 +207,7 @@ const INTERVIEW_QUESTIONS = [
     palavras: [60, 130] },
 
   { id: "i-5",
+    kind: "open",
     tag: "Money",
     question: "What are your salary expectations?",
     porque: "É pergunta de negociação, não de inglês — mas em inglês ela trava muita gente. "
@@ -173,6 +233,7 @@ const INTERVIEW_QUESTIONS = [
     palavras: [40, 100] },
 
   { id: "i-6",
+    kind: "open",
     tag: "Your turn",
     question: "Do you have any questions for me?",
     porque: "Tenha sempre duas ou três. É aqui que você mostra que entendeu a vaga e que "
@@ -218,6 +279,25 @@ function interviewPhrasesFound(question, typed) {
    de 30 a 60 segundos de fala. */
 function interviewWordCount(typed) {
   return String(typed || "").trim().split(/\s+/).filter(Boolean).length;
+}
+
+/* A pergunta é de reproduzir a resposta padrão? */
+function interviewIsMirror(q) {
+  return !!q && q.kind === "mirror";
+}
+
+/* Quantas unidades a pergunta vale: as partes da resposta padrão, ou os pontos
+   do checklist. É o denominador da nota, e quem o lê é o interviewScore(). */
+function interviewUnits(q) {
+  return interviewIsMirror(q) ? q.partes.length : q.pontos.length;
+}
+
+/* Corrige uma parte da resposta padrão. Quem corrige é o gradeTransAnswer() do
+   módulo de tradução, carregado antes deste arquivo — a mesma decisão do
+   módulo da conversa: um segundo corretor duplicaria a parte mais delicada do
+   site. A chamada só acontece em tempo de execução, nunca na carga. */
+function interviewGradePart(parte, digitado) {
+  return gradeTransAnswer({ en: parte.en, accept: parte.accept }, digitado || "");
 }
 
 function getInterviewQuestionById(id) {
