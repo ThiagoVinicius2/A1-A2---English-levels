@@ -43,6 +43,9 @@ function carregar(arquivos = ["data.js", "data-conversation.js", "data-translate
     interviewCheckText: typeof interviewCheckText !== "undefined" ? interviewCheckText : null,
     interviewPartTotal: typeof interviewPartTotal !== "undefined" ? interviewPartTotal : null,
     interviewTotalWords: typeof interviewTotalWords !== "undefined" ? interviewTotalWords : null,
+    interviewBlockKey: typeof interviewBlockKey !== "undefined" ? interviewBlockKey : null,
+    getInterviewBlocks: typeof getInterviewBlocks !== "undefined" ? getInterviewBlocks : null,
+    getInterviewBlockByKey: typeof getInterviewBlockByKey !== "undefined" ? getInterviewBlockByKey : null,
   };`, ctx);
   return ctx.API;
 }
@@ -126,12 +129,12 @@ function carregarApp() {
     transIsHit, pct, shuffle,
     startTransRound, startTransRetry, finishTransRound, renderTransResults, renderTransDecks,
     loadTransDeckStats, saveTransDeckStats, openTransDecks,
-    startInterview, skipInterviewQuestion, finishInterview, interviewScore, interviewPartScore, interviewPct,
-    submitInterviewPart, skipInterviewPart, nextInterviewPart, prevInterviewPart,
-    nextInterviewQuestion, prevInterviewQuestion,
-    interviewCurrentQuestion, interviewCurrentPart, interviewAnswered,
-    saveInterviewDraft, renderInterview, renderInterviewResults, renderInterviewLandingCard,
-    requestExitInterview, cancelExitInterview, interviewResultLabel,
+    openInterviewBlocks, toggleInterviewBlock, selectAllInterviewBlocks,
+    startInterviewRound, finishInterviewRound, interviewBlockScore, interviewPct,
+    submitInterviewBlock, skipInterviewBlock, nextInterviewBlock, prevInterviewBlock,
+    interviewCurrentBlock, loadInterviewStats, saveInterviewStats,
+    saveInterviewDraft, renderInterview, renderInterviewBlocks, renderInterviewResults,
+    renderInterviewLandingCard, requestExitInterview, cancelExitInterview, interviewResultLabel,
     CONV_STORAGE_KEY, TRANS_STORAGE_KEY, INTERVIEW_STORAGE_KEY,
   };`, ctx);
   ctx.APP.localStorage = ctx.localStorage;
