@@ -20,12 +20,13 @@
      gabarito de nada.
 
    O combinado é um espelho por vez: o dono pratica uma pergunta até ela sair
-   inteira, escreve a resposta padrão da próxima, e aí ela vira `mirror`
-   (trocando `pontos` por `partes[]`).
+   inteira, escreve a resposta padrão da próxima, e aí ela vira `mirror` — o
+   `modelo` passa a ser a resposta dele (não mais um exemplo), o `kind` muda e
+   os `pontos`, que eram o roteiro de escrita, saem.
 
-   Idioma: a pergunta, as partes e o modelo são o inglês que a pessoa vai
-   produzir. O `porque` e os `pontos` são a orientação — conteúdo pedagógico,
-   então em português.
+   Idioma: a pergunta e o modelo são o inglês que a pessoa vai produzir. O
+   `porque` e os `pontos` são a orientação — conteúdo pedagógico, então em
+   português.
    ============================================================ */
 
 const INTERVIEW_QUESTIONS = [
