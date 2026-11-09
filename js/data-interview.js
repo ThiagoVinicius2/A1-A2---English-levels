@@ -2,40 +2,27 @@
    MÓDULO 04 — "Job Interview" (entrevista em inglês)
 
    A pergunta vem em inglês e a pessoa escreve a resposta, em inglês. Cada
-   pergunta declara o seu `kind`, e a forma segue a tarefa:
+   pergunta declara o seu `kind`:
 
-   - `kind:"mirror"` — a pessoa JÁ TEM a resposta padrão dela para esta
-     pergunta, escrita por ela, e o exercício é reproduzi-la até sair sem
-     pensar. Aqui existe gabarito: o texto digitado é comparado com o da
+   - `kind:"mirror"` — a resposta padrão desta pergunta JÁ existe, escrita pelo
+     dono, e o exercício é reproduzi-la até sair sem pensar. **Só estas entram
+     na rodada.** Aqui existe gabarito: o texto digitado é comparado com o da
      resposta, parte por parte, pelo mesmo corretor do módulo de tradução
      (contração, caixa, pontuação e erro de digitação já resolvidos lá). A
      resposta mora em `partes[]`, uma frase por vez, com a deixa em português
-     — mandar escrever 270 palavras de uma vez esconderia qual frase escapou.
-   - `kind:"open"` — ainda não há resposta padrão, então NÃO existe gabarito:
-     "Why are you looking to leave your current role?" tem infinitas respostas
-     boas, e comparar string reprovaria quase toda resposta certa.
+     — mandar escrever 210 palavras de uma vez esconderia qual frase escapou.
+   - `kind:"soon"` — a resposta padrão ainda não foi escrita. A pergunta fica
+     **fora da rodada**, e o que ela guarda (`porque` e `pontos`) é o material
+     para escrever essa resposta: por que o entrevistador faz a pergunta e o
+     que uma resposta forte precisa cobrir. O `modelo` é uma resposta de
+     exemplo, de analista de dados, para servir de ponto de partida — não é
+     gabarito de nada.
 
-   Na pergunta aberta a régua é esta, e é honesta sobre o que dá para medir
-   sem IA:
+   O combinado é um espelho por vez: o dono pratica uma pergunta até ela sair
+   inteira, escreve a resposta padrão da próxima, e aí ela vira `mirror`
+   (trocando `pontos` por `partes[]`).
 
-   1. **Checklist** (`pontos`) — o que uma resposta forte tem. A pessoa marca
-      o que cobriu, e a porcentagem do módulo é isso: pontos marcados sobre
-      pontos possíveis. É autoavaliação de propósito; o módulo é de preparação
-      para entrevista, e quem sabe se a resposta cobriu o ponto é quem a
-      escreveu.
-   2. **Blocos de inglês** (`frases`) — o app procura cada bloco no texto
-      digitado e diz quais apareceram. Isso é automático e vale como dica, não
-      como nota. Quem compara é o `transNormalize()` do módulo de tradução:
-      ele já ignora caixa, pontuação e contração, então "I've been working" e
-      "I have been working" contam igual. **Reusar foi decisão deliberada** —
-      um segundo normalizador duplicaria a parte mais delicada do site.
-   3. **Tamanho** (`palavras`) — a faixa de palavras que cabe em 30-60
-      segundos de fala. Resposta de 15 palavras não é resposta de entrevista;
-      de 250, ninguém ouve até o fim.
-   4. **Resposta modelo** (`modelo`) — uma resposta inteira, de analista de
-      dados, para comparar depois de escrever a sua. Nunca antes.
-
-   Idioma: a pergunta, os blocos e o modelo são o inglês que a pessoa vai
+   Idioma: a pergunta, as partes e o modelo são o inglês que a pessoa vai
    produzir. O `porque` e os `pontos` são a orientação — conteúdo pedagógico,
    então em português.
    ============================================================ */
@@ -117,7 +104,7 @@ const INTERVIEW_QUESTIONS = [
           + "why I'm here." },
 
   { id: "i-2",
-    kind: "open",
+    kind: "soon",
     tag: "Your move",
     question: "Why are you looking to leave your current role?",
     porque: "Eles querem saber se você está fugindo de um problema ou indo atrás de algo. "
@@ -129,23 +116,15 @@ const INTERVIEW_QUESTIONS = [
       "a ligação com esta vaga",
       "nenhuma reclamação de pessoa ou de empresa",
     ],
-    frases: [
-      "I've learned a lot",
-      "What I'm looking for now is",
-      "there isn't much room to",
-      "This role is",
-      "closer to",
-    ],
     modelo: "I've learned a lot where I am — I built most of our reporting from scratch. "
           + "What I'm looking for now is more depth on the engineering side: dbt, testing, "
           + "data quality. In my current team there isn't much room to go that way, because "
           + "we are two analysts and the daily reporting always comes first. This role is "
           + "the opposite: the pipeline work is the core of the job, and I want to be closer "
-          + "to that.",
-    palavras: [50, 120] },
+          + "to that." },
 
   { id: "i-3",
-    kind: "open",
+    kind: "soon",
     tag: "Project story",
     question: "Walk me through a recent project.",
     porque: "Aqui eles medem como você pensa, não o tamanho do projeto. Use uma estrutura "
@@ -159,13 +138,6 @@ const INTERVIEW_QUESTIONS = [
       "o resultado, com número",
       "o que você faria diferente hoje",
     ],
-    frases: [
-      "The problem was",
-      "What I did was",
-      "I started by",
-      "In the end",
-      "If I did it again",
-    ],
     modelo: "Of course. The problem was that the sales team didn't trust the weekly report — "
           + "every area had its own number for revenue. What I did was map where each number "
           + "came from, and we found three different definitions of a closed deal. I started "
@@ -173,11 +145,10 @@ const INTERVIEW_QUESTIONS = [
           + "dbt with tests on the key columns and put a single dashboard on top of it. In "
           + "the end we went from three numbers to one, and the weekly meeting stopped "
           + "arguing about the data. If I did it again, I would write the definitions down "
-          + "with the business before touching any SQL.",
-    palavras: [80, 160] },
+          + "with the business before touching any SQL." },
 
   { id: "i-4",
-    kind: "open",
+    kind: "soon",
     tag: "Tools",
     question: "What's your experience with Power BI?",
     porque: "A pergunta é sobre a ferramenta que o anúncio pede — troque Power BI pela que "
@@ -190,24 +161,16 @@ const INTERVIEW_QUESTIONS = [
       "um detalhe técnico que mostra profundidade",
       "o que você ainda não domina, sem drama",
     ],
-    frases: [
-      "I've used it for",
-      "I built",
-      "I'm comfortable with",
-      "I'm still learning",
-      "I haven't worked with",
-    ],
     modelo: "I've used it for about four years, almost every day. I built the reporting "
           + "layer for the commercial team — around fifteen dashboards, with row-level "
           + "security so each regional manager only sees their own area. I'm comfortable "
           + "with the data model side, star schema, and writing DAX measures. I'm still "
           + "learning the heavier DAX, things like time intelligence over a custom calendar. "
           + "I haven't worked with Fabric yet, but the SQL behind the reports is the part I "
-          + "know best.",
-    palavras: [60, 130] },
+          + "know best." },
 
   { id: "i-5",
-    kind: "open",
+    kind: "soon",
     tag: "Money",
     question: "What are your salary expectations?",
     porque: "É pergunta de negociação, não de inglês — mas em inglês ela trava muita gente. "
@@ -219,21 +182,13 @@ const INTERVIEW_QUESTIONS = [
       "deixar claro que o pacote todo conta",
       "devolver a pergunta com elegância",
     ],
-    frases: [
-      "Based on what I've seen",
-      "I'm looking for something in the range of",
-      "depending on the rest of the package",
-      "what range do you have in mind",
-      "Is that in line with",
-    ],
     modelo: "Based on what I've seen for data analyst roles at this level, I'm looking for "
           + "something in the range of X to Y, depending on the rest of the package — "
           + "benefits, remote work and the learning budget matter to me as well. Is that in "
-          + "line with the range you have in mind for this role?",
-    palavras: [40, 100] },
+          + "line with the range you have in mind for this role?" },
 
   { id: "i-6",
-    kind: "open",
+    kind: "soon",
     tag: "Your turn",
     question: "Do you have any questions for me?",
     porque: "Tenha sempre duas ou três. É aqui que você mostra que entendeu a vaga e que "
@@ -245,51 +200,29 @@ const INTERVIEW_QUESTIONS = [
       "uma pergunta sobre o que é sucesso nos primeiros meses",
       "fechar agradecendo e dizendo que segue interessado",
     ],
-    frases: [
-      "Yes, a couple",
-      "How is the data team",
-      "What would success look like",
-      "which tools",
-      "that's helpful",
-    ],
     modelo: "Yes, a couple. How is the data team organized today — are the analysts embedded "
           + "in the business areas, or is it one central team? And what would success look "
           + "like for this role in the first six months? Last one: which tools are already "
           + "in place, and is there anything you plan to replace this year? Thanks, that's "
-          + "helpful — this is the kind of work I was hoping to hear about.",
-    palavras: [45, 110] },
+          + "helpful — this is the kind of work I was hoping to hear about." },
 ];
-
-/* Quais blocos de inglês apareceram no que a pessoa escreveu.
-
-   Quem normaliza é o transNormalize() do módulo de tradução, carregado antes
-   deste arquivo em index.html — então a comparação já ignora caixa, acento,
-   pontuação e contração de graça, e "I've been working" casa com "I have been
-   working". A chamada só acontece em tempo de execução, nunca na carga. */
-function interviewPhrasesFound(question, typed) {
-  const texto = " " + transNormalize(typed || "") + " ";
-  return question.frases.map(f => ({
-    frase: f,
-    achou: texto.indexOf(" " + transNormalize(f) + " ") !== -1,
-  }));
-}
-
-/* Quantas palavras a pessoa escreveu. Palavra é bloco separado por espaço:
-   serve para dizer "você escreveu 40, mire entre 70 e 140", que é o tamanho
-   de 30 a 60 segundos de fala. */
-function interviewWordCount(typed) {
-  return String(typed || "").trim().split(/\s+/).filter(Boolean).length;
-}
 
 /* A pergunta é de reproduzir a resposta padrão? */
 function interviewIsMirror(q) {
   return !!q && q.kind === "mirror";
 }
 
-/* Quantas unidades a pergunta vale: as partes da resposta padrão, ou os pontos
-   do checklist. É o denominador da nota, e quem o lê é o interviewScore(). */
+/* A rodada é só o que tem resposta padrão. As `soon` aparecem na tela inicial
+   como o que ainda falta escrever, nunca como exercício: sem resposta não há
+   o que espelhar, e cobrar uma resposta livre seria outro módulo. */
+function getInterviewRound() {
+  return INTERVIEW_QUESTIONS.filter(interviewIsMirror);
+}
+
+/* Quantas unidades a pergunta vale: as partes da resposta padrão. É o
+   denominador da nota, e quem o lê é o interviewScore(). */
 function interviewUnits(q) {
-  return interviewIsMirror(q) ? q.partes.length : q.pontos.length;
+  return interviewIsMirror(q) ? q.partes.length : 0;
 }
 
 /* Corrige uma parte da resposta padrão. Quem corrige é o gradeTransAnswer() do
@@ -298,6 +231,12 @@ function interviewUnits(q) {
    site. A chamada só acontece em tempo de execução, nunca na carga. */
 function interviewGradePart(parte, digitado) {
   return gradeTransAnswer({ en: parte.en, accept: parte.accept }, digitado || "");
+}
+
+/* Quantas palavras tem um texto. Serve para a tela inicial dizer o tamanho da
+   resposta padrão ("your 210-word answer"). */
+function interviewWordCount(texto) {
+  return String(texto || "").trim().split(/\s+/).filter(Boolean).length;
 }
 
 function getInterviewQuestionById(id) {

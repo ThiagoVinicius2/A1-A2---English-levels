@@ -119,19 +119,18 @@ p.nota(`tradução: ${A.TRANS_CARDS.length} cartões em ${Object.keys(A.TRANS_DE
         `${Object.keys(A.TRANS_UNITS).filter(u => A.getTransDecksForUnit(u).length).length} unidades carregadas`);
 
 /* ============ 4. Entrevista (js/data-interview.js) ============ */
-/* A forma segue o kind, e é dela que a tela depende:
+/* A forma segue o kind:
    - mirror: a resposta padrão vive em partes[], e a tela compara cada parte
-     com o que a pessoa escreve. Sem partes não há nota;
-   - open:   sem `pontos` não há nota (ela é o checklist), sem `frases` a
-     detecção de blocos imprime lista vazia, e `palavras` é lido
-     desestruturado em [min, max]. */
+     com o que a pessoa escreve. Sem partes não há rodada;
+   - soon:   ainda sem resposta padrão. Fica fora da rodada, e `pontos` é o
+     roteiro do que essa resposta precisa cobrir. */
 const idsEntrevista = {};
 p.ok(Array.isArray(A.INTERVIEW_QUESTIONS) && A.INTERVIEW_QUESTIONS.length > 0,
      "INTERVIEW_QUESTIONS existe e não está vazio");
 (A.INTERVIEW_QUESTIONS || []).forEach(q => {
   p.ok(!idsEntrevista[q.id], `entrevista ${q.id}: id repetido`);
   idsEntrevista[q.id] = true;
-  p.ok(q.kind === "mirror" || q.kind === "open", `entrevista ${q.id}: kind precisa ser mirror ou open (é "${q.kind}")`);
+  p.ok(q.kind === "mirror" || q.kind === "soon", `entrevista ${q.id}: kind precisa ser mirror ou soon (é "${q.kind}")`);
   p.ok(typeof q.question === "string" && q.question.trim(), `entrevista ${q.id}: question vazia`);
   p.ok(typeof q.tag === "string" && q.tag.trim(), `entrevista ${q.id}: tag vazia`);
   p.ok(typeof q.porque === "string" && q.porque.trim().length > 40, `entrevista ${q.id}: porque curto demais`);
@@ -160,25 +159,21 @@ p.ok(Array.isArray(A.INTERVIEW_QUESTIONS) && A.INTERVIEW_QUESTIONS.length > 0,
     p.ok(q.pontos === undefined && q.frases === undefined,
          `entrevista ${q.id}: mirror não usa pontos nem frases`);
   } else {
+    /* Pergunta ainda sem resposta padrão: fica fora da rodada, e o que ela
+       guarda é o material para escrever a resposta. */
     p.ok(Array.isArray(q.pontos) && q.pontos.length >= 3 && q.pontos.every(x => typeof x === "string" && x.trim()),
-         `entrevista ${q.id}: pontos precisa ter 3+ strings não vazias (a nota do módulo sai daqui)`);
-    p.ok(Array.isArray(q.frases) && q.frases.length > 0 && q.frases.every(x => typeof x === "string" && x.trim()),
-         `entrevista ${q.id}: frases precisa ter strings não vazias`);
-    p.ok(Array.isArray(q.palavras) && q.palavras.length === 2 &&
-         Number.isInteger(q.palavras[0]) && Number.isInteger(q.palavras[1]) && q.palavras[0] < q.palavras[1],
-         `entrevista ${q.id}: palavras precisa ser [min, max] com min < max`);
-    /* A resposta modelo tem de caber na faixa que a tela cobra de quem
-       responde: tela pedindo uma coisa e ensinando outra é pior que não ter
-       modelo. */
-    const n = A.interviewWordCount(q.modelo);
-    p.ok(n >= q.palavras[0] && n <= q.palavras[1],
-         `entrevista ${q.id}: o modelo tem ${n} palavras, fora da faixa ${q.palavras.join("-")} que a tela cobra`);
+         `entrevista ${q.id}: pontos precisa ter 3+ strings não vazias (é o roteiro para escrever a resposta)`);
+    p.ok(q.partes === undefined, `entrevista ${q.id}: soon não tem partes — se tem, o kind devia ser mirror`);
   }
 });
 const espelho = (A.INTERVIEW_QUESTIONS || []).filter(A.interviewIsMirror);
-p.nota(`entrevista: ${(A.INTERVIEW_QUESTIONS || []).length} perguntas — ${espelho.length} com resposta padrão ` +
+p.ok(A.getInterviewRound().length === espelho.length,
+     "a rodada é exatamente o conjunto das perguntas com resposta padrão");
+p.ok(A.getInterviewRound().every(A.interviewIsMirror),
+     "nenhuma pergunta sem resposta padrão pode entrar na rodada");
+p.ok(espelho.length >= 1, "ao menos uma pergunta tem resposta padrão, senão não há rodada");
+p.nota(`entrevista: ${(A.INTERVIEW_QUESTIONS || []).length} perguntas — ${espelho.length} na rodada ` +
        `(${espelho.reduce((t, q) => t + q.partes.length, 0)} partes), ` +
-       `${(A.INTERVIEW_QUESTIONS || []).length - espelho.length} abertas ` +
-       `(${(A.INTERVIEW_QUESTIONS || []).filter(q => !A.interviewIsMirror(q)).reduce((t, q) => t + q.pontos.length, 0)} pontos de checklist)`);
+       `${(A.INTERVIEW_QUESTIONS || []).length - espelho.length} esperando a resposta padrão`);
 
 p.fim();
