@@ -28,14 +28,20 @@ p.ok(blocos.reduce((t, b) => t + b.total, 0) === A.interviewTotalWords(blocos[0]
 
 /* ---- 1. a contagem palavra por palavra, dentro de um bloco ---- */
 const b1 = blocos[0];
+/* Troca UMA palavra por outra que não existe na resposta. A mexida nasce do
+   próprio bloco, de propósito: apontar para uma palavra específica do texto
+   ("technology" já esteve lá e saiu numa edição do dono) é teste que quebra a
+   cada ajuste de conteúdo — o mesmo erro dos casos dirigidos que apontavam
+   para cartões do banco de tradução. */
+const trocaUmaPalavra = texto => texto.split(/\s+/).map((w, i) => (i === 2 ? "zzz" : w)).join(" ");
 const inteiro = A.interviewCheckText(b1.parte.en, b1.parte.en);
 p.ok(inteiro.acertos === inteiro.total && inteiro.sobraram === 0,
      `o próprio bloco devia contar ${inteiro.total} de ${inteiro.total} (deu ${inteiro.acertos})`);
 p.ok(A.interviewCheckText(b1.parte.en, "").acertos === 0, "campo vazio conta zero palavras");
-const trocada = A.interviewCheckText(b1.parte.en, b1.parte.en.replace("technology", "tech"));
+const trocada = A.interviewCheckText(b1.parte.en, trocaUmaPalavra(b1.parte.en));
 p.ok(trocada.acertos === inteiro.total - 1 && trocada.sobraram === 1,
      `trocar uma palavra devia custar exatamente uma (deu ${inteiro.total - trocada.acertos})`);
-p.ok(A.gradeTransAnswer({ en: b1.parte.en }, b1.parte.en.replace("technology", "tech")).level === "diferente" &&
+p.ok(A.gradeTransAnswer({ en: b1.parte.en }, trocaUmaPalavra(b1.parte.en)).level === "diferente" &&
      A.gradeTransAnswer({ en: b1.parte.en }, "Something else entirely.").level === "diferente",
      "o veredito inteiro não serve de nota — é por isso que a conta é por palavra");
 
@@ -61,7 +67,7 @@ P.submitInterviewBlock();
 p.ok(P.state.interviewEmptyWarn === true && !P.state.interviewRevealed[b1.key],
      "bloco vazio avisa em vez de revelar a resposta");
 
-P.campo("interview-input").value = b1.parte.en.replace("technology", "tech");
+P.campo("interview-input").value = trocaUmaPalavra(b1.parte.en);
 P.submitInterviewBlock();
 const s1 = P.interviewBlockScore(P.state.interviewRound[0]);
 p.ok(s1.acertos === b1.total - 1, `o bloco devia contar ${b1.total - 1} de ${b1.total} (deu ${s1.acertos})`);

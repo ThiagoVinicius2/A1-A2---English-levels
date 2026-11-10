@@ -60,7 +60,7 @@ const INTERVIEW_QUESTIONS = [
           + "que sobrou. No fim do quinto você lê a resposta inteira.",
     partes: [
       { topic: "Who you are and what you do",
-        en: "I'm a Data and BI Analyst, currently at Basis, a technology company in Brazil. "
+        en: "I'm a Data and BI Analyst. "
           + "My work is SQL, Python and BI — I build the data models behind the reports, and "
           + "the dashboards on top of them, in Power BI and Qlik Sense." },
       { topic: "Where you came from",
@@ -81,7 +81,7 @@ const INTERVIEW_QUESTIONS = [
           + "can keep doing analysis and BI — and keep growing on the technical side. That's "
           + "why I'm here." },
     ],
-    modelo: "I'm a Data and BI Analyst, currently at Basis, a technology company in Brazil. "
+    modelo: "I'm a Data and BI Analyst. "
           + "My work is SQL, Python and BI — I build the data models behind the reports, and "
           + "the dashboards on top of them, in Power BI and Qlik Sense.\n\n"
           + "I didn't start in data. I spent ten years in industry — Volkswagen, Bosch, "

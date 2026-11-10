@@ -256,7 +256,10 @@ const p = criarPlacar("SMOKE DOS QUATRO MÓDULOS");
   p.ok((await page.locator(".trans-warn").count()) > 0,
        "bloco vazio avisa em vez de revelar a resposta padrão");
 
-  await page.fill("#interview-input", b1.parte.en.replace("technology", "tech"));
+  /* troca UMA palavra por outra que não existe na resposta — a mexida nasce do
+     próprio bloco, para o teste não depender de uma palavra do conteúdo */
+  const comUmErro = b1.parte.en.split(/\s+/).map((w, i) => (i === 2 ? "zzz" : w)).join(" ");
+  await page.fill("#interview-input", comUmErro);
   await page.click("button:has-text('Check')");
   await page.waitForTimeout(120);
   p.ok((await page.locator(".diff-miss").count()) > 0, "a tela marca a palavra que não saiu");
