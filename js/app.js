@@ -1,6 +1,6 @@
 /* ===================== Estado da aplicação ===================== */
 const STORAGE_KEY = "enCheckLastResults";
-const CONV_STORAGE_KEY = "enCheckConvResults_r9";   // r9: a conversa sobre hobbies — banco novo, resultado da rodada anterior fica de fora
+const CONV_STORAGE_KEY = "enCheckConvResults_r10";  // r10: o vocabulário da aula (locked out, advice, o cachorro, condo) — banco novo, resultado da rodada anterior fica de fora
 const TRANS_STORAGE_KEY = "enCheckTransResults_r3"; // r3: chaves de deck prefixadas pela unidade (u01-...)
 const INTERVIEW_STORAGE_KEY = "enCheckInterviewResults_r3"; // r3: histórico POR BLOCO, como o do módulo de tradução
 const WEAK_THRESHOLD = 75;   // usado só para colorir a barra de desempenho (verde/amarelo/vermelho)
@@ -631,10 +631,11 @@ function renderConvLandingCard() {
 
   const details = detailsOpen ? `
     <div class="info-box">
-      Every question comes from today's conversation. Most ask you to <strong>write</strong> — rewrite the
-      sentence, complete it or translate it. Only the items that turn on a <strong>capital letter</strong>
-      are multiple choice, because the checker ignores case on purpose and would let <em>Gym</em> pass for
-      <em>gym</em>:
+      Every question comes from today's class — the vocabulary list, block by block. Most ask you to
+      <strong>write</strong>: say the sentence in English or fill in the key word. The multiple-choice ones
+      are where the task is really <strong>choosing between two words that get mixed up</strong>
+      (<em>went off</em> or <em>burned out</em>, <em>trap</em> or <em>trapped</em>, <em>advice</em> or
+      <em>advices</em>, <em>fur</em> or <em>hair</em>, <em>own</em> or <em>rent</em>):
       <ul class="conv-pattern-list">
         ${Object.values(CONV_CATEGORIES).map(c => `<li><strong>${escapeHtml(c.tag)}:</strong> ${escapeHtml(c.label)}</li>`).join("")}
       </ul>
@@ -655,8 +656,8 @@ function renderConvLandingCard() {
     num: "02",
     kind: "Class feedback",
     title: "Conversation mistakes",
-    text: `Exercises from today's conversation about hobbies — ${Object.keys(CONV_CATEGORIES).length} patterns,
-    ${CONV_TEST_QUESTIONS.length} questions, nearly all of them typed rather than multiple choice.`,
+    text: `Today's class vocabulary — locked out, advice, the dog upstairs and the condo:
+    ${Object.keys(CONV_CATEGORIES).length} blocks, ${CONV_TEST_QUESTIONS.length} sentences to produce in English.`,
     accent2: true,
     details,
     links,

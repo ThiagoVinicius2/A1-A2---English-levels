@@ -5573,6 +5573,8 @@ const TRANS_SYNONYMS = [
      são "licence" e "modelling", e a diferença é só de grafia — o mesmo caso
      de practise/practice e travelling/traveling. */
   ["licence", "license"], ["licences", "licenses"],
+  /* "centre" entrou com o vocabulário da aula ("near the city centre") */
+  ["centre", "center"], ["centres", "centers"],
   ["modelling", "modeling"], ["modelled", "modeled"],
   /* "universidade" e "faculdade" são college e university sem distinção aqui */
   ["university", "college"], ["universities", "colleges"],
