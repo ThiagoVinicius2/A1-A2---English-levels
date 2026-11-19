@@ -153,6 +153,8 @@ p.nota(`sinônimos: ${nSin} trocas conferidas sobre as respostas do banco`);
   /* "licence" e "modelling" entraram com a Unit 8 da série de dados */
   [{ en: "The license was expensive." }, "The licence was expensive."],
   [{ en: "We talked about data modeling." }, "We talked about data modelling."],
+  /* "centre" entrou com o vocabulário da 10ª rodada da conversa */
+  [{ en: "The office is near the city center." }, "The office is near the city centre."],
 ].forEach(([card, txt]) => p.ok(certo(card, txt), `par de sinônimo: "${txt}" devia dar certo`));
 
 /* ---- 8. número por extenso vale pelo algarismo até 99 ---- */
