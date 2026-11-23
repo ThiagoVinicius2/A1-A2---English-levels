@@ -78,8 +78,8 @@ const INTERVIEW_QUESTIONS = [
         funcao: "Mostrar os dez anos de bagagem sem parecer que você está fora do mundo de dados.",
         dica: "Os nomes das empresas fazem trabalho sozinhos: diga-os com calma. “Bosch” em inglês "
             + "é BOSH, e “Volkswagen” é VOLKS-wagen, não “vólksvagen”.",
-        en: "I worked for about ten years in industrial companies — Volkswagen, Bosch, Sumitomo and "
-          + "KYB. Most of that time I worked with production data: machine stoppages, quality and "
+        en: "I worked for about ten years in industrial companies — Volkswagen, Bosch and "
+          + "Sumitomo. Most of that time I worked with production data: machine stoppages, quality and "
           + "waste." },
       { topic: "The turn into data",
         funcao: "Explicar por que você mudou. Sem isso fica a dúvida “por que um cara de fábrica "
@@ -109,8 +109,8 @@ const INTERVIEW_QUESTIONS = [
           + "natural to me." },
     ],
     modelo: "Sure, happy to. I'm a production engineer who moved into data.\n\n"
-          + "I worked for about ten years in industrial companies — Volkswagen, Bosch, Sumitomo "
-          + "and KYB. Most of that time I worked with production data: machine stoppages, quality "
+          + "I worked for about ten years in industrial companies — Volkswagen, Bosch and "
+          + "Sumitomo. Most of that time I worked with production data: machine stoppages, quality "
           + "and waste.\n\n"
           + "I started working with data because of that. In the factory, the hard part was never "
           + "the analysis — it was getting reliable data. So I learned SQL and BI tools to solve "
