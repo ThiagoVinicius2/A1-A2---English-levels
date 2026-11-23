@@ -94,7 +94,7 @@ const INTERVIEW_QUESTIONS = [
         dica: "“I take data from different systems, organise it, test it, and deliver it” é "
             + "ouro com recrutador: explica engenharia de dados sem usar a palavra. “Qlik” "
             + "se fala “click”.",
-        en: "Today I'm a Data and BI Analyst at Basis Tecnologia. I build and maintain data "
+        en: "Today I'm a Data and BI Analyst. I build and maintain data "
           + "pipelines — I take data from different systems, organise it, test it, and deliver it "
           + "ready for analysis. The largest datasets I work with have around twenty million rows, "
           + "and they feed Power BI and Qlik Sense dashboards. I also use Python and Airflow to "
@@ -115,7 +115,7 @@ const INTERVIEW_QUESTIONS = [
           + "I started working with data because of that. In the factory, the hard part was never "
           + "the analysis — it was getting reliable data. So I learned SQL and BI tools to solve "
           + "that myself. In 2025 I moved into data full time.\n\n"
-          + "Today I'm a Data and BI Analyst at Basis Tecnologia. I build and maintain data "
+          + "Today I'm a Data and BI Analyst. I build and maintain data "
           + "pipelines — I take data from different systems, organise it, test it, and deliver it "
           + "ready for analysis. The largest datasets I work with have around twenty million rows, "
           + "and they feed Power BI and Qlik Sense dashboards. I also use Python and Airflow to "
