@@ -9,12 +9,23 @@
      na rodada.** Aqui existe gabarito: o texto digitado é comparado com o da
      resposta, parte por parte, pelo mesmo corretor do módulo de tradução
      (contração, caixa, pontuação e erro de digitação já resolvidos lá). A
-     resposta vive em `partes[]`, **cinco blocos temáticos** — quem você é,
-     de onde veio, o que te puxou para dados, o que construiu e o que
-     procura —, e o `modelo` guarda a resposta inteira emendada. A tela não
-     dá deixa em português: mostra a pergunta, o **tópico** do bloco e o
-     campo. A resposta inteira numa caixa só já foi tentada e não funcionou
-     nesta etapa: são 210 palavras de memória, e o dono pediu para separar.
+     resposta vive em `partes[]`, **cinco blocos temáticos** — a âncora, de
+     onde você vem, a virada para dados, o que você faz hoje e por que esta
+     vaga —, e o `modelo` guarda a resposta inteira emendada. A tela não dá
+     deixa em português: mostra a pergunta, o **tópico** do bloco e o campo.
+     A resposta inteira numa caixa só já foi tentada e não funcionou nesta
+     etapa: são quase duzentas palavras de memória, e o dono pediu para
+     separar.
+
+     Cada bloco leva duas orientações, e **a ordem em que elas aparecem é
+     regra**: a `funcao` diz o que aquele bloco precisa fazer e aparece
+     ANTES, junto da contagem de palavras — por isso ela não pode citar
+     palavra nenhuma da resposta (o validador confere isso, procurando
+     qualquer trio de palavras da resposta dentro dela). A `dica` é como
+     dizer o bloco em voz alta e cita palavra em inglês de propósito, então
+     só aparece DEPOIS de conferir, no lugar onde ela serve. As duas são
+     conteúdo pedagógico, então em português; o rótulo "Delivery" é
+     interface, então em inglês.
    - `kind:"soon"` — a resposta padrão ainda não foi escrita. A pergunta fica
      **fora da rodada**, e o que ela guarda (`porque` e `pontos`) é o material
      para escrever essa resposta: por que o entrevistador faz a pergunta e o
@@ -37,16 +48,16 @@ const INTERVIEW_QUESTIONS = [
      Esta é a resposta padrão do dono, escrita por ele. O exercício é
      reproduzi-la: o texto digitado é comparado parte por parte com o que está
      aqui, e o corretor é o mesmo do módulo de tradução. Por isso a resposta é
-     guardada em PEDAÇOS — uma frase (ou duas curtas) por vez. Mandar escrever
-     270 palavras de uma vez não ensina nada: o erro apareceria todo junto no
-     fim, sem dizer qual frase escapou.
+     guardada em BLOCOS — um tópico por vez. Mandar escrever a resposta
+     inteira de uma vez não ensina nada: o erro apareceria todo junto no fim,
+     sem dizer qual frase escapou.
 
      A nota não é um veredito só: mesmo num bloco de 40 palavras, "certo ou
      errado" seria inútil — uma palavra trocada já derruba a comparação
      inteira. Quem conta é o `transDiffWords()` do módulo de tradução, palavra
      por palavra: a nota é quantas palavras da resposta saíram, e a tela
      mostra quais faltaram e quais sobraram. As palavras dos cinco blocos
-     somam as 210 da resposta, então a porcentagem é a mesma coisa que antes.
+     somam a resposta inteira — o validador confere essa soma.
 
      Não cadastre `accept` com outra formulação: o objetivo é dizer ESTA
      resposta, não uma parecida. */
@@ -59,44 +70,60 @@ const INTERVIEW_QUESTIONS = [
           + "um de memória, e a tela marca palavra por palavra o que saiu, o que faltou e o "
           + "que sobrou. No fim do quinto você lê a resposta inteira.",
     partes: [
-      { topic: "Who you are and what you do",
-        en: "I'm a Data and BI Analyst. "
-          + "My work is SQL, Python and BI — I build the data models behind the reports, and "
-          + "the dashboards on top of them, in Power BI and Qlik Sense." },
+      { topic: "The anchor — one line, then stop",
+        funcao: "Dar à recrutadora uma etiqueta mental para você já na primeira frase.",
+        dica: "Fale essa frase devagar e pare. É a frase mais importante da resposta.",
+        en: "Sure, happy to. I'm a production engineer who moved into data." },
       { topic: "Where you came from",
-        en: "I didn't start in data. I spent ten years in industry — Volkswagen, Bosch, "
-          + "Sumitomo — and in my last years there I worked as a process analyst. I had to "
-          + "collect production data, organize it, and turn it into numbers the team could use." },
-      { topic: "What pulled you into data",
-        en: "And that was the part of the job I liked the most. So I went deeper: first "
-          + "Excel, then BI tools, then SQL and Python. From there I studied data analysis, "
-          + "did a postgraduate degree, and moved step by step." },
-      { topic: "What you have built since",
-        en: "First ETL routines from an ERP system, with SQL. Then analytical models on "
-          + "BigQuery, and automation with Python. Today I work with datasets up to twenty "
-          + "million rows, and I use Python to automate the data quality checks — one routine "
-          + "went from four hours a week to fifteen minutes." },
-      { topic: "What you are looking for",
-        en: "What I'm looking for now is an international team, working in English, where I "
-          + "can keep doing analysis and BI — and keep growing on the technical side. That's "
-          + "why I'm here." },
+        funcao: "Mostrar os dez anos de bagagem sem parecer que você está fora do mundo de dados.",
+        dica: "Os nomes das empresas fazem trabalho sozinhos: diga-os com calma. “Bosch” em inglês "
+            + "é BOSH, e “Volkswagen” é VOLKS-wagen, não “vólksvagen”.",
+        en: "I worked for about ten years in industrial companies — Volkswagen, Bosch, Sumitomo and "
+          + "KYB. Most of that time I worked with production data: machine stoppages, quality and "
+          + "waste." },
+      { topic: "The turn into data",
+        funcao: "Explicar por que você mudou. Sem isso fica a dúvida “por que um cara de fábrica "
+              + "está aqui?” — e dúvida não respondida vira objeção.",
+        dica: "“analysis” é uh-NAL-uh-sis, não “aná-lisis”. “reliable” é "
+            + "ri-LAI-uh-bul.",
+        en: "I started working with data because of that. In the factory, the hard part was never "
+          + "the analysis — it was getting reliable data. So I learned SQL and Python to solve that "
+          + "myself. In 2025 I moved into data full time." },
+      { topic: "What you do today",
+        funcao: "O bloco mais concreto. Um número, nada de sopa de siglas.",
+        dica: "“I take data from different systems, organise it, test it, and deliver it” é "
+            + "ouro com recrutador: explica engenharia de dados sem usar a palavra. “Qlik” "
+            + "se fala “click”.",
+        en: "Today I'm a Data and BI Analyst at Basis Tecnologia. I build and maintain data "
+          + "pipelines — I take data from different systems, organise it, test it, and deliver it "
+          + "ready for analysis. The largest datasets I work with have around twenty million rows, "
+          + "and they feed Power BI and Qlik Sense dashboards. I also use Python and Airflow to "
+          + "automate these processes." },
+      { topic: "Why this role",
+        funcao: "Fechar amarrando a sua história à vaga. Nunca termine no bloco 4 — termine aqui, "
+              + "senão ela precisa perguntar.",
+        dica: "É o fecho: depois dele, silêncio. Deixe a próxima pergunta vir.",
+        en: "And that's why this position caught my attention. It's a data engineering role, which "
+          + "is the direction I've been building towards. And it's in an industrial environment, "
+          + "which is where I come from. I'm used to working with engineers, so that part feels "
+          + "natural to me." },
     ],
-    modelo: "I'm a Data and BI Analyst. "
-          + "My work is SQL, Python and BI — I build the data models behind the reports, and "
-          + "the dashboards on top of them, in Power BI and Qlik Sense.\n\n"
-          + "I didn't start in data. I spent ten years in industry — Volkswagen, Bosch, "
-          + "Sumitomo — and in my last years there I worked as a process analyst. I had to "
-          + "collect production data, organize it, and turn it into numbers the team could "
-          + "use. And that was the part of the job I liked the most. So I went deeper: first "
-          + "Excel, then BI tools, then SQL and Python.\n\n"
-          + "From there I studied data analysis, did a postgraduate degree, and moved step by "
-          + "step. First ETL routines from an ERP system, with SQL. Then analytical models on "
-          + "BigQuery, and automation with Python. Today I work with datasets up to twenty "
-          + "million rows, and I use Python to automate the data quality checks — one routine "
-          + "went from four hours a week to fifteen minutes.\n\n"
-          + "What I'm looking for now is an international team, working in English, where I "
-          + "can keep doing analysis and BI — and keep growing on the technical side. That's "
-          + "why I'm here." },
+    modelo: "Sure, happy to. I'm a production engineer who moved into data.\n\n"
+          + "I worked for about ten years in industrial companies — Volkswagen, Bosch, Sumitomo "
+          + "and KYB. Most of that time I worked with production data: machine stoppages, quality "
+          + "and waste.\n\n"
+          + "I started working with data because of that. In the factory, the hard part was never "
+          + "the analysis — it was getting reliable data. So I learned SQL and Python to solve "
+          + "that myself. In 2025 I moved into data full time.\n\n"
+          + "Today I'm a Data and BI Analyst at Basis Tecnologia. I build and maintain data "
+          + "pipelines — I take data from different systems, organise it, test it, and deliver it "
+          + "ready for analysis. The largest datasets I work with have around twenty million rows, "
+          + "and they feed Power BI and Qlik Sense dashboards. I also use Python and Airflow to "
+          + "automate these processes.\n\n"
+          + "And that's why this position caught my attention. It's a data engineering role, which "
+          + "is the direction I've been building towards. And it's in an industrial environment, "
+          + "which is where I come from. I'm used to working with engineers, so that part feels "
+          + "natural to me." },
 
   { id: "i-2",
     kind: "soon",

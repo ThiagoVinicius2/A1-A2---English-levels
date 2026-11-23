@@ -557,19 +557,37 @@ são os `pontos`, que agora servem de roteiro de escrita, não de nota.
 
 ### A pergunta-espelho
 
-- A resposta vive em **`partes[]`, cinco blocos temáticos** — quem você é, de
-  onde veio, o que te puxou para dados, o que construiu, o que procura —, e o
+- A resposta vive em **`partes[]`, cinco blocos temáticos** — a âncora, de onde
+  você vem, a virada para dados, o que você faz hoje, por que esta vaga —, e o
   `modelo` guarda a resposta inteira emendada. Cada bloco tem `topic` (o rótulo
-  que a tela mostra, em inglês) e `en` (o que tem de ser escrito).
+  que a tela mostra, em inglês), `en` (o que tem de ser escrito) e as duas
+  orientações do dono: `funcao` e `dica`.
+- **A ordem das duas orientações é regra, não enfeite.** A `funcao` diz o que
+  aquele bloco precisa fazer ("dar uma etiqueta mental para ela já na primeira
+  frase") e aparece **antes** de escrever, junto da contagem de palavras — por
+  isso ela **não pode citar palavra da resposta**, e o validador procura
+  qualquer trio de palavras do `en` dentro dela. A `dica` é como dizer o bloco
+  em voz alta e cita palavra em inglês de propósito ("“analysis” é
+  uh-NAL-uh-sis"), então só aparece **depois** de conferir, sob o rótulo
+  `Delivery`. Trocar a ordem entrega a resposta; o teste do módulo trava as
+  duas pontas.
+- **O bloco de abertura é curto de propósito** (uma frase, onze palavras): a
+  graça dele é parar ali. Foi por ele que a faixa do validador abriu para 8 a
+  80 palavras.
 - **Cada bloco é praticado como um DECK**, com tela de escolha e histórico
   próprio, igual ao módulo de tradução. O combinado é levar um bloco a 100%
   antes de pegar o próximo, então a tela de escolha mostra a nota de cada um e
   a rodada é a lista de blocos marcados. Dá para marcar mais de um e encadear.
 - **Três formas já foram tentadas e descartadas, nesta ordem:** treze partes de
-  uma frase cada (picado demais), a resposta inteira numa caixa só (210
+  uma frase cada (picado demais), a resposta inteira numa caixa só (duzentas
   palavras de memória é demais nesta etapa) e os cinco blocos numa fila
   obrigatória (não dá para treinar um só). Se mudar de novo, lembre que o
   `modelo` precisa continuar sendo a emenda exata dos blocos.
+- **Trocar o texto da resposta é trocar o banco:** suba o
+  `INTERVIEW_STORAGE_KEY` (`_r3` → `_r4` → …), senão a nota do bloco antigo
+  aparece como se fosse do novo. Teste que repete a chave por escrito falha por
+  estar velho e não por bug — o smoke lê `INTERVIEW_STORAGE_KEY` e
+  `TRANS_STORAGE_KEY` da própria página.
 - **A tela não dá deixa em português**: mostra a pergunta na etiqueta, o
   **tópico** do bloco como enunciado e o campo. Houve uma versão com a frase em
   português acima do campo e ela saiu: ali a deixa entrega a resposta.
@@ -588,8 +606,9 @@ são os `pontos`, que agora servem de roteiro de escrita, não de nota.
   de bloco, esse arredondamento não é detalhe.
 - **Não cadastre `accept` com outra formulação**, pelo mesmo motivo.
 - O validador confere que cada bloco conta 100% de si mesmo, que nenhum tem
-  campo `pt`, que o bloco cabe numa tela (15 a 70 palavras), que o `modelo` é a
-  emenda dos blocos e que a soma deles é o total que a tela anuncia.
+  campo `pt`, que o bloco cabe numa tela (8 a 80 palavras), que a `funcao` não
+  entrega a resposta, que o `modelo` é a emenda dos blocos e que a soma deles é
+  o total que a tela anuncia.
 
 ### A nota e o histórico
 
@@ -680,7 +699,10 @@ exatamente essa diferença que escondia o bug dos 11%.
   mescla:** praticar o bloco 2 não pode apagar a nota do bloco 1, e a tela de
   escolha mostra as duas. As palavras dos blocos somam a resposta inteira O teste ainda registra **por que** a régua é por
   palavra: o veredito inteiro do corretor dá "diferente" tanto para uma palavra
-  trocada quanto para uma resposta inventada. **Nenhuma pergunta sem resposta
+  trocada quanto para uma resposta inventada — num par de **frases sintéticas**,
+  porque rodar isso sobre um bloco curto dá "quase" (a tolerância de digitação
+  engole uma palavra numa frase de doze). **A `funcao` aparece antes de escrever
+  e a `dica` só depois de conferir.** **Nenhuma pergunta sem resposta
   padrão pode entrar na rodada** — nem no `getInterviewRound()` nem na tela
 - Teste das unidades: 15 na grade, só as carregadas com link, toda chave de deck
   começando com a chave da sua unidade, nenhum deck vazando de uma unidade para

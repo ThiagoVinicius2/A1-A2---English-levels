@@ -207,7 +207,7 @@ const p = criarPlacar("SMOKE DOS QUATRO MÓDULOS");
   p.ok(mostrado === esperado,
        `resultado ${esperado}% — ${quantos - 1} de ${quantos} (typo e autoavaliação contam, "não lembro" não) — achei ${mostrado}%`);
   /* o histórico por deck foi gravado */
-  const gravado = await page.evaluate(k => localStorage.getItem(k), "enCheckTransResults_r3");
+  const gravado = await page.evaluate(() => localStorage.getItem(TRANS_STORAGE_KEY));
   p.ok(!!gravado && /decks/.test(gravado), "o histórico por deck foi gravado no localStorage");
   /* e a tela de decks mostra a porcentagem */
   await page.click("button:has-text('Back')");
@@ -275,7 +275,9 @@ const p = criarPlacar("SMOKE DOS QUATRO MÓDULOS");
   p.ok(telaEntrevista.indexOf(esperadoBloco + "%") !== -1,
        `o resultado devia mostrar ${esperadoBloco}%`);
   p.ok(telaEntrevista.indexOf("Next block") !== -1, "o resultado oferece o próximo bloco");
-  const gravadoEntrevista = await page.evaluate(k => localStorage.getItem(k), "enCheckInterviewResults_r3");
+  /* a chave sai da própria página: ela sobe a cada troca de banco (_r3 -> _r4),
+     e teste que a repete por escrito falha por estar velho, não por bug */
+  const gravadoEntrevista = await page.evaluate(() => localStorage.getItem(INTERVIEW_STORAGE_KEY));
   p.ok(!!gravadoEntrevista && JSON.parse(gravadoEntrevista).blocos[b1.key].pct === esperadoBloco,
        "o histórico gravou a nota do bloco praticado");
 
