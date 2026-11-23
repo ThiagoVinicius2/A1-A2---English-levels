@@ -154,8 +154,30 @@ p.ok(Array.isArray(A.INTERVIEW_QUESTIONS) && A.INTERVIEW_QUESTIONS.length > 0,
       p.ok(A.gradeTransAnswer({ en: parte.en }, parte.en).level === "certo",
            `entrevista ${q.id} bloco ${i + 1}: a própria resposta foi reprovada pelo corretor`);
       const n = A.interviewWordCount(parte.en);
-      p.ok(n >= 15 && n <= 70,
-           `entrevista ${q.id} bloco ${i + 1}: ${n} palavras — fora da faixa que cabe numa tela (15 a 70)`);
+      /* A faixa é larga por baixo de propósito: o bloco de abertura é uma
+         frase só ("the anchor"), e a graça dele é parar ali. */
+      p.ok(n >= 8 && n <= 80,
+           `entrevista ${q.id} bloco ${i + 1}: ${n} palavras — fora da faixa que cabe numa tela (8 a 80)`);
+      /* A `funcao` aparece ANTES de escrever, então não pode entregar a
+         resposta; a `dica` cita palavras em inglês de propósito e só aparece
+         DEPOIS de conferir. */
+      if (parte.funcao !== undefined) {
+        p.ok(typeof parte.funcao === "string" && parte.funcao.trim(),
+             `entrevista ${q.id} bloco ${i + 1}: funcao vazia`);
+        const pal = A.transNormalize(parte.en).split(" ").filter(Boolean);
+        const alvo = " " + A.transNormalize(parte.funcao) + " ";
+        let vazou = "";
+        for (let k = 0; k + 2 < pal.length && !vazou; k++) {
+          const tri = pal.slice(k, k + 3).join(" ");
+          if (alvo.indexOf(" " + tri + " ") !== -1) vazou = tri;
+        }
+        p.ok(!vazou,
+             `entrevista ${q.id} bloco ${i + 1}: a funcao entrega a resposta ("${vazou}") e ela aparece antes de escrever`);
+      }
+      if (parte.dica !== undefined) {
+        p.ok(typeof parte.dica === "string" && parte.dica.trim(),
+             `entrevista ${q.id} bloco ${i + 1}: dica vazia`);
+      }
     });
     /* O modelo mostrado no fim TEM de ser a emenda dos blocos: editar um bloco
        e esquecer o modelo faria a tela ensinar uma resposta e cobrar outra. */

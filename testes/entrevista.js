@@ -41,8 +41,14 @@ p.ok(A.interviewCheckText(b1.parte.en, "").acertos === 0, "campo vazio conta zer
 const trocada = A.interviewCheckText(b1.parte.en, trocaUmaPalavra(b1.parte.en));
 p.ok(trocada.acertos === inteiro.total - 1 && trocada.sobraram === 1,
      `trocar uma palavra devia custar exatamente uma (deu ${inteiro.total - trocada.acertos})`);
-p.ok(A.gradeTransAnswer({ en: b1.parte.en }, trocaUmaPalavra(b1.parte.en)).level === "diferente" &&
-     A.gradeTransAnswer({ en: b1.parte.en }, "Something else entirely.").level === "diferente",
+/* O veredito inteiro do corretor não distingue uma palavra trocada de uma
+   resposta inventada: as duas dão "diferente", e é por isso que a nota deste
+   módulo é por palavra. A frase é sintética de propósito — rodar isto sobre o
+   bloco do dono dava "quase" quando o bloco era curto, porque a tolerância de
+   digitação engole uma palavra numa frase de doze. */
+const sintetica = { en: "I build and maintain the data pipelines of the company." };
+p.ok(A.gradeTransAnswer(sintetica, "I build and monitor the data pipelines of the company.").level === "diferente" &&
+     A.gradeTransAnswer(sintetica, "Something else entirely.").level === "diferente",
      "o veredito inteiro não serve de nota — é por isso que a conta é por palavra");
 
 /* ---- 2. a tela de escolha ---- */
@@ -62,6 +68,20 @@ p.ok(P.state.interviewBlockSelection.length === 0, "clicar de novo desmarca");
 P.startInterviewRound([b1.key]);
 p.ok(P.state.view === "interview" && P.state.interviewRound.length === 1,
      "a rodada traz só o bloco escolhido");
+/* A `funcao` orienta ANTES de escrever e não cita palavra da resposta; a
+   `dica` cita de propósito, então só pode aparecer DEPOIS de conferir. Se
+   trocarem a ordem, a tela entrega a resposta. */
+const trecho = t => String(t).split(/[\u201c\u201d&<>]/)[0].trim().slice(0, 40);
+const telaAntes = P.telaHtml();
+if (b1.parte.funcao) {
+  p.ok(telaAntes.indexOf(trecho(b1.parte.funcao)) !== -1,
+       "antes de escrever, a tela mostra a função do bloco");
+}
+if (b1.parte.dica) {
+  p.ok(telaAntes.indexOf(trecho(b1.parte.dica)) === -1,
+       "a dica NÃO pode aparecer antes de escrever — ela cita palavras da resposta");
+}
+
 P.campo("interview-input").value = "   ";
 P.submitInterviewBlock();
 p.ok(P.state.interviewEmptyWarn === true && !P.state.interviewRevealed[b1.key],
@@ -76,6 +96,10 @@ p.ok(telaBloco.indexOf(`${s1.acertos} of ${s1.total} words came out`) !== -1,
      "a tela do bloco mostra a mesma conta da régua");
 p.ok(telaBloco.indexOf("diff-miss") !== -1 && telaBloco.indexOf("diff-extra") !== -1,
      "a tela marca o que faltou e risca o que sobrou");
+if (b1.parte.dica) {
+  p.ok(telaBloco.indexOf(trecho(b1.parte.dica)) !== -1,
+       "depois de conferir, a tela mostra a dica de como dizer o bloco");
+}
 
 P.nextInterviewBlock();
 p.ok(P.state.view === "interviewResults", "o último bloco da rodada leva ao resultado");

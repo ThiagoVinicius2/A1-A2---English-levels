@@ -117,7 +117,7 @@ const p = criarPlacar(`SMOKE DA ${(A.TRANS_UNITS[unidade] || {}).label || unidad
   const esperado = String(Math.round(((quantos - 1) / quantos) * 100));
   p.ok(mostrado === esperado,
        `resultado ${esperado}% — ${quantos - 1} de ${quantos} (typo e autoavaliação contam, "não lembro" não) — achei ${mostrado}%`);
-  const gravado = await page.evaluate(k => JSON.parse(localStorage.getItem(k) || "{}"), "enCheckTransResults_r3");
+  const gravado = await page.evaluate(() => JSON.parse(localStorage.getItem(TRANS_STORAGE_KEY) || "{}"));
   p.ok(gravado.decks && gravado.decks[alvo] && gravado.decks[alvo].pct === Number(esperado),
        `o histórico do ${alvo} gravou ${esperado}% (gravou ${gravado.decks && gravado.decks[alvo] && gravado.decks[alvo].pct}%)`);
 

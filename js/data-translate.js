@@ -5576,6 +5576,8 @@ const TRANS_SYNONYMS = [
   /* "centre" entrou com o vocabulário da aula ("near the city centre") */
   ["centre", "center"], ["centres", "centers"],
   ["modelling", "modeling"], ["modelled", "modeled"],
+  /* "towards" e "toward" são a mesma palavra — britânico e americano */
+  ["towards", "toward"],
   /* "universidade" e "faculdade" são college e university sem distinção aqui */
   ["university", "college"], ["universities", "colleges"],
   ["neighbour", "neighbor"], ["neighbours", "neighbors"],

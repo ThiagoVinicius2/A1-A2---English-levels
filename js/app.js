@@ -2,7 +2,7 @@
 const STORAGE_KEY = "enCheckLastResults";
 const CONV_STORAGE_KEY = "enCheckConvResults_r10";  // r10: o vocabulário da aula (locked out, advice, o cachorro, condo) — banco novo, resultado da rodada anterior fica de fora
 const TRANS_STORAGE_KEY = "enCheckTransResults_r3"; // r3: chaves de deck prefixadas pela unidade (u01-...)
-const INTERVIEW_STORAGE_KEY = "enCheckInterviewResults_r3"; // r3: histórico POR BLOCO, como o do módulo de tradução
+const INTERVIEW_STORAGE_KEY = "enCheckInterviewResults_r4"; // r4: resposta padrão refeita em cinco blocos novos
 const WEAK_THRESHOLD = 75;   // usado só para colorir a barra de desempenho (verde/amarelo/vermelho)
 const MASTERY_PCT = 100;     // qualquer categoria abaixo disso sempre entra na revisão/prática
 
@@ -2303,6 +2303,7 @@ function renderInterview() {
       did not come out. In <strong>You wrote</strong>, the struck-through ones are not in your
       answer — a typo or a contraction written in full shows up here too, because the goal is this
       exact answer.</p>
+      ${parte.dica ? `<p class="interview-why"><strong>Delivery:</strong> ${escapeHtml(parte.dica)}</p>` : ""}
     `;
   }
 
@@ -2320,7 +2321,7 @@ function renderInterview() {
 
       <span class="q-level">${escapeHtml(q.tag)} &middot; ${escapeHtml(q.question)}</span>
       <div class="q-prompt">${escapeHtml(parte.topic)}</div>
-      ${revelada ? "" : `<p class="interview-why">${bloco.total} words. ${escapeHtml(q.porque)}</p>`}
+      ${revelada ? "" : `<p class="interview-why">${bloco.total} words. ${escapeHtml(parte.funcao || q.porque)}</p>`}
 
       ${revelada ? "" : `
         <textarea id="interview-input" class="interview-input" rows="6"
