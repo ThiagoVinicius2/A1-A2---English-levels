@@ -87,7 +87,7 @@ const INTERVIEW_QUESTIONS = [
         dica: "“analysis” é uh-NAL-uh-sis, não “aná-lisis”. “reliable” é "
             + "ri-LAI-uh-bul.",
         en: "I started working with data because of that. In the factory, the hard part was never "
-          + "the analysis — it was getting reliable data. So I learned SQL and Python to solve that "
+          + "the analysis — it was getting reliable data. So I learned SQL and BI tools to solve that "
           + "myself. In 2025 I moved into data full time." },
       { topic: "What you do today",
         funcao: "O bloco mais concreto. Um número, nada de sopa de siglas.",
@@ -113,7 +113,7 @@ const INTERVIEW_QUESTIONS = [
           + "and KYB. Most of that time I worked with production data: machine stoppages, quality "
           + "and waste.\n\n"
           + "I started working with data because of that. In the factory, the hard part was never "
-          + "the analysis — it was getting reliable data. So I learned SQL and Python to solve "
+          + "the analysis — it was getting reliable data. So I learned SQL and BI tools to solve "
           + "that myself. In 2025 I moved into data full time.\n\n"
           + "Today I'm a Data and BI Analyst at Basis Tecnologia. I build and maintain data "
           + "pipelines — I take data from different systems, organise it, test it, and deliver it "
