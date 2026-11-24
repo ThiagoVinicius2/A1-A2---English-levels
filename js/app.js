@@ -57,6 +57,7 @@ const state = {
   // --- Módulo "Job Interview" (resposta aberta: não há gabarito) ---
   interviewQuestions: [],
   interviewIndex: 0,
+  interviewQuestionId: null,   // a pergunta aberta: ela é a UNIDADE do módulo
   interviewBlockSelection: [], // blocos marcados na tela de escolha
   interviewRound: [],       // os blocos desta rodada, na ordem
   interviewAnswers: {},     // { blockKey: texto digitado }
@@ -535,6 +536,7 @@ function render() {
   if (state.view === "transDecks") return renderTransDecks();
   if (state.view === "transRound") return renderTransRound();
   if (state.view === "transResults") return renderTransResults();
+  if (state.view === "interviewQuestions") return renderInterviewQuestions();
   if (state.view === "interviewBlocks") return renderInterviewBlocks();
   if (state.view === "interview") return renderInterview();
   if (state.view === "interviewResults") return renderInterviewResults();
@@ -1981,9 +1983,48 @@ function saveInterviewStats(blocos) {
   saveResults({ date: new Date().toISOString(), blocos }, INTERVIEW_STORAGE_KEY);
 }
 
+/* ---------- A pergunta é a unidade ---------- */
+/* Cada resposta padrão tem os seus próprios blocos, e a navegação é a mesma do
+   módulo de tradução: escolher a pergunta (a unidade), escolher os blocos (os
+   decks) e aí a rodada. Uma rodada nunca mistura blocos de duas perguntas — são
+   duas respostas diferentes, e o "leve um bloco a 100% antes do próximo" vale
+   dentro de uma resposta.
+   A tela da pergunta aparece SEMPRE, mesmo com uma só: o atalho que pulava a
+   tela de unidade na tradução virou caminho morto e ainda criou um laço no botão
+   de voltar. Aqui já se sabe o fim dessa história. */
+function interviewCurrentQuestion() {
+  const q = getInterviewQuestionById(state.interviewQuestionId);
+  return q && interviewIsMirror(q) ? q : getInterviewRound()[0];
+}
+
+/* Média de acerto dos blocos JÁ praticados da pergunta, por palavra — é o que o
+   card da pergunta mostra. Mesma conta do transUnitProgress(). */
+function interviewQuestionProgress(questionId) {
+  const blocos = getInterviewBlocks(questionId);
+  if (!blocos.length) return null;
+  const stats = loadInterviewStats();
+  let acertos = 0, total = 0, praticados = 0;
+  blocos.forEach(b => {
+    const s = stats[b.key];
+    if (!s) return;
+    praticados++;
+    acertos += s.acertos;
+    total += s.total;
+  });
+  return total ? { pct: interviewPct(acertos, total), praticados, blocos: blocos.length } : null;
+}
+
+function openInterviewQuestions() {
+  state.interviewResults = null;
+  state.view = "interviewQuestions";
+  render();
+}
+
 /* ---------- Escolha dos blocos ---------- */
-function openInterviewBlocks(preSelecionados) {
-  const todos = getInterviewBlocks();
+function openInterviewBlocks(questionId, preSelecionados) {
+  const q = getInterviewQuestionById(questionId);
+  if (q && interviewIsMirror(q)) state.interviewQuestionId = q.id;
+  const todos = getInterviewBlocks(interviewCurrentQuestion().id);
   state.interviewBlockSelection = (preSelecionados || []).filter(k => todos.some(b => b.key === k));
   state.interviewResults = null;
   state.view = "interviewBlocks";
@@ -1998,15 +2039,23 @@ function toggleInterviewBlock(key) {
 }
 
 function selectAllInterviewBlocks(marcar) {
-  state.interviewBlockSelection = marcar ? getInterviewBlocks().map(b => b.key) : [];
+  state.interviewBlockSelection = marcar
+    ? getInterviewBlocks(interviewCurrentQuestion().id).map(b => b.key)
+    : [];
   render();
 }
 
 /* ---------- A rodada ---------- */
 function startInterviewRound(keys) {
   const escolhidos = (keys && keys.length ? keys : state.interviewBlockSelection).slice();
-  const blocos = getInterviewBlocks().filter(b => escolhidos.indexOf(b.key) !== -1);
-  if (!blocos.length) return openInterviewBlocks();
+  /* a chave diz de que pergunta o bloco é, então chamar com uma chave de outra
+     pergunta já troca a unidade aberta — e o filtro abaixo garante que a rodada
+     fica numa resposta só */
+  const primeiro = getInterviewBlockByKey(escolhidos[0]);
+  if (primeiro) state.interviewQuestionId = primeiro.q.id;
+  const pergunta = interviewCurrentQuestion();
+  const blocos = getInterviewBlocks(pergunta.id).filter(b => escolhidos.indexOf(b.key) !== -1);
+  if (!blocos.length) return openInterviewBlocks(pergunta.id);
   state.interviewBlockSelection = blocos.map(b => b.key);
   state.interviewRound = blocos;
   state.interviewIndex = 0;
@@ -2194,7 +2243,7 @@ function renderInterviewLandingCard() {
   ` : "";
 
   const links = `
-    <button class="module-link" onclick="openInterviewBlocks()">Practice your answer &rarr;</button>
+    <button class="module-link" onclick="openInterviewQuestions()">Practice your answers &rarr;</button>
     <button class="module-link quiet" onclick="toggleInterviewLandingDetails()">${detailsOpen ? "Hide details" : "How it works"}</button>
   `;
 
@@ -2211,28 +2260,84 @@ function renderInterviewLandingCard() {
   });
 }
 
+/* ---------- Tela de escolha da pergunta ---------- */
+/* A grade das perguntas, no formato da grade de unidades do módulo de tradução:
+   a que já tem resposta padrão abre; a que ainda não tem aparece em tracejado,
+   como a unidade sem deck, e serve de roteiro do que falta escrever. */
+function renderInterviewQuestions() {
+  const prontas = getInterviewRound();
+
+  app.innerHTML = `
+    <div class="card app-landing-card">
+      <span class="q-level">Your standard answers</span>
+      <h2>Which answer are you practising?</h2>
+      <p class="lead">Each question holds its own blocks, and a round stays inside one answer.
+      ${prontas.length} of ${INTERVIEW_QUESTIONS.length} ${prontas.length === 1 ? "is" : "are"}
+      written so far.</p>
+
+      <div class="unit-grid">
+        ${INTERVIEW_QUESTIONS.map((q, n) => {
+          const num = String(n + 1).padStart(2, "0");
+          if (!interviewIsMirror(q)) {
+            return `
+              <article class="module-card empty" aria-disabled="true">
+                <div class="module-top"><span>${num}</span><span class="module-kind">To write</span></div>
+                <h3>${escapeHtml(q.question)}</h3>
+                <p>No standard answer yet.</p>
+              </article>
+            `;
+          }
+          const blocos = getInterviewBlocks(q.id);
+          const prog = interviewQuestionProgress(q.id);
+          return `
+            <article class="module-card">
+              <div class="module-top">
+                <span>${num}</span>
+                <span class="module-kind">${blocos.length} ${blocos.length === 1 ? "block" : "blocks"}</span>
+              </div>
+              <h3>${escapeHtml(q.question)}</h3>
+              <p>${interviewTotalWords(q)} words to reproduce.</p>
+              <div class="module-actions">
+                <button class="module-link" onclick="openInterviewBlocks('${q.id}')">Open question &rarr;</button>
+                ${prog
+                  ? `<span class="module-score">${prog.pct}% &middot; ${prog.praticados}/${prog.blocos} blocks practised</span>`
+                  : `<span class="module-score">Not started yet</span>`}
+              </div>
+            </article>
+          `;
+        }).join("")}
+      </div>
+
+      <div class="exit-actions">
+        <button class="btn secondary block" onclick="goLanding()">Back to start</button>
+      </div>
+    </div>
+  `;
+}
+
 /* ---------- Tela de escolha dos blocos ---------- */
 function renderInterviewBlocks() {
   const selecionados = state.interviewBlockSelection;
   const stats = loadInterviewStats();
-  const blocos = getInterviewBlocks();
+  const pergunta = interviewCurrentQuestion();
+  const blocos = getInterviewBlocks(pergunta.id);
   const totalSelecionado = blocos
     .filter(b => selecionados.indexOf(b.key) !== -1)
     .reduce((t, b) => t + b.total, 0);
-  const perguntas = getInterviewRound();
+  const perguntas = [pergunta];
 
   app.innerHTML = `
     <div class="card">
-      <span class="q-level">Your standard answers</span>
+      <span class="q-level">${escapeHtml(pergunta.tag)} &middot; ${escapeHtml(pergunta.question)}</span>
       <h2>Which block do you want to practise?</h2>
-      <p class="lead">Each block is one topic of your answer. Write it from memory — what you type is
-      compared with your answer word by word.</p>
+      <p class="lead">Each block is one topic of this answer — ${interviewTotalWords(pergunta)} words
+      in ${blocos.length} blocks. Write it from memory, and what you type is compared with your
+      answer word by word.</p>
       <p class="trans-deck-legend">The percentage on the right is how much of that block came out the
       last time you practised it. <strong>Take one block to 100% before moving to the next</strong>;
       pick more than one when you want to chain them.</p>
 
       ${perguntas.map(q => `
-        ${perguntas.length > 1 ? `<div class="section-title">${escapeHtml(q.question)}</div>` : ""}
         <div class="trans-deck-list">
           ${q.partes.map((parte, i) => {
             const key = interviewBlockKey(q, i);
@@ -2268,6 +2373,7 @@ function renderInterviewBlocks() {
       </div>
 
       <div class="exit-actions">
+        <button class="btn secondary block" onclick="openInterviewQuestions()">Choose another question</button>
         <button class="btn secondary block" onclick="goLanding()">Back to start</button>
       </div>
     </div>
@@ -2345,7 +2451,7 @@ function renderInterview() {
       ` : ""}
 
       <div class="exit-actions">
-        <button class="btn secondary block" onclick="openInterviewBlocks(${JSON.stringify(state.interviewBlockSelection).replace(/"/g, "&quot;")})">Choose other blocks</button>
+        <button class="btn secondary block" onclick="openInterviewBlocks('${q.id}', ${JSON.stringify(state.interviewBlockSelection).replace(/"/g, "&quot;")})">Choose other blocks</button>
         <button class="btn secondary block" onclick="requestExitInterview()">Back to start</button>
       </div>
     </div>
@@ -2378,7 +2484,10 @@ function renderInterview() {
 function renderInterviewResults() {
   const r = state.interviewResults;
   const stats = loadInterviewStats();
-  const todos = getInterviewBlocks();
+  const pergunta = interviewCurrentQuestion();
+  /* o próximo bloco a oferecer é o da MESMA resposta: mandar para o bloco 1 de
+     outra pergunta no meio de uma resposta seria trocar de assunto */
+  const todos = getInterviewBlocks(pergunta.id);
   const praticados = r.blocos.map(b => b.key);
   const faltaPraticar = todos.filter(b => praticados.indexOf(b.key) === -1);
   const proximo = faltaPraticar.filter(b => !stats[b.key] || stats[b.key].pct < 100)[0];
@@ -2429,7 +2538,8 @@ function renderInterviewResults() {
             Next block — ${escapeHtml(proximo.parte.topic)}
           </button>
         ` : ""}
-        <button class="btn secondary block" onclick="openInterviewBlocks(${JSON.stringify(praticados).replace(/"/g, "&quot;")})">Choose other blocks</button>
+        <button class="btn secondary block" onclick="openInterviewBlocks('${pergunta.id}', ${JSON.stringify(praticados).replace(/"/g, "&quot;")})">Choose other blocks</button>
+        <button class="btn secondary block" onclick="openInterviewQuestions()">Choose another question</button>
         <button class="btn secondary block" onclick="goLanding()">Back to start</button>
       </div>
     </div>

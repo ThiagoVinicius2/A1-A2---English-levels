@@ -38,6 +38,17 @@
    `modelo` passa a ser a resposta dele (não mais um exemplo), o `kind` muda e
    os `pontos`, que eram o roteiro de escrita, saem.
 
+   **Cada pergunta é uma UNIDADE.** Os blocos são dela, o histórico é dela e a
+   rodada nunca atravessa de uma resposta para outra: a navegação é escolher a
+   pergunta, escolher os blocos e praticar, igual a unidade → decks → rodada do
+   módulo de tradução. Por isso a chave do bloco é prefixada pelo id da
+   pergunta (`i-2-b3`), e o `getInterviewBlocks(id)` filtra por ela.
+
+   O número de blocos é da resposta, não uma tabela: a pergunta 1 tem cinco
+   (foi como o dono escreveu) e a pergunta 2 tem quatro, que são os quatro
+   parágrafos dela. Cortar a 2 em cinco para igualar partiria um parágrafo no
+   meio, e parágrafo é a unidade em que a resposta é dita.
+
    Idioma: a pergunta e o modelo são o inglês que a pessoa vai produzir. O
    `porque` e os `pontos` são a orientação — conteúdo pedagógico, então em
    português.
@@ -125,25 +136,76 @@ const INTERVIEW_QUESTIONS = [
           + "which is where I come from. I'm used to working with engineers, so that part feels "
           + "natural to me." },
 
+  /* ---- Pergunta 2: resposta-espelho ----
+     A segunda resposta padrão do dono, e a segunda pergunta a virar espelho. Ela
+     responde ao que o recrutador vê no currículo (várias trocas em dois anos) e,
+     no mesmo movimento, diz o que ele procura agora — que era a pergunta antiga
+     desta posição ("Why are you looking to leave your current role?"). O
+     enunciado passou a ser o que de fato é perguntado numa entrevista.
+
+     Os quatro blocos são os quatro parágrafos da resposta, na ordem em que ele a
+     escreveu: a explicação das trocas, a troca que não foi escolha dele, o
+     motivo principal de hoje e o segundo motivo. Cortar em cinco para igualar a
+     pergunta 1 partiria um parágrafo no meio, e parágrafo é a unidade em que a
+     resposta é dita. */
   { id: "i-2",
-    kind: "soon",
+    kind: "mirror",
     tag: "Your move",
-    question: "Why are you looking to leave your current role?",
-    porque: "Eles querem saber se você está fugindo de um problema ou indo atrás de algo. "
-          + "Fale do que você quer fazer, não do que te incomoda. Criticar a empresa ou a "
-          + "gestão atual é o jeito mais rápido de perder a vaga.",
-    pontos: [
-      "uma frase positiva e verdadeira sobre o trabalho atual",
-      "o que você quer fazer e hoje não dá",
-      "a ligação com esta vaga",
-      "nenhuma reclamação de pessoa ou de empresa",
+    question: "I noticed a few changes in the last two years — can you walk me through them?",
+    porque: "É a pergunta que o currículo provoca: várias trocas em pouco tempo pedem uma "
+          + "explicação, e quem não a dá deixa o recrutador preencher o espaço sozinho. A sua "
+          + "resposta padrão vem em quatro blocos — a explicação, a troca que não foi sua "
+          + "escolha, o que você quer agora e o segundo motivo.",
+    partes: [
+      { topic: "The changes, and the reason behind them",
+        funcao: "Assumir as trocas na primeira frase e dizer que existe um fio — depois mostrar "
+              + "esse fio como evolução técnica, não como inquietação.",
+        dica: "A lista no fim é uma escada e se diz como escada: uma pausa curta depois de cada "
+            + "etapa, subindo. Não corra nela.",
+        en: "Yes, since moving into data, I've had a few job changes. But there's a reason "
+          + "behind that. Each move gave me new challenges and the chance to learn new tools. I "
+          + "started with dashboards, then moved into data modeling, and later into building "
+          + "data pipelines." },
+      { topic: "The change that was not your call",
+        funcao: "Tirar da conta a troca que não foi decisão sua, explicando o contrato sem "
+              + "queixa e sem culpar ninguém. É fato, não desabafo.",
+        dica: "Tom neutro e ritmo normal: foi um contrato que mudou, não uma demissão por "
+            + "desempenho — se a voz pedir desculpa, o recrutador ouve problema onde não há.",
+        en: "One of these changes was not my decision. My position at Quality Digital was "
+          + "linked to a service contract with Boticário, and when the contract was renewed, "
+          + "the Data Analyst position was not part of the new agreement." },
+      { topic: "The main reason you want this move",
+        funcao: "Virar a resposta para a frente: o que você quer fazer, o que hoje divide o seu "
+              + "tempo e por que esta vaga é exatamente o lado que você quer.",
+        dica: "As três palavras da lista são o centro da resposta — diga-as separadas, com "
+            + "vírgula de verdade. E a última frase é um fecho: não emende nela.",
+        en: "Now, the main reason I'm looking for a change is the work itself. Today my job is "
+          + "split between building the data and presenting it, and I want to be fully on the "
+          + "engineering side: ETL, pipelines, modeling. This is a data engineering position, "
+          + "not a BI one, and that's the move I want to make." },
+      { topic: "The second reason",
+        funcao: "Fechar com o segundo motivo, que mostra que você já viveu o ambiente da vaga "
+              + "— é experiência, não desejo solto.",
+        dica: "É o bloco mais curto e o último: diga-o devagar e pare. O silêncio depois dele "
+            + "é o convite para a próxima pergunta.",
+        en: "And there's a second reason: it would be a chance to work in a multinational and "
+          + "with a global team again. I had that experience as a Process Analyst, and it's "
+          + "something I'd like to have again." },
     ],
-    modelo: "I've learned a lot where I am — I built most of our reporting from scratch. "
-          + "What I'm looking for now is more depth on the engineering side: dbt, testing, "
-          + "data quality. In my current team there isn't much room to go that way, because "
-          + "we are two analysts and the daily reporting always comes first. This role is "
-          + "the opposite: the pipeline work is the core of the job, and I want to be closer "
-          + "to that." },
+    modelo: "Yes, since moving into data, I've had a few job changes. But there's a reason "
+          + "behind that. Each move gave me new challenges and the chance to learn new tools. "
+          + "I started with dashboards, then moved into data modeling, and later into building "
+          + "data pipelines.\n\n"
+          + "One of these changes was not my decision. My position at Quality Digital was "
+          + "linked to a service contract with Boticário, and when the contract was renewed, "
+          + "the Data Analyst position was not part of the new agreement.\n\n"
+          + "Now, the main reason I'm looking for a change is the work itself. Today my job is "
+          + "split between building the data and presenting it, and I want to be fully on the "
+          + "engineering side: ETL, pipelines, modeling. This is a data engineering position, "
+          + "not a BI one, and that's the move I want to make.\n\n"
+          + "And there's a second reason: it would be a chance to work in a multinational and "
+          + "with a global team again. I had that experience as a Process Analyst, and it's "
+          + "something I'd like to have again." },
 
   { id: "i-3",
     kind: "soon",
@@ -286,9 +348,13 @@ function interviewBlockKey(q, i) {
 
 /* Todos os blocos praticáveis, de todas as perguntas que já têm resposta
    padrão, na ordem. É o que a tela de escolha lista. */
-function getInterviewBlocks() {
+/* Sem argumento devolve os blocos de TODAS as perguntas-espelho (é o que as
+   redes de teste percorrem); com o id de uma pergunta, só os dela — a pergunta
+   é a unidade do módulo, como a unidade é a do módulo de tradução, e cada tela
+   trabalha dentro de uma só. */
+function getInterviewBlocks(questionId) {
   const blocos = [];
-  getInterviewRound().forEach(q => {
+  getInterviewRound().filter(q => !questionId || q.id === questionId).forEach(q => {
     q.partes.forEach((parte, i) => {
       blocos.push({ key: interviewBlockKey(q, i), q, i, parte, total: interviewPartTotal(parte) });
     });
