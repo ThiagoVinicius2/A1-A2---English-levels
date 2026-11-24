@@ -218,14 +218,23 @@ const p = criarPlacar("SMOKE DOS QUATRO MÓDULOS");
 
 
   /* ================= Módulo 04: entrevista ================= */
-  /* Cada bloco é praticado como um deck: escolhe, pratica, vê a nota, escolhe
-     o próximo. O que só quebra no navegador: a tela de escolha responder ao
+  /* Cada pergunta é uma unidade e cada bloco dela é praticado como um deck:
+     escolhe a pergunta, escolhe o bloco, pratica, vê a nota, escolhe o próximo.
+     O que só quebra no navegador: as duas telas de escolha responderem ao
      clique, o <textarea> sobreviver a um render() (o modal de saída reescreve
      o #app) e o diff aparecer. */
   await page.goto("file://" + RAIZ + "/index.html");
   await page.click("button:has-text('Practice your answer')");
+  await page.waitForSelector(".unit-grid");
+  const perguntasApp = A.getInterviewRound();
+  p.ok((await page.locator(".unit-grid .module-card").count()) === A.INTERVIEW_QUESTIONS.length,
+       `a grade mostra as ${A.INTERVIEW_QUESTIONS.length} perguntas`);
+  p.ok((await page.locator("button.module-link:has-text('Open question')").count()) === perguntasApp.length,
+       `só as ${perguntasApp.length} perguntas com resposta padrão abrem`);
+  await page.locator("button.module-link:has-text('Open question')").first().click();
   await page.waitForSelector(".trans-deck-list");
-  const blocosApp = A.getInterviewBlocks();
+  /* os blocos da PRIMEIRA resposta — a escolha é de uma pergunta só */
+  const blocosApp = A.getInterviewBlocks(perguntasApp[0].id);
   p.ok((await page.locator(".trans-deck-option").count()) === blocosApp.length,
        `a escolha lista os ${blocosApp.length} blocos`);
   p.ok((await page.locator("button.btn.block[disabled]").count()) > 0,
@@ -288,8 +297,25 @@ const p = criarPlacar("SMOKE DOS QUATRO MÓDULOS");
        "o botão do próximo bloco abre uma rodada só com ele");
   await page.click(".exit-actions button:has-text('Choose other blocks')");
   await page.waitForSelector(".trans-deck-list");
+  p.ok((await page.locator(".trans-deck-option").count()) === blocosApp.length,
+       "a escolha continua sendo só dos blocos desta resposta");
   p.ok((await page.locator("#app").innerText()).indexOf(esperadoBloco + "%") !== -1,
        "a tela de escolha mostra a nota do bloco já praticado");
+
+  /* e dá para trocar de resposta: a grade das perguntas volta pelo rodapé */
+  if (perguntasApp[1]) {
+    await page.click(".exit-actions button:has-text('Choose another question')");
+    await page.waitForSelector(".unit-grid");
+    await page.locator("button.module-link:has-text('Open question')").nth(1).click();
+    await page.waitForSelector(".trans-deck-list");
+    const blocos2 = A.getInterviewBlocks(perguntasApp[1].id);
+    p.ok((await page.locator(".trans-deck-option").count()) === blocos2.length,
+         `a segunda resposta tem os seus ${blocos2.length} blocos`);
+    const telaBlocos2 = await page.locator("#app").innerText();
+    p.ok(telaBlocos2.indexOf(blocos2[0].parte.topic) !== -1 &&
+         telaBlocos2.indexOf(b1.parte.topic) === -1,
+         "a escolha de uma resposta não mostra bloco da outra");
+  }
   p.nota(`entrevista: bloco 1 com ${b1.total - 1} de ${b1.total} palavras = ${esperadoBloco}%`);
 
   p.ok(errosJs.length === 0, `erros de JS: ${errosJs.join(" | ")}`);

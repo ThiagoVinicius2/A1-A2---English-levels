@@ -188,6 +188,12 @@ p.ok(Array.isArray(A.INTERVIEW_QUESTIONS) && A.INTERVIEW_QUESTIONS.length > 0,
     p.ok(A.interviewTotalWords(q) === A.interviewCheckText(q.modelo, "").total,
          `entrevista ${q.id}: a soma dos blocos (${A.interviewTotalWords(q)}) não bate com a resposta inteira`);
     p.ok(q.pontos === undefined, `entrevista ${q.id}: mirror não usa pontos`);
+    /* A pergunta é a unidade do módulo, então a chave do bloco tem de começar
+       pelo id dela — é o que impede o histórico de duas respostas se misturar,
+       a mesma razão da chave de deck ser prefixada pela unidade. */
+    const seus = A.getInterviewBlocks(q.id);
+    p.ok(seus.length === q.partes.length && seus.every(b => b.key.indexOf(q.id + "-b") === 0),
+         `entrevista ${q.id}: getInterviewBlocks(id) devia devolver os ${q.partes.length} blocos dela, com a chave prefixada`);
   } else {
     /* Pergunta ainda sem resposta padrão: fica fora da rodada, e o que ela
        guarda é o material para escrever a resposta. */

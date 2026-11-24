@@ -11,20 +11,33 @@
       é o que sustenta o "leve um a 100% antes de ir para o próximo".
    4. A porcentagem que a TELA mostra é a mesma da régua e a mesma que fica
       gravada. É o bug que o módulo da conversa teve (7% com tudo certo), e ele
-      só aparece quando o teste olha a tela, não só a função. */
+      só aparece quando o teste olha a tela, não só a função.
+   5. Cada pergunta é uma UNIDADE: tem os seus próprios blocos, e nem a escolha
+      nem a rodada nem o "próximo bloco" podem atravessar de uma resposta para
+      outra. É a mesma separação das unidades do módulo de tradução, e sem ela
+      o bloco 1 de uma resposta apareceria no meio de outra. */
 const { carregar, carregarApp, criarPlacar } = require("./comum.js");
 const A = carregar();
 const P = carregarApp();
 const p = criarPlacar("MÓDULO DA ENTREVISTA");
 
-const blocos = A.getInterviewBlocks();
+const perguntas = A.getInterviewRound();
+const q1 = perguntas[0];
+const todosBlocos = A.getInterviewBlocks();
+const blocos = A.getInterviewBlocks(q1.id);   // o teste trabalha dentro da 1ª resposta
 const faltam = A.INTERVIEW_QUESTIONS.filter(q => !A.interviewIsMirror(q));
 p.ok(blocos.length >= 4, `a resposta rende ${blocos.length} blocos praticáveis`);
-p.ok(blocos.every(b => b.key.indexOf(b.q.id + "-b") === 0),
+p.ok(todosBlocos.every(b => b.key.indexOf(b.q.id + "-b") === 0),
      "a chave do bloco é prefixada pela pergunta (o bloco 1 de outra resposta não é este)");
 p.ok(faltam.every(q => !q.partes), "pergunta sem resposta padrão não rende bloco nenhum");
-p.ok(blocos.reduce((t, b) => t + b.total, 0) === A.interviewTotalWords(blocos[0].q),
-     "as palavras dos blocos somam a resposta inteira");
+/* por pergunta, e não no total: cada resposta tem o seu próprio denominador */
+perguntas.forEach(q => {
+  const seus = A.getInterviewBlocks(q.id);
+  p.ok(seus.length > 0 && seus.every(b => b.q.id === q.id),
+       `${q.id}: getInterviewBlocks(id) devolve só os blocos dessa pergunta`);
+  p.ok(seus.reduce((t, b) => t + b.total, 0) === A.interviewTotalWords(q),
+       `${q.id}: as palavras dos blocos somam a resposta inteira`);
+});
 
 /* ---- 1. a contagem palavra por palavra, dentro de um bloco ---- */
 const b1 = blocos[0];
@@ -52,7 +65,7 @@ p.ok(A.gradeTransAnswer(sintetica, "I build and monitor the data pipelines of th
      "o veredito inteiro não serve de nota — é por isso que a conta é por palavra");
 
 /* ---- 2. a tela de escolha ---- */
-P.openInterviewBlocks();
+P.openInterviewBlocks(q1.id);
 p.ok(P.state.view === "interviewBlocks", "o módulo abre na escolha dos blocos, não na rodada");
 p.ok(P.state.interviewBlockSelection.length === 0, "nada vem marcado por padrão");
 const telaEscolha = P.telaHtml();
@@ -132,7 +145,7 @@ p.ok(P.state.interviewResults.label.indexOf("ready") !== -1,
      "100% num bloco diz que ele está pronto");
 
 /* a tela de escolha passa a mostrar as duas notas */
-P.openInterviewBlocks();
+P.openInterviewBlocks(q1.id);
 const telaDepois = P.telaHtml();
 p.ok(telaDepois.indexOf(esperado1 + "%") !== -1 && telaDepois.indexOf("100%") !== -1,
      "a escolha mostra a nota de cada bloco praticado");
@@ -159,7 +172,8 @@ p.ok(stats[b1.key].pct === 100 && stats[b2.key].pct === 0,
 
 /* ---- 6. o card da tela inicial ---- */
 const card = P.renderInterviewLandingCard();
-p.ok(card.indexOf(`${blocos.length} blocks`) !== -1, "o card diz em quantos blocos a resposta foi dividida");
+p.ok(card.indexOf(`${todosBlocos.length} blocks`) !== -1,
+     "o card diz em quantos blocos as respostas foram divididas");
 p.ok(card.indexOf("coming out word for word") !== -1,
      "o card mostra quantos blocos já saem inteiros");
 
@@ -179,5 +193,59 @@ const telaEscapada = P.telaHtml();
 p.ok(telaEscapada.indexOf("&lt;b&gt;built&lt;/b&gt;") !== -1 && telaEscapada.indexOf("<b>built</b>") === -1,
      "o texto digitado sai escapado também no diff");
 p.ok(telaEscapada.indexOf("&amp;") !== -1, "o & do texto digitado sai escapado");
+
+/* ---- 8. a pergunta é a UNIDADE do módulo ---- */
+/* Esta seção fica no fim de propósito: ela pratica blocos de outra resposta, e
+   isso grava histórico — as seções acima contam quantas chaves existem. */
+P.openInterviewQuestions();
+p.ok(P.state.view === "interviewQuestions", "o módulo abre na escolha da pergunta, não na dos blocos");
+const telaPerguntas = P.telaHtml();
+p.ok((telaPerguntas.match(/Open question/g) || []).length === perguntas.length,
+     `a grade abre as ${perguntas.length} perguntas que já têm resposta padrão`);
+p.ok((telaPerguntas.match(/No standard answer yet/g) || []).length === faltam.length,
+     `as ${faltam.length} perguntas sem resposta padrão aparecem como o que falta escrever`);
+perguntas.forEach(q => p.ok(telaPerguntas.indexOf(`${A.interviewTotalWords(q)} words to reproduce`) !== -1,
+     `${q.id}: a grade diz o tamanho da resposta`));
+
+const q2 = perguntas[1];
+if (q2) {
+  const blocos2 = A.getInterviewBlocks(q2.id);
+  P.openInterviewBlocks(q2.id);
+  p.ok(P.state.view === "interviewBlocks", "abrir uma pergunta leva à escolha dos blocos dela");
+  const tela2 = P.telaHtml();
+  blocos2.forEach(b => p.ok(tela2.indexOf(b.parte.topic) !== -1,
+       `a escolha de ${q2.id} lista "${b.parte.topic}"`));
+  blocos.forEach(b => p.ok(tela2.indexOf(b.parte.topic) === -1,
+       `a escolha de ${q2.id} NÃO lista o bloco "${b.parte.topic}", que é de outra resposta`));
+
+  /* marcar todos marca os desta pergunta, não os nove */
+  P.selectAllInterviewBlocks(true);
+  p.ok(P.state.interviewBlockSelection.length === blocos2.length,
+       "marcar todos marca os blocos da pergunta aberta, não os de todas");
+  P.selectAllInterviewBlocks(false);
+
+  /* e uma rodada com chave das duas respostas fica na resposta da primeira */
+  P.startInterviewRound([blocos2[0].key, blocos[0].key]);
+  p.ok(P.state.interviewRound.length === 1 && P.state.interviewRound[0].key === blocos2[0].key,
+       "a rodada não mistura blocos de duas respostas");
+  P.campo("interview-input").value = blocos2[0].parte.en;
+  P.submitInterviewBlock();
+  P.nextInterviewBlock();
+  p.ok(P.state.view === "interviewResults", "a rodada da segunda resposta chega ao resultado");
+  const telaR = P.telaHtml();
+  p.ok(telaR.indexOf(`Next block — ${blocos2[1].parte.topic}`) !== -1,
+       "o próximo bloco oferecido é da MESMA resposta");
+  blocos.forEach(b => p.ok(telaR.indexOf(`Next block — ${b.parte.topic}`) === -1,
+       "o resultado nunca manda para o bloco de outra resposta"));
+
+  /* o histórico separa as duas: a nota da primeira resposta continua lá */
+  const statsFim = P.loadInterviewStats();
+  p.ok(statsFim[blocos2[0].key] && statsFim[blocos2[0].key].pct === 100,
+       "o bloco da segunda resposta gravou a sua nota");
+  p.ok(statsFim[blocos[0].key] !== undefined,
+       "praticar a segunda resposta NÃO apagou o histórico da primeira");
+  p.ok(P.interviewQuestionProgress(q2.id).praticados === 1,
+       "o progresso da pergunta conta só os blocos dela já praticados");
+}
 
 p.fim();

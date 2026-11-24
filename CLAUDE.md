@@ -547,7 +547,35 @@ genéricas. O exercício é reproduzir a resposta padrão dele até sair sem pen
 **O combinado é um espelho por vez:** o dono pratica uma pergunta até ela sair
 inteira, então escreve a resposta padrão da próxima. Quando ela chegar, a
 pergunta vira `mirror` — troque `pontos` por `partes[]` e ponha a resposta
-inteira no `modelo`.
+inteira no `modelo`. Hoje há dois espelhos: a pergunta 1 ("Tell me about
+yourself.") e a pergunta 2 ("I noticed a few changes in the last two years — can
+you walk me through them?"). O enunciado da 2 mudou quando a resposta chegou: a
+posição era "Why are you looking to leave your current role?", e a resposta do
+dono cobre as duas coisas — as trocas e o que ele quer agora.
+
+### A pergunta é a unidade
+
+- **Cada pergunta tem os SEUS blocos, o seu histórico e as suas rodadas.** A
+  navegação é card da tela inicial → **escolha da pergunta** → escolha dos
+  blocos → rodada, igual a unidade → decks → rodada do módulo de tradução.
+  `getInterviewBlocks(id)` filtra por pergunta; sem argumento devolve todos, que
+  é o que as redes de teste percorrem.
+- **Nada atravessa de uma resposta para a outra:** a escolha lista só os blocos
+  da pergunta aberta, "Select all" marca só os dela, a rodada descarta chave de
+  outra pergunta e o "Next block" do resultado aponta para a mesma resposta.
+  Mandar para o bloco 1 de outra pergunta no meio de uma resposta seria trocar
+  de assunto, e o teste do módulo trava as quatro pontas.
+- **A tela de escolha da pergunta aparece sempre**, mesmo com uma só. É a lição
+  do `openTransDecks()`: o atalho que pulava a tela virou caminho morto e criou
+  um laço no botão de voltar.
+- A grade das perguntas reusa `.unit-grid`/`.module-card` da grade de unidades.
+  Pergunta ainda sem resposta padrão aparece em tracejado, com **"No standard
+  answer yet"** — é o mesmo estado do "No decks yet", e serve de roteiro do que
+  falta escrever.
+- **O número de blocos é da resposta, não uma tabela.** A pergunta 1 tem cinco
+  blocos e a 2 tem quatro, que são os quatro parágrafos em que ela foi escrita.
+  Cortar a 2 em cinco para igualar partiria um parágrafo no meio, e parágrafo é
+  a unidade em que a resposta é dita.
 
 **Já houve um `kind:"open"`** (responder livre e marcar um checklist de
 autoavaliação) e ele **saiu**: com todas as perguntas indo virar espelho, a
@@ -624,7 +652,10 @@ são os `pontos`, que agora servem de roteiro de escrita, não de nota.
   próxima resposta não é este, e sem o prefixo as notas se misturariam. Mesma
   razão das chaves de deck serem prefixadas pela unidade.
 - Ao trocar o banco de perguntas ou o formato do histórico, suba
-  `INTERVIEW_STORAGE_KEY` em `js/app.js` (`_r1` → `_r2` → …).
+  `INTERVIEW_STORAGE_KEY` em `js/app.js` (`_r1` → `_r2` → …). **Acrescentar uma
+  pergunta não é trocar o banco:** as chaves das outras não mudam, e subir a
+  chave apagaria a nota de quem está no meio do "leve um bloco a 100%". Suba
+  quando o TEXTO de uma resposta já praticada mudar — foi o caso do `_r4`.
 
 ### A tela
 
@@ -633,9 +664,10 @@ são os `pontos`, que agora servem de roteiro de escrita, não de nota.
   `saveInterviewDraft()`, que **nunca** chama `render()`: abrir o modal de
   saída reescreve o `#app`, e sem o rascunho guardado a pessoa perderia o que
   escreveu.
-- A navegação é: card da página inicial → **escolha dos blocos** → rodada →
-  resultado. O resultado oferece refazer os mesmos blocos, **ir para o próximo
-  bloco** (o primeiro que ainda não está em 100%) ou voltar à escolha.
+- A navegação é: card da página inicial → **escolha da pergunta** → escolha dos
+  blocos → rodada → resultado. O resultado oferece refazer os mesmos blocos,
+  **ir para o próximo bloco** da mesma resposta (o primeiro que ainda não está
+  em 100%), voltar à escolha dos blocos ou trocar de pergunta.
 - A tela de escolha reusa as classes do módulo de tradução (`.trans-deck-list`,
   `.trans-deck-option`, `.trans-deck-score`): é a mesma tarefa, e duplicar CSS
   por módulo só cria divergência visual.
@@ -697,7 +729,12 @@ exatamente essa diferença que escondia o bug dos 11%.
   HTML. Na contagem: o próprio bloco dá 100%, trocar uma palavra custa
   exatamente uma, e 209 de 210 mostra 99%, não 100%. **O histórico por bloco
   mescla:** praticar o bloco 2 não pode apagar a nota do bloco 1, e a tela de
-  escolha mostra as duas. As palavras dos blocos somam a resposta inteira O teste ainda registra **por que** a régua é por
+  escolha mostra as duas. **A pergunta é uma unidade:** a grade abre só as
+  perguntas que já têm resposta padrão, a escolha de uma resposta não lista
+  bloco de outra, "Select all" marca só os da pergunta aberta, uma rodada
+  chamada com chaves de duas respostas fica na primeira, o "Next block" nunca
+  aponta para outra resposta e praticar a segunda não apaga o histórico da
+  primeira. As palavras dos blocos somam a resposta inteira O teste ainda registra **por que** a régua é por
   palavra: o veredito inteiro do corretor dá "diferente" tanto para uma palavra
   trocada quanto para uma resposta inventada — num par de **frases sintéticas**,
   porque rodar isso sobre um bloco curto dá "quase" (a tolerância de digitação
