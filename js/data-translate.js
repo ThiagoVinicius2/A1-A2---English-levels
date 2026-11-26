@@ -5578,6 +5578,9 @@ const TRANS_SYNONYMS = [
   ["modelling", "modeling"], ["modelled", "modeled"],
   /* "towards" e "toward" são a mesma palavra — britânico e americano */
   ["towards", "toward"],
+  /* "optimise/optimisation" entrou com o espelho das ferramentas da entrevista */
+  ["optimise", "optimize"], ["optimised", "optimized"],
+  ["optimisation", "optimization"], ["optimisations", "optimizations"],
   /* "universidade" e "faculdade" são college e university sem distinção aqui */
   ["university", "college"], ["universities", "colleges"],
   ["neighbour", "neighbor"], ["neighbours", "neighbors"],

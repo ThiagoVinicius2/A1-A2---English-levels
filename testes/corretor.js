@@ -157,6 +157,8 @@ p.nota(`sinônimos: ${nSin} trocas conferidas sobre as respostas do banco`);
   [{ en: "The office is near the city center." }, "The office is near the city centre."],
   /* "towards" entrou com o espelho da entrevista ("the direction I've been building towards") */
   [{ en: "That is the direction I am building toward." }, "That is the direction I am building towards."],
+  /* "optimisation" entrou com o espelho das ferramentas da entrevista */
+  [{ en: "I work on query optimization every day." }, "I work on query optimisation every day."],
 ].forEach(([card, txt]) => p.ok(certo(card, txt), `par de sinônimo: "${txt}" devia dar certo`));
 
 /* ---- 8. número por extenso vale pelo algarismo até 99 ---- */

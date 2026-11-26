@@ -231,27 +231,94 @@ const INTERVIEW_QUESTIONS = [
           + "arguing about the data. If I did it again, I would write the definitions down "
           + "with the business before touching any SQL." },
 
+  /* ---- Pergunta 4: resposta-espelho ----
+     A pergunta das ferramentas da vaga, agora na forma em que ela é feita de
+     verdade: o recrutador lê a lista do cliente e pede a sua posição em cada
+     item. O enunciado guardado é a versão curta dessa pergunta — o que o
+     recrutador diz antes ("Now I'd like to go through the technical
+     requirements with you, because the client was very specific about them")
+     é moldura, e o enunciado é o que ele pede. A versão `soon` desta posição
+     era "What's your experience with Power BI?", com uma ferramenta só.
+
+     Seis blocos, na ordem em que o dono escreveu a resposta: anunciar a
+     estrutura, o que é forte, o que já está coberto, a ferramenta com a
+     fronteira clara, o gap e a ponte. A ordem é a tática da resposta — o gap
+     só funciona DEPOIS do que é forte, e a ponte só funciona depois do gap. */
   { id: "i-4",
-    kind: "soon",
+    kind: "mirror",
     tag: "Tools",
-    question: "What's your experience with Power BI?",
-    porque: "A pergunta é sobre a ferramenta que o anúncio pede — troque Power BI pela que "
-          + "estiver na vaga. Responda em três camadas: quanto tempo, o que você construiu "
-          + "com ela e onde está o seu limite. Dizer o limite com honestidade vale mais que "
-          + "inflar: a próxima pergunta costuma ser técnica.",
-    pontos: [
-      "quanto tempo de uso, e com que frequência",
-      "o que você construiu com ela",
-      "um detalhe técnico que mostra profundidade",
-      "o que você ainda não domina, sem drama",
+    question: "The role asks for Python, SQL, Spark, Databricks and Airflow — where do you stand on each?",
+    porque: "É a pergunta que decide a parte técnica da entrevista. A resposta do dono não "
+          + "vende nem se encolhe: ela abre pelo que é forte, marca rápido o que já está "
+          + "coberto, delimita sozinha onde o uso ainda não chegou, diz o gap sem rodeio e "
+          + "fecha com o que ele leva para o que ainda não usou.",
+    partes: [
+      { topic: "Announcing the structure",
+        funcao: "Dar a ela o sinal de que vem uma lista — ela prepara o papel. E te devolve a "
+              + "estrutura se você travar no meio.",
+        dica: "Uma frase e um respiro: é um anúncio, não o começo da resposta. Depois dela, "
+            + "vá direto para o primeiro item.",
+        en: "Sure, let me go through them one by one." },
+      { topic: "Where you are strongest",
+        funcao: "Abrir pelos dois requisitos que você domina, cada um com o que você FAZ e "
+              + "com um número — é o que separa “uso” de “trabalho com isso”.",
+        dica: "São duas ferramentas e duas frases: pare entre elas. O número é a âncora do "
+            + "bloco, então diga-o devagar.",
+        en: "SQL is my strongest. I use it every day: modeling, transformations and query "
+          + "optimisation, on datasets of around twenty million rows.\n\n"
+          + "Python I use for ETL and automation — extraction from APIs, cleaning and "
+          + "validation, mainly with Pandas and NumPy." },
+      { topic: "What is already covered",
+        funcao: "Uma frase só. É requisito da vaga, você domina, e não vale gastar tempo "
+              + "aqui — o tempo é dos blocos que vêm depois.",
+        dica: "Ritmo rápido, tom de quem marca item numa lista. Alongar aqui tira o tempo "
+            + "dos blocos que decidem a pergunta.",
+        en: "On the BI side, Power BI with DAX and Qlik Sense — that's where I come from, so "
+          + "that part is well covered." },
+      { topic: "Airflow, and where it ends",
+        funcao: "Mostrar o que você construiu com a ferramenta e, na última frase, delimitar "
+              + "sozinho onde o uso dela ainda não chegou. Parece custar, mas ganha: quem "
+              + "delimita o que não fez passa a ser confiável no que diz que fez.",
+        dica: "A última frase sai no mesmo tom das outras, sem pausa antes e sem desculpa "
+            + "depois — ela é informação, não confissão.",
+        en: "Airflow I've used in my own projects. I built a pipeline with idempotent DAGs "
+          + "and annual backfill, running in Docker. I haven't used it in production at work "
+          + "yet." },
+      { topic: "The gap, said straight",
+        funcao: "Dizer o que falta antes que ela pergunte, em uma frase e sem rodeio. Quem "
+              + "levanta o próprio gap escolhe como ele é dito.",
+        dica: "Sem baixar a voz e sem emendar justificativa: a frase termina aqui, e quem "
+            + "responde ao gap é o bloco seguinte.",
+        en: "Spark and Databricks are the gap, and I'd rather be straight about that. I'm "
+          + "studying both at the moment, and I haven't used them in production." },
+      { topic: "The bridge",
+        funcao: "Fechar com o que você leva para o que ainda não usou: o método é o mesmo, "
+              + "o que muda é o motor. É o bloco que transforma o gap em coisa resolvível.",
+        dica: "É o bloco mais longo e o fecho da resposta: quatro frases, uma pausa entre "
+            + "cada. A última é a prova — diga-a sem pressa e pare.",
+        en: "What I do have is the discipline underneath them: layered modeling, incremental "
+          + "loads, automated tests and backfill. I apply that every day with SQL and "
+          + "Airflow. When I move to Spark, what changes is the execution engine, not the "
+          + "way I think about data. And I pick tools up fast — I learned dbt and Airflow on "
+          + "my own, outside work." },
     ],
-    modelo: "I've used it for about four years, almost every day. I built the reporting "
-          + "layer for the commercial team — around fifteen dashboards, with row-level "
-          + "security so each regional manager only sees their own area. I'm comfortable "
-          + "with the data model side, star schema, and writing DAX measures. I'm still "
-          + "learning the heavier DAX, things like time intelligence over a custom calendar. "
-          + "I haven't worked with Fabric yet, but the SQL behind the reports is the part I "
-          + "know best." },
+    modelo: "Sure, let me go through them one by one.\n\n"
+          + "SQL is my strongest. I use it every day: modeling, transformations and query "
+          + "optimisation, on datasets of around twenty million rows.\n\n"
+          + "Python I use for ETL and automation — extraction from APIs, cleaning and "
+          + "validation, mainly with Pandas and NumPy.\n\n"
+          + "On the BI side, Power BI with DAX and Qlik Sense — that's where I come from, so "
+          + "that part is well covered.\n\n"
+          + "Airflow I've used in my own projects. I built a pipeline with idempotent DAGs "
+          + "and annual backfill, running in Docker. I haven't used it in production at work "
+          + "yet.\n\n"
+          + "Spark and Databricks are the gap, and I'd rather be straight about that. I'm "
+          + "studying both at the moment, and I haven't used them in production.\n\n"
+          + "What I do have is the discipline underneath them: layered modeling, incremental "
+          + "loads, automated tests and backfill. I apply that every day with SQL and "
+          + "Airflow. When I move to Spark, what changes is the execution engine, not the "
+          + "way I think about data. And I pick tools up fast — I learned dbt and Airflow on "
+          + "my own, outside work." },
 
   { id: "i-5",
     kind: "soon",
