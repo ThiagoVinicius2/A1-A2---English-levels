@@ -547,11 +547,20 @@ genéricas. O exercício é reproduzir a resposta padrão dele até sair sem pen
 **O combinado é um espelho por vez:** o dono pratica uma pergunta até ela sair
 inteira, então escreve a resposta padrão da próxima. Quando ela chegar, a
 pergunta vira `mirror` — troque `pontos` por `partes[]` e ponha a resposta
-inteira no `modelo`. Hoje há dois espelhos: a pergunta 1 ("Tell me about
-yourself.") e a pergunta 2 ("I noticed a few changes in the last two years — can
-you walk me through them?"). O enunciado da 2 mudou quando a resposta chegou: a
-posição era "Why are you looking to leave your current role?", e a resposta do
-dono cobre as duas coisas — as trocas e o que ele quer agora.
+inteira no `modelo`. Hoje há três espelhos: a pergunta 1 ("Tell me about
+yourself."), a 2 ("I noticed a few changes in the last two years — can you walk
+me through them?") e a 4, a das ferramentas da vaga.
+
+- **O enunciado muda quando a resposta chega, e isso é o normal.** A posição 2
+  era "Why are you looking to leave your current role?" e a 4 era "What's your
+  experience with Power BI?" — as duas viraram a pergunta como ela é feita de
+  verdade, porque é essa que a resposta responde. A `soon` é um lugar reservado,
+  não um texto fechado.
+- **O enunciado é o que o recrutador PEDE, não a moldura antes dele.** A
+  pergunta 4 chegou com três frases, e a primeira só prepara o terreno ("Now I'd
+  like to go through the technical requirements with you…"). O que ficou no
+  `question` é o pedido, em uma linha: ele é rótulo de card e de etiqueta, e um
+  parágrafo ali estoura as duas telas.
 
 ### A pergunta é a unidade
 
@@ -573,9 +582,18 @@ dono cobre as duas coisas — as trocas e o que ele quer agora.
   answer yet"** — é o mesmo estado do "No decks yet", e serve de roteiro do que
   falta escrever.
 - **O número de blocos é da resposta, não uma tabela.** A pergunta 1 tem cinco
-  blocos e a 2 tem quatro, que são os quatro parágrafos em que ela foi escrita.
-  Cortar a 2 em cinco para igualar partiria um parágrafo no meio, e parágrafo é
-  a unidade em que a resposta é dita.
+  blocos, a 2 tem quatro (os quatro parágrafos em que ela foi escrita) e a 4 tem
+  seis, que o dono já entregou separados e nomeados. Cortar para igualar
+  partiria um parágrafo no meio, e parágrafo é a unidade em que a resposta é
+  dita.
+- **Quando a resposta chega já em blocos, respeite a divisão e a ORDEM.** Na
+  pergunta 4 a ordem é a tática: o gap só funciona depois do que é forte, e a
+  ponte só funciona depois do gap. Um bloco pode ter mais de um parágrafo (o
+  bloco 2 dela tem dois, um por ferramenta) — a emenda normaliza o espaço em
+  branco, então isso não muda o `modelo`.
+- **O `funcao` sai do que o dono escreveu junto da resposta**, quando ele
+  explica para que serve cada bloco; o que faltar, escreva e diga a ele que
+  escreveu. A `dica` é a entrega em voz alta.
 
 **Já houve um `kind:"open"`** (responder livre e marcar um checklist de
 autoavaliação) e ele **saiu**: com todas as perguntas indo virar espelho, a
